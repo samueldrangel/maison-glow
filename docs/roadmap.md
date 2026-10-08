@@ -1,6 +1,6 @@
 # Roadmap de desarrollo — Entrega 1
 
-> Plan de trabajo exacto por integrante para la **Entrega 1** (≈ 14 días): toda la lógica de negocio, con DAO en memoria,
+> Plan de trabajo exacto por integrante para la **Entrega 1** (≈ 14 días): toda la lógica de negocio, con persistencia en archivos de texto,
 > más avances de UI en mockups y la BD **diseñada** (no conectada). Contexto: [`../PLANIFICACION.md`](../PLANIFICACION.md) ·
 > clases: [`fase2/diseno-clases.md`](fase2/diseno-clases.md) · TEAM: [`../TEAM.md`](../TEAM.md).
 
@@ -15,7 +15,7 @@
 | 3 | N-01 | `Person`, `Customer`, `Professional` | Nicoll | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
 | 4 | I-01 | `BeautyService` | Isabella | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
-| 6 | S-03 | Base `InMemoryDao<T>` | Samuel | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
+| 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
 | 7 | I-02 | `Product` | Isabella | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
 | 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ⬜ Pendiente |
 | 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ⬜ Pendiente |
@@ -85,13 +85,13 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 |---|---|---|---|---|---|---|
 | S-01 | 🔴 | 1 | Cerrar la base del repo | — | `feature/project-skeleton` (existe) | Fusionar el PR del esqueleto a `develop`; agregar colaboradores y docente; proteger `main`; poner `develop` por defecto; reunión de contratos (sección 3). **Listo cuando** Nicoll e Isabella pueden clonar y compilar con `mvn clean verify`. |
 | S-02 | 🔴 | 1–2 | Diseño de la BD | — | `docs/database-design` | MER (Mermaid en `docs/fase4/`) y `sql/schema.sql` con tablas `customer`, `professional`, `beauty_service`, `professional_service`, `product`, `appointment`, `sale`, `sale_line`. PK/FK, `CHECK` de precios y stock ≥ 0. Revisado por los tres. **Listo cuando** el script corre sin error en SQLite. |
-| S-03 | 🔴 | 2 | Base `InMemoryDao<T>` | S-01 | `feature/in-memory-dao` | Clase abstracta genérica con `HashMap<Integer,T>` y contador de ids que implementa `CrudDao<T>`; cada DAO en memoria solo la extiende y define cómo leer/asignar el id. **Listo cuando** hay pruebas de crear, buscar, listar, actualizar y eliminar (con `Optional.empty()` en no encontrado). *Desbloquea todos los DAO.* |
-| S-04 | 🔴 | 3–4 | `Appointment` y su DAO | N-01, I-01 | `feature/appointment-model` | `Appointment` con `getEnd()`, `overlapsWith()`, transiciones de estado y `AppointmentStatus.blocksSchedule()`; `AppointmentDao` + `AppointmentDaoMemory`. **Listo cuando** las transiciones inválidas lanzan `BusinessRuleException`. |
+| S-03 | 🔴 | 2 | Base `TextFileDao<T>` | S-01 | `feature/text-file-dao` | Clase abstracta genérica que implementa `CrudDao<T>` sobre un archivo `.txt` ([ADR-0012](adr/0012-persistencia-en-archivos-de-texto.md)): carga al construirse, mantiene un `Map<Integer,T>`, guarda tras cada cambio, asigna ids y usa `|` como separador con escape. Cada DAO solo define `toFields`, `fromFields` y el acceso al id; la ruta llega por constructor. Agrega `data/settings.txt` precargado (de `sql/seed.sql`) y las reglas de `.gitignore` para `data/*.txt`. **Listo cuando** hay pruebas con archivo temporal de crear, buscar, listar, actualizar, eliminar, recarga desde disco y escape de `|`. *Desbloquea todos los DAO.* |
+| S-04 | 🔴 | 3–4 | `Appointment` y su DAO | N-01, I-01 | `feature/appointment-model` | `Appointment` con `getEnd()`, `overlapsWith()`, transiciones de estado y `AppointmentStatus.blocksSchedule()`; `AppointmentDao` + `AppointmentDaoText`. **Listo cuando** las transiciones inválidas lanzan `BusinessRuleException`. |
 | S-05 | 🔴 | 5–7 | `AppointmentService.book` y gestión de citas | S-04 | `feature/appointment-service` | `book(...)`: valida datos (`Validator`), que el profesional ofrezca el servicio y trabaje en el horario y que **no haya cruce** con citas activas; `reschedule`, `cancel`, `confirm`, `listByDate`, `checkAvailability` (RF-10 a 13). **Listo cuando** una prueba intenta dos citas cruzadas y la segunda se rechaza. |
 | S-06 | 🔴 | 5–6 | `Sale` y `SaleLine` | I-02 | `feature/sale-model` | `Sale.addLine(Sellable, qty)` **crea** el `SaleLine` (Creator), copia el precio del momento y suma cantidad si el ítem ya está; `calculateTotal()`. **Listo cuando** una venta mixta (producto + servicio) calcula bien el total. |
 | S-07 | 🔴 | 7–9 | `SaleService.register` | S-06, I-03 | `feature/sale-service` | Valida que haya líneas y stock suficiente; **descuenta stock** de los productos (polimorfismo vía `Sellable`, sin `instanceof` de tipos de negocio — se usa un método del modelo); guarda la venta; `listByCustomer` (RF-14 a 17). **Listo cuando** vender más que el stock falla y no descuenta nada (todo o nada). |
 | S-08 | 🟠 | 9–10 | Reglas de cita | S-05 | `feature/appointment-rules` | Interfaz `AppointmentRule` y `DepositRule`, `ConfirmationRule`, `ReminderRule` inyectadas en `AppointmentService` (ADR-0007) (RF-26). **Listo cuando** agregar una regla nueva no obliga a modificar `AppointmentService`. |
-| S-09 | 🟠 | 11–12 | Pruebas de integración | S-07, N-05 | `feature/integration-tests` | Escenario completo con DAO en memoria: registrar cliente, profesional, servicio y producto → agendar (y rechazar cruce) → vender → verificar stock y estadísticas. |
+| S-09 | 🟠 | 11–12 | Pruebas de integración | S-07, N-05 | `feature/integration-tests` | Escenario completo con DAO de archivo de texto (sobre archivos temporales): registrar cliente, profesional, servicio y producto → agendar (y rechazar cruce) → vender → verificar stock y estadísticas. |
 | S-10 | 🟢 | 12–13 | Demo de consola y cierre | S-09 | `feature/console-demo` | `Main` que ejecuta el escenario e imprime resultados (para mostrar la lógica sin UI). |
 | S-11 | 🔴 | 11–14 | Consolidar documentos | todos | `docs/phase1-phase2` | Documento de Fase 1 (portada a bibliografía), actualizar `TEAM.md` y `docs/version-control.md` (commits y PR por integrante). |
 
@@ -100,9 +100,9 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
 | N-01 | 🔴 | 1–2 | `Person`, `Customer`, `Professional` | S-01 | `feature/person-model` | `Person` abstracta con `getRoleDescription()`; `Customer` con `registerNoShow()`; `Professional` con lista de servicios (`ArrayList`), `offers()` y `worksDuring()`. `toString`/`equals`/`hashCode` por documento. **Listo cuando** hay pruebas de `worksDuring` (dentro, fuera y en el borde del horario). *Desbloquea a Samuel: fusionar el Día 2.* |
-| N-02 | 🔴 | 3–4 | Módulo de clientes | N-01, S-03 | `feature/customer-service` | `CustomerDao` + `CustomerDaoMemory` + `CustomerService`: registrar (documento único, correo y teléfono válidos), buscar por id y por nombre, actualizar, eliminar (RF-01, 02). **Listo cuando** registrar un documento repetido lanza `BusinessRuleException`. |
-| N-03 | 🔴 | 4–5 | Catálogo de servicios | I-01, S-03 | `feature/beauty-service-catalog` | `BeautyServiceDao` + `...Memory` + `BeautyServiceCatalog`: registrar (precio > 0, duración > 0), actualizar, activar/desactivar, listar (RF-06, 07). |
-| N-04 | 🔴 | 5–6 | Módulo de profesionales | N-01, N-03 | `feature/professional-service` | `ProfessionalDao` + `...Memory` + `ProfessionalService`: registrar, `assignService`, `listByService` (RF-08, 09). **Listo cuando** asignar un servicio inactivo se rechaza. |
+| N-02 | 🔴 | 3–4 | Módulo de clientes | N-01, S-03 | `feature/customer-service` | `CustomerDao` + `CustomerDaoText` + `CustomerService`: registrar (documento único, correo y teléfono válidos), buscar por id y por nombre, actualizar, eliminar (RF-01, 02). **Listo cuando** registrar un documento repetido lanza `BusinessRuleException`. |
+| N-03 | 🔴 | 4–5 | Catálogo de servicios | I-01, S-03 | `feature/beauty-service-catalog` | `BeautyServiceDao` + `...Text` + `BeautyServiceCatalog`: registrar (precio > 0, duración > 0), actualizar, activar/desactivar, listar (RF-06, 07). |
+| N-04 | 🔴 | 5–6 | Módulo de profesionales | N-01, N-03 | `feature/professional-service` | `ProfessionalDao` + `...Text` + `ProfessionalService`: registrar, `assignService`, `listByService` (RF-08, 09). **Listo cuando** asignar un servicio inactivo se rechaza. |
 | N-05 | 🟠 | 8–10 | Estadísticas | S-07 (contrato), S-05 | `feature/statistics-service` | `StatisticsService` sobre `SaleDao` y `AppointmentDao`: `customerStatistics(id)` (compras y citas, RF-18), `topProducts(n, from, to)`, `topServices(n)` y `frequentCustomers(n)` (RF-28), devolviendo `Map`/`List`. Se puede empezar con `Mockito` mientras llegan los DAO reales. |
 | N-06 | 🟠 | 10–11 | Baja rotación | N-05 | `feature/low-rotation` | `lowRotationProducts(n, from, to)` (RF-29) y `AdminNotifier` (interfaz) con implementación simulada que lista los productos de baja rotación (RF-30). |
 | N-07 | 🟢 | 11–12 | Sugerencia de promociones | N-06 | `feature/promotion-suggestion` | `suggestPromotions(customerId)`: productos de baja rotación que el cliente aún no compró (RF-31). |
@@ -115,7 +115,7 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 |---|---|---|---|---|---|---|
 | I-01 | 🔴 | 1–2 | `BeautyService` | S-01 | `feature/beauty-service-model` | Implementa `Sellable`; `calculateEnd(start)` suma la duración. `toString`/`equals`/`hashCode` por id. *Desbloquea a Samuel (Appointment) y a Nicoll (catálogo): fusionar el Día 2.* |
 | I-02 | 🔴 | 2–3 | `Product` | S-01 | `feature/product-model` | Implementa `Sellable`; `hasStock`, `deductStock` (lanza `BusinessRuleException` si no alcanza), `addStock`, `isBelowMinimum()`. **Listo cuando** hay pruebas de descuento exacto, descuento excesivo y umbral. |
-| I-03 | 🔴 | 3–5 | Módulo de productos | I-02, S-03 | `feature/product-service` | `ProductDao` + `ProductDaoMemory` + `ProductService`: registrar (precio > 0, stock ≥ 0), actualizar, `adjustStock`, `listLowStock()` (RF-03, 04, 05, 19). |
+| I-03 | 🔴 | 3–5 | Módulo de productos | I-02, S-03 | `feature/product-service` | `ProductDao` + `ProductDaoText` + `ProductService`: registrar (precio > 0, stock ≥ 0), actualizar, `adjustStock`, `listLowStock()` (RF-03, 04, 05, 19). |
 | I-04 | 🔴 | 1–8 | Mockups base M1–M4 | — | `docs/mockups-core` | En Figma o draw.io, exportados a `docs/fase2/mockups/`: M1 principal y navegación, M2 clientes, M3 profesionales/servicios, M4 productos. Cada uno con componentes y eventos anotados. |
 | I-05 | 🔴 | 8–11 | Mockups M5–M7 | I-04 | `docs/mockups-operations` | M5 agenda de citas, M6 nueva venta (carrito), M7 estadísticas. |
 | I-06 | 🔴 | 7–12 | Diagrama de paquetes y de clases | N-01, I-01, I-02, S-04, S-06 | `docs/diagrams` | Diagrama de paquetes y de clases **final** (draw.io o Mermaid) basado en el código real, guardado en `docs/fase2/`. |
