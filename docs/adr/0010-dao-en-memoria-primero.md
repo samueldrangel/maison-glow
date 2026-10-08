@@ -1,6 +1,6 @@
 # ADR-0010: DAO en memoria primero, JDBC después
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0012](0012-persistencia-en-archivos-de-texto.md)
 - **Fecha:** 2026-10-08
 - **Decide:** Samuel Rangel, con el equipo
 
