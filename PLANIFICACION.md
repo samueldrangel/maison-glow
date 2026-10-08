@@ -49,7 +49,7 @@ Para un curso de Programación III el proyecto es amplio; se prioriza en tres ni
 └───────────────┬──────────────────────────────┘
                 │ usa interfaces
 ┌───────────────▼──────────────────────────────┐
-│ DATOS  (dao)  en memoria → JDBC + SQLite      │
+│ DATOS  (dao)  archivos .txt → JDBC + SQLite   │
 └──────────────────────────────────────────────┘
 ```
 
@@ -58,7 +58,7 @@ Para un curso de Programación III el proyecto es amplio; se prioriza en tres ni
 | Paquete | Contenido |
 |---|---|
 | `modelo` | Entidades del dominio: `Persona`*, `Cliente`, `Profesional`, `Producto`, `Servicio`, `Cita`, `Venta`, `DetalleVenta`, interfaz `Vendible`, enums de estado |
-| `dao` | Interfaz genérica `CrudDao<T>` con dos implementaciones por entidad: **en memoria** (`ClienteDaoMemoria`, entrega 1) y **JDBC** (`ClienteDaoJdbc`, entrega 2). Ver [ADR-0010](docs/adr/0010-dao-en-memoria-primero.md) |
+| `dao` | Interfaz genérica `CrudDao<T>` con dos implementaciones por entidad: **archivo de texto** (`ClienteDaoTexto`, entrega 1) y **JDBC** (`ClienteDaoJdbc`, entrega 2). Ver [ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md) |
 | `servicio` | Lógica de negocio y coordinación (`CitaServicio`, `VentaServicio`, ...). Actúa como *Controller* GRASP |
 | `servicio.regla` | `ReglaCita` (interfaz) y sus implementaciones: anticipo, confirmación, recordatorio |
 | `vista` | Vistas `.fxml` (JavaFX), `estilos.css` y sus controladores en `vista.controlador` |
@@ -111,8 +111,8 @@ El curso entrega 4 fases. Duración sugerida (ajustar con el docente):
 
 | Semana | Entrega | Foco |
 |---|---|---|
-| 1–2 | **ENTREGA 1** | Fases 1 y 2 completas; **lógica de negocio completa** (modelo, servicios, reglas) con DAO en memoria; **mockups** de la UI; **BD diseñada** (MER + `schema.sql`, sin conectar) |
-| 3–4 | Entrega 2 (a) | Conexión SQLite + DAO JDBC (CRUD, excepciones, transacciones); reemplazo de los DAO en memoria |
+| 1–2 | **ENTREGA 1** | Fases 1 y 2 completas; **lógica de negocio completa** (modelo, servicios, reglas) con persistencia en archivos de texto; **mockups** de la UI; **BD diseñada** (MER + `schema.sql`, sin conectar) |
+| 3–4 | Entrega 2 (a) | Conexión SQLite + DAO JDBC (CRUD, excepciones, transacciones); reemplazo de los DAO de archivo de texto |
 | 5–7 | Entrega 2 (b) | Interfaz JavaFX real conectada a los servicios; estadísticas y BI |
 | 8–9 | Entrega 2 (c) | Módulos de IA (asistente, probador), factura por correo, pulido y Javadoc |
 | 10 | **Fase 4** | Documentación final, MER definitivo, diccionario de datos, trazabilidad, reporte Git |
@@ -148,12 +148,12 @@ Herramientas sugeridas: **draw.io / PlantUML** para UML; **Figma** o **draw.io**
 
 #### Entrega 1 (semanas 1–2): lógica de negocio sin BD
 
-Se programa contra la interfaz `CrudDao<T>` usando DAO **en memoria** (`HashMap`/`ArrayList`), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
+Se programa contra la interfaz `CrudDao<T>` usando DAO de **archivo de texto** (`data/*.txt`, ver ADR-0012), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
 
 | Bloque | Samuel (Líder) | Nicoll (Dev 1) | Isabella (Dev 2) |
 |---|---|---|---|
 | **Días 1–2** | Repo, ramas, proyecto Maven, `CrudDao<T>`, excepciones, `Validador`; **MER y `schema.sql` (con Nicoll e Isabella)** | `Persona`, `Cliente`, `Profesional` | `Vendible`, `Producto`, `Servicio`; mockups: pantalla principal y navegación |
-| **Días 3–6** | `Cita` + `CitaDaoMemoria`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `ServicioServicio` + DAO en memoria (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); mockups de Productos y Clientes |
+| **Días 3–6** | `Cita` + `CitaDaoTexto`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `ServicioServicio` + DAO de archivo de texto (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); mockups de Productos y Clientes |
 | **Días 7–10** | Reglas `ReglaCita` (RF-26); `Venta`, `DetalleVenta` y `VentaServicio` con descuento de stock (RF-14 a 17); interfaz `NotificadorCorreo` con implementación simulada (RF-27) | Estadísticas de cliente/admin y baja rotación (RF-18, 28 a 31) | Mockups de Citas, Ventas, Estadísticas y Probador/Asistente; validaciones de entrada |
 | **Días 11–14** | Integración, `Main` de demostración, pruebas cruzadas, documento Fase 1 y 2, diagramas de paquetes y clases | Pruebas JUnit de sus servicios; Javadoc; justificación GRASP/SOLID | Pruebas JUnit de sus servicios; Javadoc; mockups finales; tabla de tareas |
 
@@ -238,7 +238,7 @@ Una tarea se da por cerrada cuando:
 |---|---|---|
 | Alcance demasiado grande | Alta | Priorización MVP / deseable / experimental (sección 2) |
 | Conflictos de merge en vistas `.fxml` | Media | Una vista por dev; no editar la del compañero sin avisar |
-| Entrega 1 en 2 semanas con alcance grande | Alta | Lógica con DAO en memoria y probada por consola/JUnit; UI solo en mockups; IA y JDBC quedan para la entrega 2 |
+| Entrega 1 en 2 semanas con alcance grande | Alta | Lógica con DAO de archivo de texto y probada por consola/JUnit; UI solo en mockups; IA y JDBC quedan para la entrega 2 |
 | API de IA no disponible o de pago | Alta | Interfaces + implementación simulada; la demo funciona sin internet |
 | Desigualdad de aporte en commits | Media | Revisión semanal de `git shortlog`; tareas asignadas por dueño |
 | Cambio de requisitos del docente | Baja | ADR para registrar cambios de decisión |
