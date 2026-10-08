@@ -10,8 +10,8 @@
 
 | Orden | ID | Tarea | Responsable | Pri. | Inicia | Depende de | Estado |
 |:--:|---|---|---|:--:|:--:|---|:--:|
-| 1 | S-01 | Cerrar la base del repo (fusionar esqueleto, colaboradores, protección de ramas, contratos) | Samuel | 🔴 | Día 1 | — | 🟨 En progreso |
-| 2 | S-02 | Diseño de la BD (MER y `schema.sql`) | Samuel | 🔴 | Día 1 | — | ⬜ Pendiente |
+| 1 | S-01 | Cerrar la base del repo (fusionar esqueleto, colaboradores, protección de ramas, contratos) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
+| 2 | S-02 | Diseño de la BD (MER y `schema.sql`) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 3 | N-01 | `Person`, `Customer`, `Professional` | Nicoll | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
 | 4 | I-01 | `BeautyService` | Isabella | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
