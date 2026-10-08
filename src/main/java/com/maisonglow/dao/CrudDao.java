@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Defines the basic persistence operations shared by every data access class.
  * Services depend on this contract rather than on a concrete storage
- * technology, so the in-memory implementations can be replaced by JDBC ones
+ * technology, so the text-file implementations can be replaced by JDBC ones
  * without changing business logic.
  *
  * @param <T> the type of entity managed by the implementation
