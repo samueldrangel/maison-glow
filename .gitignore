@@ -1,0 +1,14 @@
+# Compilación
+target/
+build/
+*.class
+
+# IDE
+nbproject/private/
+.idea/
+*.iml
+
+# Base de datos local y secretos
+*.db
+.env
+config.properties
