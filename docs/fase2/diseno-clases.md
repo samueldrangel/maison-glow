@@ -4,6 +4,20 @@
 > (clases básicas, constructores, getters/setters, herencia, polimorfismo, interfaces, colecciones).
 > Contexto y decisiones: [`../../PLANIFICACION.md`](../../PLANIFICACION.md) · [`../adr/`](../adr/README.md)
 
+> **Nomenclatura en el código.** Los identificadores, el Javadoc y los commits están en inglés; los mensajes al usuario, en español.
+> Este documento usa los nombres del dominio en español; en el código se corresponden así:
+>
+> | Diseño (español) | Código (inglés) |
+> |---|---|
+> | `Persona`, `Cliente`, `Profesional` | `Person`, `Customer`, `Professional` |
+> | `Producto`, `Servicio`, `Vendible` | `Product`, `BeautyService`, `Sellable` |
+> | `Cita`, `EstadoCita`, `ReglaCita` | `Appointment`, `AppointmentStatus`, `AppointmentRule` |
+> | `Venta`, `DetalleVenta` | `Sale`, `SaleLine` |
+> | `CitaServicio`, `VentaServicio`, `CatalogoServicios` | `AppointmentService`, `SaleService`, `BeautyServiceCatalog` |
+> | `NotificadorCorreo`, `Validador` | `EmailNotifier`, `Validator` |
+> | Paquetes `modelo`, `servicio`, `servicio.regla`, `vista`, `excepcion`, `ia` | `model`, `service`, `service.rule`, `ui`, `exception`, `ai` |
+> | Métodos (`descontarStock`, `calcularTotal`, `agendar`) | `deductStock`, `calculateTotal`, `book` |
+
 **Contenido**
 1. [Arquitectura y diagrama de paquetes](#1-arquitectura-y-diagrama-de-paquetes)
 2. [Identificación de clases](#2-identificación-de-clases)
