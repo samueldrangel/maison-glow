@@ -17,6 +17,14 @@ La primera entrega pide toda la lógica de negocio sin base de datos. El ADR-001
 7. **Datos iniciales:** `data/settings.txt` viene precargado con la configuración de `sql/seed.sql`. Los demás archivos nacen vacíos y están en `.gitignore`.
 8. **Excepciones:** los errores de lectura/escritura se envuelven en `DataAccessException` (ADR-0008).
 
+## Enmienda (2026-10-09): archivos para todas las tablas D1 del esquema
+Para mantener la coherencia con `sql/schema.sql` ([ADR-0011](0011-decisiones-de-diseno-de-la-base-de-datos.md)) se agregan a la lista de archivos de la decisión 1:
+- `categories.txt` (tabla `product_category`), precargado con las categorías de `sql/seed.sql` y versionado como `settings.txt`.
+- `professional_services.txt` (tabla `professional_service`, relación N:M), manejado por `ProfessionalDaoText`.
+- `sale_lines.txt` (tabla `sale_line`), manejado por `SaleDaoText`, que guarda la venta y sus líneas juntas.
+- `settings.txt` (tabla `app_setting`) tiene clave de texto: su `SettingDao` no extiende `CrudDao` y reutiliza el escape de `TextFileDao`.
+- El stock se modifica directamente en `Product` durante la Entrega 1; los `stock_movement` llegan con la Entrega 2.
+
 ## Alternativas consideradas
 - **Solo memoria (ADR-0010):** más simple, pero los datos se pierden al cerrar y no demuestra persistencia.
 - **CSV con comas:** el nombre o la descripción suele contener comas; `|` evita la mayoría de choques.

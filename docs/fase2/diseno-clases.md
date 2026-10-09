@@ -610,8 +610,10 @@ Checklist por clase antes de abrir un Pull Request:
 
 | Responsable | Clases |
 |---|---|
-| **Samuel** | `CrudDao`, excepciones, `Validador`, `Cita`, `EstadoCita`, `CitaDao(Texto)`, `CitaServicio`, `ReglaCita` y sus 3 implementaciones, `Venta`, `DetalleVenta`, `VentaDao(Texto)`, `VentaServicio`, `NotificadorCorreo(Simulado)` |
-| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO de archivo de texto y servicios, `CatalogoServicios`, `EstadisticaServicio` |
-| **Isabella** | `Vendible`, `Producto`, `Servicio`, `ProductoDaoTexto`, `ProductoServicio`, mockups M1–M9 |
+| **Samuel** | `CrudDao`, `TextFileDao`, excepciones, `Validador`, `Cita`, `EstadoCita`, `CitaDao(Texto)`, `CitaServicio`, interfaz `ReglaCita`, `Venta`, `DetalleVenta`, `VentaDao(Texto)`, `VentaServicio`; **paquete `ia`** (opcional en la Entrega 1, sin interfaz): `AsistenteInteligente`, `HerramientaAsistente`, `RegistroHerramientas` y las herramientas, `ProbadorVirtual` y sus versiones simuladas |
+| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO de archivo de texto y servicios, `CatalogoServicios`, `EstadisticaServicio`, `NotificadorAdministrador`, pruebas de integración y `Main` |
+| **Isabella** | `Vendible`, `Producto`, `CategoriaProducto`, `Servicio`, sus DAO de texto, `ProductoServicio`, `Configuracion`/`ConfiguracionServicio` (tabla `app_setting`), `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`, `NotificadorCorreo(Simulado)`, mockups M1–M9 |
 
-> Esta distribución respeta los bloques de la sección 4.3 de `PLANIFICACION.md`. Ojo: la entidad `Servicio` es de Isabella pero su lógica (`CatalogoServicios`) es de Nicoll; coordinen la firma de `Servicio` desde el día 1.
+> Esta distribución sigue [`../roadmap.md`](../roadmap.md). Ojo: la entidad `Servicio` es de Isabella pero su lógica (`CatalogoServicios`) es de Nicoll; coordinen la firma de `Servicio` desde el día 1. `ReglaCita` la define Samuel (contrato) y sus implementaciones, que leen `ConfiguracionServicio`, las escribe Isabella.
+>
+> **Coherencia con `schema.sql`:** `Producto` referencia una `CategoriaProducto` (tabla `product_category`); `Cliente` guarda `fechaRegistro` e `inasistencias`; `Cita` guarda `anticipo` y `recordatorio`; `Venta` puede enlazar su `Cita`. Los parámetros del negocio (porcentaje de anticipo, aviso mínimo, ventana de baja rotación) se leen de `ConfiguracionServicio`, no se escriben en el código.
