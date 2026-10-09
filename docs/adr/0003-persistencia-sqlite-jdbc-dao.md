@@ -8,7 +8,7 @@
 Se requiere base de datos relacional, CRUD desde la capa de acceso a datos, patrón DAO y manejo de excepciones (RNF-07, RNF-08, RNF-12). La aplicación es local y para un único establecimiento (RNF-11).
 
 ## Decisión
-> **Calendario:** el esquema se diseña desde el inicio, pero la conexión JDBC se implementa en la entrega 2; antes se usan DAO en memoria ([ADR-0010](0010-dao-en-memoria-primero.md)).
+> **Calendario:** el esquema se diseña desde el inicio, pero la conexión JDBC se implementa en la entrega 2; antes se persiste en archivos de texto ([ADR-0012](0012-persistencia-en-archivos-de-texto.md)).
 
 - **Motor:** SQLite (archivo `maisonglow.db`), accedido con **JDBC puro** (`PreparedStatement` siempre, para evitar inyección SQL).
 - **Patrón DAO:** interfaz genérica `CrudDao<T>` (`crear`, `buscarPorId`, `listar`, `actualizar`, `eliminar`) y una clase `XxxDaoJdbc` por entidad.

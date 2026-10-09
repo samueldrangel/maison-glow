@@ -16,4 +16,6 @@ Si una decisión cambia, no se borra el ADR: se crea uno nuevo y el anterior pas
 | [0007](0007-reglas-de-cita-como-estrategias.md) | Reglas de citas como estrategias intercambiables | Aceptado |
 | [0008](0008-manejo-de-excepciones.md) | Manejo de excepciones y validaciones | Aceptado |
 | [0009](0009-ui-con-javafx.md) | Interfaz gráfica con JavaFX | Aceptado |
-| [0010](0010-dao-en-memoria-primero.md) | DAO en memoria primero, JDBC después | Aceptado |
+| [0010](0010-dao-en-memoria-primero.md) | DAO en memoria primero, JDBC después | Reemplazado por 0012 |
+| [0011](0011-decisiones-de-diseno-de-la-base-de-datos.md) | Decisiones de diseño de la base de datos | Aceptado |
+| [0012](0012-persistencia-en-archivos-de-texto.md) | Persistencia en archivos de texto en la Entrega 1 | Aceptado |

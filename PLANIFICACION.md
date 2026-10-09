@@ -15,9 +15,9 @@ Las fechas se expresan en **semanas relativas**; ajústalas a las fechas de entr
 
 | Integrante | Rol | Responsabilidad principal |
 |---|---|---|
-| **Samuel David Rangel Martínez** | **Líder del proyecto** (Tech Lead / Scrum) | Arquitectura, repositorio y ramas, revisión y merge de Pull Requests, núcleo transversal (BD, excepciones, DAO base), módulos de **Citas** y **Ventas**, consolidación de documentos de cada fase |
-| **Nicoll Gómez** | **Dev 1** | Módulos de **Clientes, Profesionales y Servicios**, **Estadísticas / Inteligencia de Negocios** y **Asistente Inteligente** (herramientas) |
-| **Isabella Celedón** | **Dev 2** | Módulos de **Productos e Inventario**, **ventana principal y navegación (GUI)**, mockups y **Probador Virtual** |
+| **Samuel David Rangel Martínez** | **Líder del proyecto** (Tech Lead / Scrum) | Arquitectura, repositorio y ramas, revisión y merge de Pull Requests, núcleo transversal (BD, excepciones, DAO base), módulos de **Citas** y **Ventas**, **Inteligencia Artificial** (asistente con herramientas y probador virtual), consolidación de documentos de cada fase |
+| **Nicoll Gómez** | **Dev 1** | Módulos de **Clientes, Profesionales y Servicios**, **Estadísticas / Inteligencia de Negocios**, pruebas de integración y demo de consola |
+| **Isabella Celedón** | **Dev 2** | Módulos de **Productos e Inventario**, **configuración del negocio y reglas de cita**, factura simulada, **ventana principal y navegación (GUI)** y mockups |
 
 **Regla de equipo:** cada dev es dueño de su módulo "de punta a punta" (modelo → DAO → servicio → ventana). Así todos practican las 3 capas y se reducen los conflictos de merge. El líder revisa **todos** los PR.
 
@@ -49,7 +49,7 @@ Para un curso de Programación III el proyecto es amplio; se prioriza en tres ni
 └───────────────┬──────────────────────────────┘
                 │ usa interfaces
 ┌───────────────▼──────────────────────────────┐
-│ DATOS  (dao)  en memoria → JDBC + SQLite      │
+│ DATOS  (dao)  archivos .txt → JDBC + SQLite   │
 └──────────────────────────────────────────────┘
 ```
 
@@ -58,7 +58,7 @@ Para un curso de Programación III el proyecto es amplio; se prioriza en tres ni
 | Paquete | Contenido |
 |---|---|
 | `modelo` | Entidades del dominio: `Persona`*, `Cliente`, `Profesional`, `Producto`, `Servicio`, `Cita`, `Venta`, `DetalleVenta`, interfaz `Vendible`, enums de estado |
-| `dao` | Interfaz genérica `CrudDao<T>` con dos implementaciones por entidad: **en memoria** (`ClienteDaoMemoria`, entrega 1) y **JDBC** (`ClienteDaoJdbc`, entrega 2). Ver [ADR-0010](docs/adr/0010-dao-en-memoria-primero.md) |
+| `dao` | Interfaz genérica `CrudDao<T>` con dos implementaciones por entidad: **archivo de texto** (`ClienteDaoTexto`, entrega 1) y **JDBC** (`ClienteDaoJdbc`, entrega 2). Ver [ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md) |
 | `servicio` | Lógica de negocio y coordinación (`CitaServicio`, `VentaServicio`, ...). Actúa como *Controller* GRASP |
 | `servicio.regla` | `ReglaCita` (interfaz) y sus implementaciones: anticipo, confirmación, recordatorio |
 | `vista` | Vistas `.fxml` (JavaFX), `estilos.css` y sus controladores en `vista.controlador` |
@@ -87,9 +87,9 @@ Para un curso de Programación III el proyecto es amplio; se prioriza en tres ni
 
 Esto cubre **herencia** (`Persona`), **interfaces** (`Vendible`, `ReglaCita`, `CrudDao`), **clase abstracta**, **polimorfismo** (`Venta` recorre `Vendible`) y **colecciones** (`ArrayList`, `HashMap`).
 
-### 3.2 Modelo de base de datos (borrador)
+### 3.2 Modelo de base de datos
 
-Tablas: `cliente`, `profesional`, `servicio`, `profesional_servicio` (N:M), `producto`, `cita`, `venta`, `detalle_venta`. El MER y el diccionario de datos se entregan en la Fase 4 (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
+El diseño definitivo está en [`sql/schema.sql`](sql/schema.sql) (22 tablas, [ADR-0011](docs/adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)), con cada tabla marcada por entrega: **D1** (`customer`, `professional`, `professional_service`, `beauty_service`, `product_category`, `product`, `appointment`, `sale`, `sale_line`, `app_setting`), **D2** (usuarios, promociones, pagos, facturas, movimientos de stock, notificaciones) y **AI**. La Entrega 1 implementa las D1 como archivos de texto con los mismos campos. El MER y el diccionario de datos están en `docs/fase4/` (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
 
 ### 3.3 Principios aplicados (previsión)
 
@@ -111,8 +111,8 @@ El curso entrega 4 fases. Duración sugerida (ajustar con el docente):
 
 | Semana | Entrega | Foco |
 |---|---|---|
-| 1–2 | **ENTREGA 1** | Fases 1 y 2 completas; **lógica de negocio completa** (modelo, servicios, reglas) con DAO en memoria; **mockups** de la UI; **BD diseñada** (MER + `schema.sql`, sin conectar) |
-| 3–4 | Entrega 2 (a) | Conexión SQLite + DAO JDBC (CRUD, excepciones, transacciones); reemplazo de los DAO en memoria |
+| 1–2 | **ENTREGA 1** | Fases 1 y 2 completas; **lógica de negocio completa** (modelo, servicios, reglas) con persistencia en archivos de texto; **mockups** de la UI; **BD diseñada** (MER + `schema.sql`, sin conectar) |
+| 3–4 | Entrega 2 (a) | Conexión SQLite + DAO JDBC (CRUD, excepciones, transacciones); reemplazo de los DAO de archivo de texto |
 | 5–7 | Entrega 2 (b) | Interfaz JavaFX real conectada a los servicios; estadísticas y BI |
 | 8–9 | Entrega 2 (c) | Módulos de IA (asistente, probador), factura por correo, pulido y Javadoc |
 | 10 | **Fase 4** | Documentación final, MER definitivo, diccionario de datos, trazabilidad, reporte Git |
@@ -148,24 +148,24 @@ Herramientas sugeridas: **draw.io / PlantUML** para UML; **Figma** o **draw.io**
 
 #### Entrega 1 (semanas 1–2): lógica de negocio sin BD
 
-Se programa contra la interfaz `CrudDao<T>` usando DAO **en memoria** (`HashMap`/`ArrayList`), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
+Se programa contra la interfaz `CrudDao<T>` usando DAO de **archivo de texto** (`data/*.txt`, ver ADR-0012), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
 
 | Bloque | Samuel (Líder) | Nicoll (Dev 1) | Isabella (Dev 2) |
 |---|---|---|---|
-| **Días 1–2** | Repo, ramas, proyecto Maven, `CrudDao<T>`, excepciones, `Validador`; **MER y `schema.sql` (con Nicoll e Isabella)** | `Persona`, `Cliente`, `Profesional` | `Vendible`, `Producto`, `Servicio`; mockups: pantalla principal y navegación |
-| **Días 3–6** | `Cita` + `CitaDaoMemoria`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `ServicioServicio` + DAO en memoria (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); mockups de Productos y Clientes |
-| **Días 7–10** | Reglas `ReglaCita` (RF-26); `Venta`, `DetalleVenta` y `VentaServicio` con descuento de stock (RF-14 a 17); interfaz `NotificadorCorreo` con implementación simulada (RF-27) | Estadísticas de cliente/admin y baja rotación (RF-18, 28 a 31) | Mockups de Citas, Ventas, Estadísticas y Probador/Asistente; validaciones de entrada |
-| **Días 11–14** | Integración, `Main` de demostración, pruebas cruzadas, documento Fase 1 y 2, diagramas de paquetes y clases | Pruebas JUnit de sus servicios; Javadoc; justificación GRASP/SOLID | Pruebas JUnit de sus servicios; Javadoc; mockups finales; tabla de tareas |
+| **Días 1–2** | Repo, ramas, proyecto Maven, `CrudDao<T>`, `TextFileDao<T>`, excepciones, `Validador`; **MER y `schema.sql` (con Nicoll e Isabella)** | `Persona`, `Cliente`, `Profesional` | `Vendible`, `CategoriaProducto`, `Producto`, `Servicio`; mockups: pantalla principal y navegación |
+| **Días 3–6** | `Cita` + `CitaDaoTexto`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `ServicioServicio` + DAO de archivo de texto (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); `ConfiguracionServicio` (tabla `app_setting`); mockups de Productos y Clientes |
+| **Días 7–10** | `Venta`, `DetalleVenta` y `VentaServicio` con descuento de stock (RF-14 a 17) | Estadísticas de cliente/admin y baja rotación (RF-18, 28 a 31) | Reglas `ReglaCita` (RF-26); `NotificadorCorreo` simulado y factura (RF-27); mockups de Citas, Ventas y Estadísticas; validaciones de entrada |
+| **Días 11–14** | Documento Fase 1 y 2, diagramas de paquetes y clases; **backend de IA opcional** (asistente y probador simulados, sin interfaz) si sus tareas 🔴 están cerradas | Pruebas de integración, `Main` de demostración, pruebas JUnit de sus servicios; Javadoc; justificación GRASP/SOLID | Pruebas JUnit de sus servicios; Javadoc; mockups finales (incluye Probador/Asistente); tabla de tareas |
 
-**Criterio de aceptación de la Entrega 1:** un `Main` de consola (o los tests) permite registrar cliente, profesional, servicio y producto; agendar una cita rechazando conflictos; vender productos y servicios descontando stock; y consultar stock bajo y estadísticas. Los mockups cubren todos los módulos. El MER y `schema.sql` están revisados por los tres.
+**Criterio de aceptación de la Entrega 1:** un `Main` de consola (o los tests) permite registrar cliente, profesional, servicio y producto; agendar una cita aplicando reglas y rechazando conflictos; vender productos y servicios descontando stock; y consultar stock bajo y estadísticas. Los mockups cubren todos los módulos. El MER y `schema.sql` están revisados por los tres y las clases [D1] coinciden con sus tablas. El backend de IA es **opcional**: si no está estable, pasa a la Entrega 2. Detalle por tarea en [`docs/roadmap.md`](docs/roadmap.md).
 
 #### Entrega 2 (semanas 3 en adelante)
 
 | Bloque | Samuel (Líder) | Nicoll (Dev 1) | Isabella (Dev 2) |
 |---|---|---|---|
-| **Sem. 3–4** | `ConexionBD`, DAO JDBC de Cita y Venta con transacciones | DAO JDBC de Cliente, Profesional, Servicio | DAO JDBC de Producto; carga inicial de datos de prueba |
-| **Sem. 5–7** | Vistas FXML de Citas y Ventas | Vistas FXML de Clientes, Servicios, Estadísticas | Vista principal, `estilos.css`, Productos y navegación |
-| **Sem. 8–9** | Factura por correo real, integración, tag `v1.0-mvp` | Asistente con 3–4 herramientas (RF-22/23) | Probador virtual (stub + API opcional) (RF-21) |
+| **Sem. 3–4** | `ConexionBD`, aplicar y validar `schema.sql` en SQLite; DAO JDBC de Cita con transacciones | DAO JDBC de Venta (con `stock_movement`), Cliente, Profesional, Servicio | DAO JDBC de Producto, Categoría y Configuración; carga inicial de datos de prueba |
+| **Sem. 5–7** | Adaptadores de IA por API (asistente RF-22/23 y probador RF-21) y su persistencia | Vistas FXML de Clientes, Servicios, Citas, Ventas y Estadísticas | Vista principal, `estilos.css`, Productos y navegación |
+| **Sem. 8–9** | Interfaz del asistente y del probador, integración, tag `v1.0-mvp` | Usuarios y roles (`app_user`), promociones y notificaciones | Factura por correo real |
 
 **Congelamiento:** el MVP se cierra antes de iniciar la IA.
 
@@ -180,12 +180,12 @@ Se programa contra la interfaz `CrudDao<T>` usando DAO **en memoria** (`HashMap`
 | T-05 | Productos e Inventario | Isabella | `feature/productos` | ⬜ Pendiente |
 | T-06 | Ventana principal y navegación | Isabella | `feature/gui-base` | ⬜ Pendiente |
 | T-07 | Citas + conflictos de horario | Samuel | `feature/citas` | ⬜ Pendiente |
-| T-08 | Reglas de citas (anticipo, confirmación, recordatorio) | Samuel | `feature/citas` | ⬜ Pendiente |
-| T-09 | Ventas + descuento de stock | Samuel / Isabella | `feature/ventas` | ⬜ Pendiente |
-| T-10 | Factura por correo (interfaz + implementación) | Samuel | `feature/ventas` | ⬜ Pendiente |
+| T-08 | Reglas de citas (anticipo, confirmación, recordatorio) y configuración del negocio | Isabella | `feature/reglas-cita` | ⬜ Pendiente |
+| T-09 | Ventas + descuento de stock | Samuel | `feature/ventas` | ⬜ Pendiente |
+| T-10 | Factura por correo (interfaz + implementación simulada) | Isabella | `feature/correo` | ⬜ Pendiente |
 | T-11 | Estadísticas y BI (baja rotación) | Nicoll | `feature/estadisticas` | ⬜ Pendiente |
-| T-12 | Asistente inteligente (herramientas) | Nicoll | `feature/ia-assistant` | ⬜ Pendiente |
-| T-13 | Probador virtual | Isabella | `feature/ia-probador` | ⬜ Pendiente |
+| T-12 | Asistente inteligente (herramientas) | Samuel | `feature/ia-assistant` | ⬜ Pendiente |
+| T-13 | Probador virtual | Samuel | `feature/ia-probador` | ⬜ Pendiente |
 | T-14 | Tabla de trazabilidad GRASP/SOLID | Todos (cada uno su código) | `docs/trazabilidad` | ⬜ Pendiente |
 
 Leyenda: ⬜ Pendiente · 🟨 En progreso · ✅ Completada
@@ -238,7 +238,7 @@ Una tarea se da por cerrada cuando:
 |---|---|---|
 | Alcance demasiado grande | Alta | Priorización MVP / deseable / experimental (sección 2) |
 | Conflictos de merge en vistas `.fxml` | Media | Una vista por dev; no editar la del compañero sin avisar |
-| Entrega 1 en 2 semanas con alcance grande | Alta | Lógica con DAO en memoria y probada por consola/JUnit; UI solo en mockups; IA y JDBC quedan para la entrega 2 |
+| Entrega 1 en 2 semanas con alcance grande | Alta | Lógica con DAO de archivo de texto y probada por consola/JUnit; UI solo en mockups; IA y JDBC quedan para la entrega 2 |
 | API de IA no disponible o de pago | Alta | Interfaces + implementación simulada; la demo funciona sin internet |
 | Desigualdad de aporte en commits | Media | Revisión semanal de `git shortlog`; tareas asignadas por dueño |
 | Cambio de requisitos del docente | Baja | ADR para registrar cambios de decisión |
@@ -261,13 +261,15 @@ Una tarea se da por cerrada cuando:
 | Clientes | 01, 02 | Nicoll |
 | Productos / Inventario | 03, 04, 05, 19 | Isabella |
 | Servicios / Profesionales | 06, 07, 08, 09 | Nicoll |
-| Citas | 10, 11, 12, 13, 26 | Samuel |
-| Ventas / Factura | 14, 15, 16, 17, 27 | Samuel (+ Isabella en GUI) |
+| Citas | 10, 11, 12, 13 | Samuel |
+| Reglas de cita y configuración | 26 | Isabella |
+| Ventas | 14, 15, 16, 17 | Samuel |
+| Factura por correo | 27 | Isabella |
 | Estadísticas / BI | 18, 28, 29, 30, 31 | Nicoll |
 | GUI transversal | 20 | Isabella |
 | Validación y errores | 24, 25 | Samuel (núcleo) |
-| Probador virtual | 21 | Isabella |
-| Asistente inteligente | 22, 23 | Nicoll |
+| Probador virtual | 21 | Samuel |
+| Asistente inteligente | 22, 23 | Samuel |
 
 ---
 

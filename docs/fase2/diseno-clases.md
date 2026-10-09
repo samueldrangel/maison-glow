@@ -79,7 +79,7 @@ flowchart TB
 |---|---|---|
 | Presentación | `vista`, `vista.controlador` | Mostrar datos, capturar eventos y presentar errores. No contiene reglas de negocio ni SQL |
 | Negocio | `servicio`, `servicio.regla`, `modelo` | Reglas, validaciones, coordinación de operaciones; entidades con su comportamiento propio |
-| Datos | `dao` | Persistir y recuperar entidades. En la Entrega 1: memoria; luego JDBC ([ADR-0010](../adr/0010-dao-en-memoria-primero.md)) |
+| Datos | `dao` | Persistir y recuperar entidades. En la Entrega 1: archivos de texto; luego JDBC ([ADR-0012](../adr/0012-persistencia-en-archivos-de-texto.md)) |
 | IA | `ia` | Probador virtual y asistente, detrás de interfaces; las herramientas del asistente llaman a `servicio` |
 | Transversal | `util`, `excepcion` | Validaciones, conexión, jerarquía de excepciones ([ADR-0008](../adr/0008-manejo-de-excepciones.md)) |
 
@@ -100,7 +100,7 @@ flowchart TB
 | 9 | `DetalleVenta` | Concreta | Línea de una venta: un `Vendible`, cantidad y precio al momento de vender |
 | 10 | `EstadoCita` | Enumeración | Estados del ciclo de vida de una cita |
 | 11 | `CrudDao<T>` | Interfaz | Contrato CRUD de la capa de datos |
-| 12 | `ClienteDaoMemoria`, `ProductoDaoMemoria`, ... | Concreta | Implementaciones en memoria (`HashMap`) de los DAO (Entrega 1) |
+| 12 | `ClienteDaoTexto`, `ProductoDaoTexto`, ... | Concreta | Implementaciones en archivo de texto de los DAO (Entrega 1), sobre la base `TextFileDao<T>` |
 | 13 | `ReglaCita` | Interfaz | Contrato de una regla de negocio de citas |
 | 14 | `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio` | Concretas | Reglas concretas de RF-26 |
 | 15 | `ClienteServicio`, `ProfesionalServicio`, `CatalogoServicios`, `ProductoServicio` | Concretas | Lógica de negocio de cada módulo (CRUD con validación) |
@@ -284,7 +284,7 @@ flowchart TB
 ### 3.2 Capa de datos y reglas
 
 #### Interfaz: `CrudDao<T>`
-**Tipo:** Interfaz · **Responsabilidad principal:** Definir el contrato de persistencia que usan los servicios, sin revelar si hay memoria, SQLite u otra tecnología.
+**Tipo:** Interfaz · **Responsabilidad principal:** Definir el contrato de persistencia que usan los servicios, sin revelar si hay archivos de texto, SQLite u otra tecnología.
 
 | Método | Tipo de retorno | Descripción |
 |---|---|---|
@@ -295,7 +295,7 @@ flowchart TB
 | `eliminar(int)` | `void` | Elimina por id |
 
 Todos lanzan `AccesoDatosException`. Interfaces específicas (`CitaDao extends CrudDao<Cita>`) añaden consultas propias, p. ej. `listarPorProfesional(int)` y `listarPorFecha(LocalDate)`; `VentaDao` añade `listarPorRango(...)`.
-**Implementaciones:** `XxxDaoMemoria` (Entrega 1, `HashMap<Integer,T>` + contador) y `XxxDaoJdbc` (Entrega 2).
+**Implementaciones:** `XxxDaoTexto` (Entrega 1, archivo `.txt` + `Map` en memoria) y `XxxDaoJdbc` (Entrega 2).
 
 #### Interfaz: `ReglaCita`
 **Tipo:** Interfaz · **Responsabilidad principal:** Permitir añadir reglas de negocio de citas sin modificar `CitaServicio` ([ADR-0007](../adr/0007-reglas-de-cita-como-estrategias.md)).
@@ -460,7 +460,7 @@ classDiagram
         +listarPorProfesional(int) List~Cita~
         +listarPorFecha(LocalDate) List~Cita~
     }
-    class CitaDaoMemoria
+    class CitaDaoTexto
     class CitaDaoJdbc
     class ReglaCita {
         <<interface>>
@@ -484,7 +484,7 @@ classDiagram
     }
 
     CrudDao <|-- CitaDao
-    CitaDao <|.. CitaDaoMemoria
+    CitaDao <|.. CitaDaoTexto
     CitaDao <|.. CitaDaoJdbc
     ReglaCita <|.. ReglaAnticipo
     ReglaCita <|.. ReglaConfirmacion
@@ -521,7 +521,7 @@ classDiagram
 | **Polimorfismo por interfaz** | `Venta` recorre `List<DetalleVenta>` que apuntan a `Vendible`; `CitaServicio` itera `List<ReglaCita>` | Código sin `if (tipo == ...)` |
 | **Polimorfismo por herencia** | `persona.getDescripcionRol()` | Cada subclase responde a su manera |
 | **Métodos sobrescritos** | `toString()`, `equals()`, `hashCode()`, `getDescripcionRol()`, `getPrecio()` | Representación y comparación coherentes |
-| **Colecciones** | `ArrayList` (`servicios`, `detalles`, resultados de `listar`), `HashMap` (DAO en memoria; estadísticas), `Optional` | Requisito de la Fase 3 |
+| **Colecciones** | `ArrayList` (`servicios`, `detalles`, resultados de `listar`), `HashMap` (caché de los DAO; estadísticas), `Optional` | Requisito de la Fase 3 |
 
 ---
 
@@ -572,10 +572,10 @@ Los errores (`ValidacionException`, `ReglaNegocioException`) se muestran como al
 | **Information Expert** | `Cita.seCruzaCon()` y `Cita.getFechaHoraFin()` | La cita conoce su inicio y la duración del servicio |
 | **Information Expert** | `Venta.calcularTotal()`, `DetalleVenta.calcularSubtotal()` | Cada una tiene los datos para calcular su parte |
 | **Information Expert** | `Profesional.trabajaEn()`, `ofreceServicio()` | Conoce su jornada y su lista de servicios |
-| **Low Coupling** | `CitaServicio` depende de `CitaDao` y `ReglaCita` (interfaces); la IA solo habla con `servicio` | Cambiar memoria por JDBC o añadir reglas no afecta a quien las usa |
+| **Low Coupling** | `CitaServicio` depende de `CitaDao` y `ReglaCita` (interfaces); la IA solo habla con `servicio` | Cambiar archivos de texto por JDBC o añadir reglas no afecta a quien las usa |
 | **High Cohesion** | `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`; `Validador` | Cada clase hace una sola cosa bien definida |
 | **Polymorphism** | `Vendible` (`Producto`/`Servicio`), `Persona.getDescripcionRol()`, `ReglaCita` | Se evitan condicionales por tipo; se añade un tipo sin tocar a quien lo usa |
-| **Pure Fabrication** | `Validador`, `XxxDaoMemoria`, `NotificadorCorreoSimulado` | Clases que no existen en el dominio, creadas para lograr bajo acoplamiento y reutilización |
+| **Pure Fabrication** | `Validador`, `XxxDaoTexto`, `NotificadorCorreoSimulado` | Clases que no existen en el dominio, creadas para lograr bajo acoplamiento y reutilización |
 | **Indirection** | `CrudDao<T>` entre servicios y almacenamiento | Aísla el negocio de la tecnología de persistencia |
 | **Protected Variations** | `ReglaCita`, `NotificadorCorreo`, interfaces de `ia` | Protegen al sistema de cambios en reglas, proveedor de correo o de IA |
 
@@ -587,7 +587,7 @@ Los errores (`ValidacionException`, `ReglaNegocioException`) se muestran como al
 |---|---|---|
 | **SRP** — Responsabilidad única | `Producto` (solo inventario/precio), `XxxDao` (solo persistencia), `CitaServicio` (solo reglas de agendamiento), `Validador` (solo validación), `NotificadorCorreo` (solo envío) | Cada clase tiene **un motivo de cambio**: cambiar el SQL no toca el negocio; cambiar el correo no toca ventas |
 | **OCP** — Abierto/cerrado | Relación `CitaServicio` → `ReglaCita`; `Venta` → `Vendible` | Una nueva regla (p. ej. `ReglaPenalizacion`) o un nuevo tipo vendible (p. ej. `Combo`) se **agrega como clase nueva** sin modificar `CitaServicio` ni `Venta` |
-| **LSP** — Sustitución de Liskov | `Cliente`/`Profesional` por `Persona`; `Producto`/`Servicio` por `Vendible`; `DaoMemoria`/`DaoJdbc` por `CrudDao` | Pueden usarse donde se espera la abstracción sin romper el comportamiento (los DAO respetan el mismo contrato y excepciones) |
+| **LSP** — Sustitución de Liskov | `Cliente`/`Profesional` por `Persona`; `Producto`/`Servicio` por `Vendible`; `DaoTexto`/`DaoJdbc` por `CrudDao` | Pueden usarse donde se espera la abstracción sin romper el comportamiento (los DAO respetan el mismo contrato y excepciones) |
 | **ISP** — Segregación de interfaces | `Vendible` (3 métodos), `NotificadorCorreo` (1 método), `CitaDao` extiende `CrudDao` solo con lo extra | Las clases no se ven obligadas a implementar métodos que no usan |
 | **DIP** — Inversión de dependencias | Constructores de `CitaServicio`, `VentaServicio` reciben interfaces (`CitaDao`, `CrudDao<Producto>`, `NotificadorCorreo`) | El negocio depende de abstracciones; la implementación concreta se elige en un único punto de arranque |
 
@@ -610,8 +610,10 @@ Checklist por clase antes de abrir un Pull Request:
 
 | Responsable | Clases |
 |---|---|
-| **Samuel** | `CrudDao`, excepciones, `Validador`, `Cita`, `EstadoCita`, `CitaDao(Memoria)`, `CitaServicio`, `ReglaCita` y sus 3 implementaciones, `Venta`, `DetalleVenta`, `VentaDao(Memoria)`, `VentaServicio`, `NotificadorCorreo(Simulado)` |
-| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO en memoria y servicios, `CatalogoServicios`, `EstadisticaServicio` |
-| **Isabella** | `Vendible`, `Producto`, `Servicio`, `ProductoDaoMemoria`, `ProductoServicio`, mockups M1–M9 |
+| **Samuel** | `CrudDao`, `TextFileDao`, excepciones, `Validador`, `Cita`, `EstadoCita`, `CitaDao(Texto)`, `CitaServicio`, interfaz `ReglaCita`, `Venta`, `DetalleVenta`, `VentaDao(Texto)`, `VentaServicio`; **paquete `ia`** (opcional en la Entrega 1, sin interfaz): `AsistenteInteligente`, `HerramientaAsistente`, `RegistroHerramientas` y las herramientas, `ProbadorVirtual` y sus versiones simuladas |
+| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO de archivo de texto y servicios, `CatalogoServicios`, `EstadisticaServicio`, `NotificadorAdministrador`, pruebas de integración y `Main` |
+| **Isabella** | `Vendible`, `Producto`, `CategoriaProducto`, `Servicio`, sus DAO de texto, `ProductoServicio`, `Configuracion`/`ConfiguracionServicio` (tabla `app_setting`), `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`, `NotificadorCorreo(Simulado)`, mockups M1–M9 |
 
-> Esta distribución respeta los bloques de la sección 4.3 de `PLANIFICACION.md`. Ojo: la entidad `Servicio` es de Isabella pero su lógica (`CatalogoServicios`) es de Nicoll; coordinen la firma de `Servicio` desde el día 1.
+> Esta distribución sigue [`../roadmap.md`](../roadmap.md). Ojo: la entidad `Servicio` es de Isabella pero su lógica (`CatalogoServicios`) es de Nicoll; coordinen la firma de `Servicio` desde el día 1. `ReglaCita` la define Samuel (contrato) y sus implementaciones, que leen `ConfiguracionServicio`, las escribe Isabella.
+>
+> **Coherencia con `schema.sql`:** `Producto` referencia una `CategoriaProducto` (tabla `product_category`); `Cliente` guarda `fechaRegistro` e `inasistencias`; `Cita` guarda `anticipo` y `recordatorio`; `Venta` puede enlazar su `Cita`. Los parámetros del negocio (porcentaje de anticipo, aviso mínimo, ventana de baja rotación) se leen de `ConfiguracionServicio`, no se escriben en el código.
