@@ -1,0 +1,5 @@
+1|Cabello
+2|Piel
+3|Uñas
+4|Maquillaje
+5|Accesorios
