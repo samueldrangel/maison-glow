@@ -14,7 +14,7 @@
 | 1 | S-01 | Cerrar la base del repo (fusionar esqueleto, colaboradores, protección de ramas, contratos) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 2 | S-02 | Diseño de la BD (MER y `schema.sql`) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 3 | N-01 | `Person`, `Customer`, `Professional` | Nicoll | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
-| 4 | I-01 | `BeautyService` | Isabella | 🔴 | Día 1 | S-01 | ⬜ Pendiente |
+| 4 | I-01 | `BeautyService` | Isabella | 🔴 | Día 1 | S-01 | ✅ Hecha |
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
 | 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
