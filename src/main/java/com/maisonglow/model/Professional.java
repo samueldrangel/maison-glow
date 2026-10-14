@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a specialist of the business, with the services they provide and
+ * Represents a specialist of the business, with the treatments they provide and
  * their working hours. Knows whether they can attend an appointment in a
  * given time slot.
  */
@@ -17,10 +17,10 @@ public class Professional extends Person {
     private LocalTime workStart;
     private LocalTime workEnd;
     private boolean active;
-    private final List<BeautyService> services;
+    private final List<Treatment> treatments;
 
     /**
-     * Creates an active professional who does not offer any service yet.
+     * Creates an active professional who does not offer any treatment yet.
      *
      * @param id        the identifier; 0 if the professional is not stored yet
      * @param document  the identity document
@@ -38,38 +38,38 @@ public class Professional extends Person {
         this.workStart = workStart;
         this.workEnd = workEnd;
         this.active = true;
-        this.services = new ArrayList<>();
+        this.treatments = new ArrayList<>();
     }
 
     /**
-     * Adds a service to the ones this professional provides. Adding a service
+     * Adds a treatment to the ones this professional provides. Adding a treatment
      * that is already listed has no effect.
      *
-     * @param service the service to add
+     * @param treatment the treatment to add
      */
-    public void addService(BeautyService service) {
-        if (!services.contains(service)) {
-            services.add(service);
+    public void addTreatment(Treatment treatment) {
+        if (!treatments.contains(treatment)) {
+            treatments.add(treatment);
         }
     }
 
     /**
-     * Removes a service from the ones this professional provides.
+     * Removes a treatment from the ones this professional provides.
      *
-     * @param service the service to remove
+     * @param treatment the treatment to remove
      */
-    public void removeService(BeautyService service) {
-        services.remove(service);
+    public void removeTreatment(Treatment treatment) {
+        treatments.remove(treatment);
     }
 
     /**
-     * Indicates whether this professional provides the given service.
+     * Indicates whether this professional provides the given treatment.
      *
-     * @param service the service to check
-     * @return {@code true} if the service is in the professional's list
+     * @param treatment the treatment to check
+     * @return {@code true} if the treatment is in the professional's list
      */
-    public boolean offers(BeautyService service) {
-        return services.contains(service);
+    public boolean offers(Treatment treatment) {
+        return treatments.contains(treatment);
     }
 
     /**
@@ -89,12 +89,12 @@ public class Professional extends Person {
     }
 
     /**
-     * Returns the services this professional provides.
+     * Returns the treatments this professional provides.
      *
-     * @return a read-only view of the services
+     * @return a read-only view of the treatments
      */
-    public List<BeautyService> getServices() {
-        return Collections.unmodifiableList(services);
+    public List<Treatment> getTreatments() {
+        return Collections.unmodifiableList(treatments);
     }
 
     /**

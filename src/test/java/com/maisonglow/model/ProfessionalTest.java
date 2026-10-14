@@ -19,17 +19,17 @@ class ProfessionalTest {
             "Peluquería", LocalTime.of(8, 0), LocalTime.of(17, 0));
     }
 
-    private BeautyService haircut() {
-        return new BeautyService(1, "Corte de cabello", "Corte y secado", 35000, 45);
+    private Treatment haircut() {
+        return new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
     }
 
     @Test
-    @DisplayName("a new professional is active, has no services and a role")
+    @DisplayName("a new professional is active, has no treatments and a role")
     void newProfessionalDefaults() {
         Professional professional = laura();
 
         assertThat(professional.isActive()).isTrue();
-        assertThat(professional.getServices()).isEmpty();
+        assertThat(professional.getTreatments()).isEmpty();
         assertThat(professional.getRoleDescription()).isEqualTo("Profesional");
     }
 
@@ -67,32 +67,32 @@ class ProfessionalTest {
     }
 
     @Test
-    @DisplayName("addService avoids duplicates and offers reflects the list")
-    void addServiceWithoutDuplicates() {
+    @DisplayName("addTreatment avoids duplicates and offers reflects the list")
+    void addTreatmentWithoutDuplicates() {
         Professional professional = laura();
 
-        professional.addService(haircut());
-        professional.addService(haircut());
+        professional.addTreatment(haircut());
+        professional.addTreatment(haircut());
 
-        assertThat(professional.getServices()).hasSize(1);
+        assertThat(professional.getTreatments()).hasSize(1);
         assertThat(professional.offers(haircut())).isTrue();
     }
 
     @Test
-    @DisplayName("removeService stops offering the service")
-    void removeService() {
+    @DisplayName("removeTreatment stops offering the treatment")
+    void removeTreatment() {
         Professional professional = laura();
-        professional.addService(haircut());
+        professional.addTreatment(haircut());
 
-        professional.removeService(haircut());
+        professional.removeTreatment(haircut());
 
         assertThat(professional.offers(haircut())).isFalse();
     }
 
     @Test
-    @DisplayName("the service list cannot be modified from outside")
-    void servicesAreReadOnly() {
-        assertThatThrownBy(() -> laura().getServices().add(haircut()))
+    @DisplayName("the treatment list cannot be modified from outside")
+    void treatmentsAreReadOnly() {
+        assertThatThrownBy(() -> laura().getTreatments().add(haircut()))
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
