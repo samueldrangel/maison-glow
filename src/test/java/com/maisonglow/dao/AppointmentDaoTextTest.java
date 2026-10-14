@@ -133,7 +133,8 @@ class AppointmentDaoTextTest {
 
         assertThatThrownBy(() -> openDao().findAll())
             .isInstanceOf(DataAccessException.class)
-            .hasMessageContaining("cliente con id 1");
+            .hasMessageContaining("cliente con id 1")
+            .hasMessageContaining("línea 2");
     }
 
     @Test
