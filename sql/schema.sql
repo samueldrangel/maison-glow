@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS customer (
     registered_at  TEXT    NOT NULL DEFAULT (date('now'))
 );
 
--- [D1] Professionals who provide services (RF-08).
+-- [D1] Professionals who provide treatments (RF-08).
 CREATE TABLE IF NOT EXISTS professional (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     document    TEXT NOT NULL UNIQUE,
@@ -56,11 +56,11 @@ CREATE TABLE IF NOT EXISTS app_user (
 );
 
 -- =====================================================================
--- Services
+-- Treatments
 -- =====================================================================
 
--- [D1] Beauty services offered (RF-06, RF-07).
-CREATE TABLE IF NOT EXISTS beauty_service (
+-- [D1] Treatments offered (RF-06, RF-07).
+CREATE TABLE IF NOT EXISTS treatment (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     name              TEXT    NOT NULL UNIQUE,
     description       TEXT    NOT NULL DEFAULT '',
@@ -69,11 +69,11 @@ CREATE TABLE IF NOT EXISTS beauty_service (
     active            INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
 );
 
--- [D1] Which professional offers which service (RF-09).
-CREATE TABLE IF NOT EXISTS professional_service (
+-- [D1] Which professional offers which treatment (RF-09).
+CREATE TABLE IF NOT EXISTS professional_treatment (
     professional_id  INTEGER NOT NULL REFERENCES professional (id) ON DELETE CASCADE,
-    service_id       INTEGER NOT NULL REFERENCES beauty_service (id) ON DELETE CASCADE,
-    PRIMARY KEY (professional_id, service_id)
+    treatment_id     INTEGER NOT NULL REFERENCES treatment (id) ON DELETE CASCADE,
+    PRIMARY KEY (professional_id, treatment_id)
 );
 
 -- =====================================================================
@@ -101,13 +101,13 @@ CREATE TABLE IF NOT EXISTS product (
 -- Appointments
 -- =====================================================================
 
--- [D1] Appointments between a customer and a professional for a service (RF-10 to RF-13).
--- end_at is derived (start_at + service duration) and stored so overlaps can be checked in SQL.
+-- [D1] Appointments between a customer and a professional for a treatment (RF-10 to RF-13).
+-- end_at is derived (start_at + treatment duration) and stored so overlaps can be checked in SQL.
 CREATE TABLE IF NOT EXISTS appointment (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id      INTEGER NOT NULL REFERENCES customer (id),
     professional_id  INTEGER NOT NULL REFERENCES professional (id),
-    service_id       INTEGER NOT NULL REFERENCES beauty_service (id),
+    treatment_id     INTEGER NOT NULL REFERENCES treatment (id),
     start_at         TEXT    NOT NULL,
     end_at           TEXT    NOT NULL,
     status           TEXT    NOT NULL DEFAULT 'PENDING'
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS appointment (
 -- Sales, payments and invoices
 -- =====================================================================
 
--- [D1] A sale made to a customer (RF-14). appointment_id links a service sale to its appointment.
+-- [D1] A sale made to a customer (RF-14). appointment_id links a treatment sale to its appointment.
 CREATE TABLE IF NOT EXISTS sale (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id     INTEGER NOT NULL REFERENCES customer (id),
@@ -151,17 +151,17 @@ CREATE TABLE IF NOT EXISTS promotion_product (
     PRIMARY KEY (promotion_id, product_id)
 );
 
--- [D1] Lines of a sale (RF-15, RF-16). Each line sells exactly one product OR one service:
+-- [D1] Lines of a sale (RF-15, RF-16). Each line sells exactly one product OR one treatment:
 -- this is how the Sellable interface of the model is stored. unit_price is the price at sale time.
 CREATE TABLE IF NOT EXISTS sale_line (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     sale_id       INTEGER NOT NULL REFERENCES sale (id) ON DELETE CASCADE,
     product_id    INTEGER REFERENCES product (id),
-    service_id    INTEGER REFERENCES beauty_service (id),
+    treatment_id  INTEGER REFERENCES treatment (id),
     promotion_id  INTEGER REFERENCES promotion (id),
     quantity      INTEGER NOT NULL CHECK (quantity > 0),
     unit_price    REAL    NOT NULL CHECK (unit_price > 0),
-    CHECK ((product_id IS NULL) <> (service_id IS NULL)),
+    CHECK ((product_id IS NULL) <> (treatment_id IS NULL)),
     CHECK (promotion_id IS NULL OR product_id IS NOT NULL)
 );
 
@@ -286,7 +286,7 @@ CREATE INDEX IF NOT EXISTS idx_sale_customer ON sale (customer_id);
 CREATE INDEX IF NOT EXISTS idx_sale_sold_at ON sale (sold_at);
 CREATE INDEX IF NOT EXISTS idx_sale_line_sale ON sale_line (sale_id);
 CREATE INDEX IF NOT EXISTS idx_sale_line_product ON sale_line (product_id);
-CREATE INDEX IF NOT EXISTS idx_sale_line_service ON sale_line (service_id);
+CREATE INDEX IF NOT EXISTS idx_sale_line_treatment ON sale_line (treatment_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movement_product ON stock_movement (product_id);
 CREATE INDEX IF NOT EXISTS idx_notification_unread ON notification (audience, read_at);
 CREATE INDEX IF NOT EXISTS idx_assistant_message_conversation ON assistant_message (conversation_id);
@@ -355,14 +355,14 @@ LEFT JOIN sale_line sl ON sl.product_id = p.id
 LEFT JOIN sale s ON s.id = sl.sale_id
 GROUP BY p.id, p.name;
 
--- How many times each service was requested, ignoring cancelled appointments (RF-28).
-CREATE VIEW IF NOT EXISTS v_service_demand AS
-SELECT bs.id AS service_id,
-       bs.name,
+-- How many times each treatment was requested, ignoring cancelled appointments (RF-28).
+CREATE VIEW IF NOT EXISTS v_treatment_demand AS
+SELECT t.id AS treatment_id,
+       t.name,
        COUNT(a.id) AS appointments_count
-FROM beauty_service bs
-LEFT JOIN appointment a ON a.service_id = bs.id AND a.status <> 'CANCELLED'
-GROUP BY bs.id, bs.name;
+FROM treatment t
+LEFT JOIN appointment a ON a.treatment_id = t.id AND a.status <> 'CANCELLED'
+GROUP BY t.id, t.name;
 
 -- Appointments and purchases of each customer (RF-18).
 CREATE VIEW IF NOT EXISTS v_customer_stats AS
