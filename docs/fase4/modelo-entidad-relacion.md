@@ -13,7 +13,7 @@
 | Módulo | Tablas | Entrega |
 |---|---|---|
 | Personas y acceso | `customer`, `professional`, `app_user` | D1, D1, D2 |
-| Servicios | `beauty_service`, `professional_service` | D1 |
+| Tratamientos | `treatment`, `professional_treatment` | D1 |
 | Inventario | `product_category`, `product`, `stock_movement` | D1, D1, D2 |
 | Citas | `appointment` | D1 |
 | Ventas y pagos | `sale`, `sale_line`, `payment`, `invoice` | D1, D1, D2, D2 |
@@ -24,15 +24,15 @@
 
 ## 2. Diagramas
 
-### 2.1 Personas, servicios y citas
+### 2.1 Personas, tratamientos y citas
 
 ```mermaid
 erDiagram
     CUSTOMER ||--o{ APPOINTMENT : "reserva"
     PROFESSIONAL ||--o{ APPOINTMENT : "atiende"
-    BEAUTY_SERVICE ||--o{ APPOINTMENT : "se reserva en"
-    PROFESSIONAL ||--o{ PROFESSIONAL_SERVICE : "ofrece"
-    BEAUTY_SERVICE ||--o{ PROFESSIONAL_SERVICE : "es ofrecido por"
+    TREATMENT ||--o{ APPOINTMENT : "se reserva en"
+    PROFESSIONAL ||--o{ PROFESSIONAL_TREATMENT : "ofrece"
+    TREATMENT ||--o{ PROFESSIONAL_TREATMENT : "es ofrecido por"
     CUSTOMER |o--o| APP_USER : "tiene acceso"
 
     CUSTOMER {
@@ -49,21 +49,21 @@ erDiagram
         text work_start
         text work_end
     }
-    BEAUTY_SERVICE {
+    TREATMENT {
         int id PK
         text name UK
         real price
         int duration_minutes
     }
-    PROFESSIONAL_SERVICE {
+    PROFESSIONAL_TREATMENT {
         int professional_id PK, FK
-        int service_id PK, FK
+        int treatment_id PK, FK
     }
     APPOINTMENT {
         int id PK
         int customer_id FK
         int professional_id FK
-        int service_id FK
+        int treatment_id FK
         text start_at
         text end_at
         text status
@@ -84,7 +84,7 @@ erDiagram
     PRODUCT_CATEGORY ||--o{ PRODUCT : "clasifica"
     PRODUCT ||--o{ STOCK_MOVEMENT : "registra"
     PRODUCT |o--o{ SALE_LINE : "se vende en"
-    BEAUTY_SERVICE |o--o{ SALE_LINE : "se vende en"
+    TREATMENT |o--o{ SALE_LINE : "se vende en"
     CUSTOMER ||--o{ SALE : "compra"
     APPOINTMENT |o--o| SALE : "origina"
     SALE ||--|{ SALE_LINE : "se compone de"
@@ -114,8 +114,8 @@ erDiagram
     SALE_LINE {
         int id PK
         int sale_id FK
-        int product_id FK "exclusivo con service_id"
-        int service_id FK "exclusivo con product_id"
+        int product_id FK "exclusivo con treatment_id"
+        int treatment_id FK "exclusivo con product_id"
         int promotion_id FK
         int quantity
         real unit_price
@@ -197,15 +197,15 @@ erDiagram
 | 01, 02 | `customer` |
 | 03, 04 | `product`, `product_category` |
 | 05 | `product.stock`, `stock_movement` |
-| 06, 07 | `beauty_service` (`price`, `duration_minutes`) |
+| 06, 07 | `treatment` (`price`, `duration_minutes`) |
 | 08 | `professional` |
-| 09 | `professional_service` |
+| 09 | `professional_treatment` |
 | 10 | `appointment` |
 | 11, 12 | `appointment` + trigger `trg_appointment_no_overlap_*` + índice `(professional_id, start_at)` |
 | 13 | `appointment.status` (`CANCELLED`) y actualización de `start_at`/`end_at` |
 | 14 | `sale` |
 | 15 | `sale_line.product_id` |
-| 16 | `sale_line.service_id` |
+| 16 | `sale_line.treatment_id` |
 | 17 | `stock_movement` (tipo `SALE`) + trigger `trg_stock_movement_apply` |
 | 18 | `v_customer_stats`, `app_user` (rol `CUSTOMER`) |
 | 19 | `v_low_stock`, `notification` (`LOW_STOCK`) |
@@ -216,7 +216,7 @@ erDiagram
 | 25 | `invoice.email_status`/`error_message`, `try_on_session.error_message`, `assistant_tool_call.status` |
 | 26 | `app_setting`, `appointment.deposit`/`reminder_at`, `payment` (`DEPOSIT`), `notification` (`APPOINTMENT_REMINDER`) |
 | 27 | `invoice` |
-| 28 | `v_product_sales`, `v_service_demand` |
+| 28 | `v_product_sales`, `v_treatment_demand` |
 | 29 | `v_product_sales` + `app_setting.low_rotation_window_days` |
 | 30 | `notification` (`LOW_ROTATION`, audiencia `ADMIN`) |
 | 31 | `promotion`, `promotion_product`, `sale_line.promotion_id` |
@@ -227,7 +227,7 @@ erDiagram
 |---|---|
 | Un profesional no puede tener dos citas activas que se crucen | Trigger de inserción y de actualización |
 | El stock nunca es negativo | `CHECK (stock >= 0)`; el movimiento que lo viole se aborta |
-| Una línea de venta vende un producto **o** un servicio, nunca ambos ni ninguno | `CHECK ((product_id IS NULL) <> (service_id IS NULL))` |
+| Una línea de venta vende un producto **o** un tratamiento, nunca ambos ni ninguno | `CHECK ((product_id IS NULL) <> (treatment_id IS NULL))` |
 | Una venta de stock siempre es negativa y referencia su línea | `CHECK` en `stock_movement` |
 | Precios y duraciones son positivos; cantidades y totales no negativos | `CHECK` por columna |
 | Documentos, usuarios, nombres de producto y facturas únicos | `UNIQUE` |

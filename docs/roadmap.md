@@ -14,7 +14,7 @@
 | 1 | S-01 | Cerrar la base del repo (fusionar esqueleto, colaboradores, protección de ramas, contratos) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 2 | S-02 | Diseño de la BD (MER y `schema.sql`) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 3 | N-01 | `Person`, `Customer`, `Professional` | Nicoll | 🔴 | Día 1 | S-01 | ✅ Hecha |
-| 4 | I-01 | `BeautyService` | Isabella | 🔴 | Día 1 | S-01 | ✅ Hecha |
+| 4 | I-01 | `Treatment` | Isabella | 🔴 | Día 1 | S-01 | ✅ Hecha |
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
 | 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ⬜ Pendiente |
@@ -22,7 +22,7 @@
 | 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ⬜ Pendiente |
 | 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ⬜ Pendiente |
 | 11 | S-04 | `Appointment` y su DAO | Samuel | 🔴 | Día 3 | N-01, I-01, S-03 | ⬜ Pendiente |
-| 12 | N-03 | Catálogo de servicios (DAO + servicio) | Nicoll | 🔴 | Día 4 | I-01, S-03 | ⬜ Pendiente |
+| 12 | N-03 | Catálogo de tratamientos (DAO + servicio) | Nicoll | 🔴 | Día 4 | I-01, S-03 | ⬜ Pendiente |
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ⬜ Pendiente |
 | 14 | S-05 | `AppointmentService`: agendar y evitar cruces | Samuel | 🔴 | Día 5 | S-04 | ⬜ Pendiente |
 | 15 | S-06 | `Sale` y `SaleLine` (y su DAO) | Samuel | 🔴 | Día 5 | I-02, S-03 | ⬜ Pendiente |
@@ -78,7 +78,7 @@ El roadmap cubre **todo el backend de negocio**, no solo las clases base. Todo l
 
 | Tabla de `schema.sql` | Entrega | Dónde se implementa |
 |---|:--:|---|
-| `customer`, `professional`, `professional_service`, `beauty_service` | D1 | N-01, N-03, N-04, I-01 |
+| `customer`, `professional`, `professional_treatment`, `treatment` | D1 | N-01, N-03, N-04, I-01 |
 | `product_category`, `product` | D1 | I-02, I-03 |
 | `appointment` | D1 | S-04, S-05 |
 | `sale`, `sale_line` | D1 | S-06, S-07 |
@@ -88,7 +88,7 @@ El roadmap cubre **todo el backend de negocio**, no solo las clases base. Todo l
 
 ## 2. Ruta crítica
 
-**Ruta crítica:** `Customer/Professional/BeautyService/Product` (Días 1–3) → `Appointment` y `Sale` (Samuel) → `Statistics` (Nicoll). Por eso los **modelos** de Nicoll e Isabella van primero: desbloquean a Samuel. `SettingsService` (I-10) es la segunda prioridad: sin él las reglas de cita y la baja rotación quedarían con números fijos.
+**Ruta crítica:** `Customer/Professional/Treatment/Product` (Días 1–3) → `Appointment` y `Sale` (Samuel) → `Statistics` (Nicoll). Por eso los **modelos** de Nicoll e Isabella van primero: desbloquean a Samuel. `SettingsService` (I-10) es la segunda prioridad: sin él las reglas de cita y la baja rotación quedarían con números fijos.
 
 **La IA queda fuera de la ruta crítica.** S-12 y S-13 (🟢) solo empiezan cuando Samuel termina **todos** sus 🔴. Si el Día 12 no están listas, pasan **intactas** a la Entrega 2 sin afectar la entrega (la IA nunca bloquea, RNF-13). Los adaptadores reales por API (`HttpClient`) y la persistencia de conversaciones son de la Entrega 2.
 
@@ -100,15 +100,15 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 |---|---|---|
 | `Person` (abstract) | `getId()`, `getDocument()`, `getName()`, `getPhone()`, `getEmail()`, `getRoleDescription()` | Nicoll |
 | `Customer` | `Customer(int id, String document, String name, String phone, String email)` (registro hoy, 0 inasistencias) y `Customer(..., LocalDate registeredAt, int noShowCount)` para cargar de archivo · `registerNoShow()` · `getNoShowCount()` · `getRegisteredAt()` | Nicoll |
-| `Professional` | `Professional(int id, String document, String name, String phone, String email, String specialty, LocalTime workStart, LocalTime workEnd)` (activo por defecto) · `addService(BeautyService)` · `offers(BeautyService)` · `worksDuring(LocalDateTime, LocalDateTime)` · `isActive()` | Nicoll |
-| `BeautyService` implements `Sellable` | `BeautyService(int id, String name, String description, double price, int durationMinutes)` · `calculateEnd(LocalDateTime)` · `isActive()` | Isabella |
+| `Professional` | `Professional(int id, String document, String name, String phone, String email, String specialty, LocalTime workStart, LocalTime workEnd)` (activo por defecto) · `addTreatment(Treatment)` · `offers(Treatment)` · `worksDuring(LocalDateTime, LocalDateTime)` · `isActive()` | Nicoll |
+| `Treatment` implements `Sellable` | `Treatment(int id, String name, String description, double price, int durationMinutes)` · `calculateEnd(LocalDateTime)` · `isActive()` | Isabella |
 | `ProductCategory` | `ProductCategory(int id, String name)` · `CategoryDao extends CrudDao<ProductCategory>` | Isabella |
 | `Product` implements `Sellable` | `Product(int id, String name, ProductCategory category, double price, int stock, int minimumStock)` · `hasStock(int)` · `deductStock(int)` · `addStock(int)` · `isBelowMinimum()` · `isActive()` | Isabella |
 | `Setting` / `SettingsService` | `SettingsService(SettingDao)` · `depositPercentage()`, `minBookingNoticeHours()`, `reminderHoursBefore()`, `noShowPenaltyThreshold()`, `lowRotationWindowDays()`, `lowRotationTopN()`, `lowRotationDiscountPercentage()`. `SettingDao` **no** extiende `CrudDao` (su clave es texto): `loadAll()` y `save(key, value)` | Isabella |
 | `AppointmentRule` (interfaz) | `apply(Appointment)` · `getName()` (ADR-0007) | Samuel |
-| `Appointment` | `Appointment(int id, Customer, Professional, BeautyService, LocalDateTime start)` · `getEnd()` · `overlapsWith(Appointment)` · `confirm()` · `cancel()` · `complete()` · `markNoShow()` · `blocksSchedule()` · `getDeposit()`/`setDeposit(double)` · `getReminderAt()`/`setReminderAt(LocalDateTime)` · `getStatus()` | Samuel |
+| `Appointment` | `Appointment(int id, Customer, Professional, Treatment, LocalDateTime start)` · `getEnd()` · `overlapsWith(Appointment)` · `confirm()` · `cancel()` · `complete()` · `markNoShow()` · `blocksSchedule()` · `getDeposit()`/`setDeposit(double)` · `getReminderAt()`/`setReminderAt(LocalDateTime)` · `getStatus()` | Samuel |
 | `Sale` / `SaleLine` | `Sale(Customer)` · `addLine(Sellable, int)` · `linkAppointment(Appointment)` (una venta por cita) · `calculateTotal()` · `getLines()` · `getSoldAt()` | Samuel |
-| DAO por entidad | `CustomerDao`, `ProfessionalDao`, `BeautyServiceDao`, `CategoryDao`, `ProductDao`, `AppointmentDao`, `SaleDao`: cada uno `extends CrudDao<T>`; además `AppointmentDao.findByProfessional(int)` y `findByDate(LocalDate)`; `SaleDao.findByCustomer(int)` y `findBetween(LocalDate, LocalDate)` | Quien lo implementa |
+| DAO por entidad | `CustomerDao`, `ProfessionalDao`, `TreatmentDao`, `CategoryDao`, `ProductDao`, `AppointmentDao`, `SaleDao`: cada uno `extends CrudDao<T>`; además `AppointmentDao.findByProfessional(int)` y `findByDate(LocalDate)`; `SaleDao.findByCustomer(int)` y `findBetween(LocalDate, LocalDate)` | Quien lo implementa |
 | Servicios | Un `*Service` por módulo; reciben sus DAO **por constructor** | Quien lo implementa |
 | Paquete `ai` (🟢) | `SmartAssistant.reply(String)` · `AssistantTool`: `getName()`, `getDescription()`, `getParameters()`, `requiresConfirmation()`, `execute(Map<String,String>)` · `ToolRegistry` (lista blanca) · `TryOnService.generate(TryOnRequest)` | Samuel |
 
@@ -137,8 +137,8 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 |---|---|---|---|---|---|---|
 | N-01 | 🔴 | 1–2 | `Person`, `Customer`, `Professional` | S-01 | `feature/person-model` | `Person` abstracta con `getRoleDescription()`; `Customer` con `registeredAt`, `noShowCount` y `registerNoShow()`; `Professional` con lista de servicios (`ArrayList`), `active`, `offers()` y `worksDuring()`. `toString`/`equals`/`hashCode` por documento. **Listo cuando** hay pruebas de `worksDuring` (dentro, fuera y en el borde del horario). *Desbloquea a Samuel: fusionar el Día 2.* |
 | N-02 | 🔴 | 3–4 | Módulo de clientes | N-01, S-03 | `feature/customer-service` | `CustomerDao` + `CustomerDaoText` + `CustomerService`: registrar (documento único, correo y teléfono válidos), buscar por id y por nombre, actualizar, eliminar (RF-01, 02). **Listo cuando** registrar un documento repetido lanza `BusinessRuleException`. |
-| N-03 | 🔴 | 4–5 | Catálogo de servicios | I-01, S-03 | `feature/beauty-service-catalog` | `BeautyServiceDao` + `...Text` + `BeautyServiceCatalog`: registrar (nombre único, precio > 0, duración > 0), actualizar, activar/desactivar, listar (RF-06, 07). |
-| N-04 | 🔴 | 5–6 | Módulo de profesionales | N-01, N-03 | `feature/professional-service` | `ProfessionalDao` + `...Text` (`professionals.txt` y `professional_services.txt`, la relación N:M del schema) + `ProfessionalService`: registrar (jornada con inicio < fin), `assignService`, `listByService` (RF-08, 09). **Listo cuando** asignar un servicio inactivo se rechaza. |
+| N-03 | 🔴 | 4–5 | Catálogo de tratamientos | I-01, S-03 | `feature/treatment-catalog` | `TreatmentDao` + `...Text` + `TreatmentService`: registrar (nombre único, precio > 0, duración > 0), actualizar, activar/desactivar, listar (RF-06, 07). |
+| N-04 | 🔴 | 5–6 | Módulo de profesionales | N-01, N-03 | `feature/professional-service` | `ProfessionalDao` + `...Text` (`professionals.txt` y `professional_treatments.txt`, la relación N:M del schema) + `ProfessionalService`: registrar (jornada con inicio < fin), `assignService`, `listByService` (RF-08, 09). **Listo cuando** asignar un servicio inactivo se rechaza. |
 | N-05 | 🟠 | 8–10 | Estadísticas | S-07 (contrato), S-05, I-10 | `feature/statistics-service` | `StatisticsService` sobre `SaleDao` y `AppointmentDao`: `customerStatistics(id)` (compras y citas, RF-18), `topProducts(n, from, to)`, `topServices(n)` y `frequentCustomers(n)` (RF-28), devolviendo `Map`/`List`. Se puede empezar con `Mockito` mientras llegan los DAO reales. |
 | N-06 | 🟠 | 10–11 | Baja rotación | N-05 | `feature/low-rotation` | `lowRotationProducts(...)` (RF-29) usando la ventana y el top N de `SettingsService` (sin números fijos) y `AdminNotifier` (interfaz) con implementación simulada que lista los productos de baja rotación (RF-30). |
 | N-07 | 🟢 | 11–12 | Sugerencia de promociones | N-06 | `feature/promotion-suggestion` | `suggestPromotions(customerId)`: productos de baja rotación que el cliente aún no compró, con el descuento de `SettingsService` (RF-31). Solo **sugiere**; la tabla `promotion` es de la Entrega 2. |
@@ -151,7 +151,7 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
-| I-01 | 🔴 | 1–2 | `BeautyService` | S-01 | `feature/beauty-service-model` | Implementa `Sellable`; `calculateEnd(start)` suma la duración; `active`. `toString`/`equals`/`hashCode` por id. *Desbloquea a Samuel (Appointment) y a Nicoll (catálogo): fusionar el Día 2.* |
+| I-01 | 🔴 | 1–2 | `Treatment` | S-01 | `feature/beauty-service-model` | Implementa `Sellable`; `calculateEnd(start)` suma la duración; `active`. `toString`/`equals`/`hashCode` por id. *Desbloquea a Samuel (Appointment) y a Nicoll (catálogo): fusionar el Día 2.* |
 | I-02 | 🔴 | 2–3 | `ProductCategory` y `Product` | S-01 | `feature/product-model` | `ProductCategory` (id, nombre) con `CategoryDao`/`CategoryDaoText` y `data/categories.txt` precargado con las categorías de `sql/seed.sql`. `Product` implementa `Sellable`, referencia su `ProductCategory` y tiene `active`; `hasStock`, `deductStock` (lanza `BusinessRuleException` si no alcanza), `addStock`, `isBelowMinimum()`. **Listo cuando** hay pruebas de descuento exacto, descuento excesivo y umbral. |
 | I-03 | 🔴 | 3–5 | Módulo de productos | I-02, S-03 | `feature/product-service` | `ProductDao` + `ProductDaoText` + `ProductService`: registrar (nombre único, categoría existente, precio > 0, stock ≥ 0), actualizar, `adjustStock`, `listLowStock()` (RF-03, 04, 05, 19). |
 | I-10 | 🔴 | 3–4 | Configuración del negocio | S-03 | `feature/settings-service` | `Setting`, `SettingDao`/`SettingDaoText` (lee y guarda `data/settings.txt`, clave de texto) y `SettingsService` con getters tipados (contrato de la sección 3) y validación de rangos (porcentajes 0–100, horas ≥ 0). Evita números fijos en reglas y estadísticas. **Listo cuando** un valor inválido en el archivo lanza `ValidationException` y cambiar un valor se refleja sin tocar código. |
