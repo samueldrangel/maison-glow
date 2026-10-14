@@ -4,6 +4,7 @@ import com.maisonglow.exception.DataAccessException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -19,6 +20,7 @@ import java.util.Objects;
 public final class TextFileStore {
 
     private static final String TEMP_SUFFIX = ".tmp";
+    private static final String BYTE_ORDER_MARK = "﻿";
 
     private final Path file;
 
@@ -42,7 +44,9 @@ public final class TextFileStore {
             return new ArrayList<>();
         }
         try {
-            return Files.readAllLines(file, StandardCharsets.UTF_8);
+            List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
+            removeByteOrderMark(lines);
+            return lines;
         } catch (IOException e) {
             throw new DataAccessException("No se pudo leer el archivo " + file, e);
         }
@@ -60,8 +64,9 @@ public final class TextFileStore {
         try {
             createParentFolders();
             Files.write(tempFile, lines, StandardCharsets.UTF_8);
-            Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            replaceFileWith(tempFile);
         } catch (IOException e) {
+            deleteLeftover(tempFile, e);
             throw new DataAccessException("No se pudo guardar el archivo " + file, e);
         }
     }
@@ -79,6 +84,28 @@ public final class TextFileStore {
         Path parent = file.toAbsolutePath().getParent();
         if (parent != null) {
             Files.createDirectories(parent);
+        }
+    }
+
+    private void replaceFileWith(Path tempFile) throws IOException {
+        try {
+            Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void deleteLeftover(Path tempFile, IOException writeError) {
+        try {
+            Files.deleteIfExists(tempFile);
+        } catch (IOException cleanupError) {
+            writeError.addSuppressed(cleanupError);
+        }
+    }
+
+    private static void removeByteOrderMark(List<String> lines) {
+        if (!lines.isEmpty() && lines.get(0).startsWith(BYTE_ORDER_MARK)) {
+            lines.set(0, lines.get(0).substring(BYTE_ORDER_MARK.length()));
         }
     }
 }

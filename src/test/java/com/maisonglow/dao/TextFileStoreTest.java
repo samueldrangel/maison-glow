@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("TextFileStore tests")
 class TextFileStoreTest {
@@ -55,5 +56,25 @@ class TextFileStoreTest {
         store.writeLines(List.of("2|Tinte"));
 
         assertThat(store.readLines()).containsExactly("2|Tinte");
+    }
+
+    @Test
+    @DisplayName("a UTF-8 byte order mark at the start is ignored")
+    void byteOrderMarkIsIgnored() throws Exception {
+        Path file = folder.resolve("items.txt");
+        Files.writeString(file, "﻿1|Corte\n2|Tinte");
+
+        assertThat(new TextFileStore(file).readLines()).containsExactly("1|Corte", "2|Tinte");
+    }
+
+    @Test
+    @DisplayName("a failed write leaves no temporary file behind")
+    void failedWriteLeavesNoTemporaryFile() throws Exception {
+        Path file = folder.resolve("items.txt");
+        Files.createDirectories(file.resolve("blocks-the-file"));
+
+        assertThatThrownBy(() -> new TextFileStore(file).writeLines(List.of("1|Corte")))
+            .isInstanceOf(DataAccessException.class);
+        assertThat(Files.exists(file.resolveSibling("items.txt.tmp"))).isFalse();
     }
 }
