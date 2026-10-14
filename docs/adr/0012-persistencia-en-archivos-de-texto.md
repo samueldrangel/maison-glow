@@ -8,7 +8,7 @@
 La primera entrega pide toda la lógica de negocio sin base de datos. El ADR-0010 proponía DAO en memoria; el docente recomienda **archivos de texto**, que además hacen que los datos sobrevivan entre ejecuciones sin añadir complejidad de SQL.
 
 ## Decisión
-1. **Un archivo `.txt` por entidad** en la carpeta `data/` (`customers.txt`, `professionals.txt`, `beauty_services.txt`, `products.txt`, `appointments.txt`, `sales.txt`, `settings.txt`), codificación UTF-8.
+1. **Un archivo `.txt` por entidad** en la carpeta `data/` (`customers.txt`, `professionals.txt`, `treatments.txt`, `products.txt`, `appointments.txt`, `sales.txt`, `settings.txt`), codificación UTF-8.
 2. **Una línea por registro**, campos separados por `|`. El carácter `|` y la barra invertida dentro de un texto se escapan con `\|` y `\\`; los saltos de línea no se permiten (el `Validator` los rechaza).
 3. **Clase base `TextFileDao<T>`** (tarea S-03 del roadmap) que implementa `CrudDao<T>`: carga el archivo al construirse, mantiene un `Map<Integer,T>` en memoria, **guarda tras cada cambio** y asigna ids. Cada DAO concreto solo define `toFields(T)`, `fromFields(String[])` y cómo leer/asignar el id.
 4. **Ruta por constructor** para que las pruebas usen archivos temporales sin tocar `data/`.
@@ -20,7 +20,7 @@ La primera entrega pide toda la lógica de negocio sin base de datos. El ADR-001
 ## Enmienda (2026-10-09): archivos para todas las tablas D1 del esquema
 Para mantener la coherencia con `sql/schema.sql` ([ADR-0011](0011-decisiones-de-diseno-de-la-base-de-datos.md)) se agregan a la lista de archivos de la decisión 1:
 - `categories.txt` (tabla `product_category`), precargado con las categorías de `sql/seed.sql` y versionado como `settings.txt`.
-- `professional_services.txt` (tabla `professional_service`, relación N:M), manejado por `ProfessionalDaoText`.
+- `professional_treatments.txt` (tabla `professional_treatment`, relación N:M), manejado por `ProfessionalDaoText`.
 - `sale_lines.txt` (tabla `sale_line`), manejado por `SaleDaoText`, que guarda la venta y sus líneas juntas.
 - `settings.txt` (tabla `app_setting`) tiene clave de texto: su `SettingDao` no extiende `CrudDao` y reutiliza el escape de `TextFileDao`.
 - El stock se modifica directamente en `Product` durante la Entrega 1; los `stock_movement` llegan con la Entrega 2.
