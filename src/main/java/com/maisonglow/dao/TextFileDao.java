@@ -192,7 +192,7 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
     private T parseRecord(String line, int lineNumber) throws DataAccessException {
         try {
             return fromFields(TextLineCodec.decode(line));
-        } catch (RuntimeException e) {
+        } catch (DataAccessException | RuntimeException e) {
             throw invalidLine(lineNumber, e.getMessage(), e);
         }
     }
