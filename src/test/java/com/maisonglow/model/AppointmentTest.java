@@ -134,6 +134,35 @@ class AppointmentTest {
     }
 
     @Test
+    @DisplayName("a deposit that is not a finite number is rejected")
+    void nonFiniteDepositFails() {
+        Appointment appointment = bookAt(NINE);
+
+        assertThatThrownBy(() -> appointment.setDeposit(Double.NaN)).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> appointment.setDeposit(Double.POSITIVE_INFINITY))
+            .isInstanceOf(BusinessRuleException.class);
+    }
+
+    @Test
+    @DisplayName("an appointment must end after it starts")
+    void endMustBeAfterStart() {
+        Treatment instant = new Treatment(2, "Sin duración", "", 1000, 0);
+
+        assertThatThrownBy(() -> new Appointment(0, ana, laura, instant, NINE))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Appointment.restore(1, ana, laura, haircut, NINE, NINE.minusMinutes(30),
+            AppointmentStatus.PENDING, NINE)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("a missing treatment is reported by name")
+    void missingTreatmentIsNamed() {
+        assertThatThrownBy(() -> new Appointment(0, ana, laura, null, NINE))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("treatment");
+    }
+
+    @Test
     @DisplayName("restore keeps the stored end, status and creation time")
     void restoreKeepsStoredData() {
         LocalDateTime created = NINE.minusDays(2);

@@ -36,10 +36,11 @@ public class Appointment {
      * @param professional who attends it
      * @param treatment    the treatment booked
      * @param start        when it starts
+     * @throws IllegalArgumentException if the treatment has no positive duration
      */
     public Appointment(int id, Customer customer, Professional professional, Treatment treatment,
                        LocalDateTime start) {
-        this(id, customer, professional, treatment, start, treatment.calculateEnd(start),
+        this(id, customer, professional, treatment, start, endOf(treatment, start),
             AppointmentStatus.PENDING, LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
@@ -53,6 +54,15 @@ public class Appointment {
         this.end = Objects.requireNonNull(end, "end");
         this.status = Objects.requireNonNull(status, "status");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
+        if (!end.isAfter(start)) {
+            throw new IllegalArgumentException("La cita debe terminar después de empezar: " + start + " a " + end);
+        }
+    }
+
+    private static LocalDateTime endOf(Treatment treatment, LocalDateTime start) {
+        Objects.requireNonNull(treatment, "treatment");
+        Objects.requireNonNull(start, "start");
+        return treatment.calculateEnd(start);
     }
 
     /**
@@ -69,6 +79,7 @@ public class Appointment {
      * @param status       the stored status
      * @param createdAt    when it was booked
      * @return the rebuilt appointment
+     * @throws IllegalArgumentException if the end is not after the start
      */
     public static Appointment restore(int id, Customer customer, Professional professional, Treatment treatment,
                                       LocalDateTime start, LocalDateTime end, AppointmentStatus status,
@@ -228,10 +239,10 @@ public class Appointment {
      * Records the deposit paid when booking.
      *
      * @param deposit the amount paid
-     * @throws BusinessRuleException if the amount is negative
+     * @throws BusinessRuleException if the amount is negative or not a finite number
      */
     public void setDeposit(double deposit) throws BusinessRuleException {
-        if (deposit < 0) {
+        if (!Double.isFinite(deposit) || deposit < 0) {
             throw new BusinessRuleException("El anticipo no puede ser negativo.");
         }
         this.deposit = deposit;
