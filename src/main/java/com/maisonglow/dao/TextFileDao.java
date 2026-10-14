@@ -20,14 +20,26 @@ import java.util.TreeMap;
  * operation instead of in the constructor, so a subclass can use its own
  * fields (for example, other DAOs it receives) while converting records.</p>
  *
+ * <p>The first line of the file stores the next id to assign
+ * ({@code #nextId=N}), so the id of a deleted record is never given to a
+ * new one, as with {@code AUTOINCREMENT} in {@code sql/schema.sql}.</p>
+ *
+ * <p>Create only one instance per file, at application start-up: each
+ * instance keeps its own copy of the data. The entities returned are the
+ * stored ones, so callers should change them only to pass them to
+ * {@link #update(Object)}.</p>
+ *
  * @param <T> the type of entity stored in the file
  */
 public abstract class TextFileDao<T> implements CrudDao<T> {
 
     private static final int UNSAVED_ID = 0;
+    private static final int FIRST_ID = 1;
+    private static final String NEXT_ID_HEADER = "#nextId=";
 
     private final TextFileStore store;
     private final NavigableMap<Integer, T> entities = new TreeMap<>();
+    private int nextId = FIRST_ID;
     private boolean loaded;
 
     /**
@@ -73,15 +85,24 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
      */
     protected abstract void setId(T entity, int id);
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws DataAccessException also if the entity already has an id, that
+     *                             is, if it was stored before
+     */
     @Override
     public T create(T entity) throws DataAccessException {
         ensureLoaded();
-        int id = nextId();
+        requireUnsaved(entity);
+        int id = nextId;
         setId(entity, id);
         entities.put(id, entity);
+        nextId++;
         saveOrUndo(() -> {
             entities.remove(id);
             setId(entity, UNSAVED_ID);
+            nextId = id;
         });
         return entity;
     }
@@ -115,8 +136,11 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         saveOrUndo(() -> entities.put(id, removed));
     }
 
-    private int nextId() {
-        return entities.isEmpty() ? UNSAVED_ID + 1 : entities.lastKey() + 1;
+    private void requireUnsaved(T entity) throws DataAccessException {
+        int id = getId(entity);
+        if (id != UNSAVED_ID) {
+            throw new DataAccessException("El registro ya tiene el id " + id + "; use update para modificarlo.");
+        }
     }
 
     private T requireExisting(int id) throws DataAccessException {
@@ -132,24 +156,50 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
             return;
         }
         entities.clear();
+        nextId = FIRST_ID;
         List<String> lines = store.readLines();
         for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (!line.isBlank()) {
-                T entity = parseLine(line, i + 1);
-                entities.put(getId(entity), entity);
-            }
+            loadLine(lines.get(i), i + 1);
         }
         loaded = true;
     }
 
-    private T parseLine(String line, int lineNumber) throws DataAccessException {
+    private void loadLine(String line, int lineNumber) throws DataAccessException {
+        if (line.isBlank()) {
+            return;
+        }
+        if (line.startsWith(NEXT_ID_HEADER)) {
+            nextId = Math.max(nextId, parseNextId(line, lineNumber));
+            return;
+        }
+        T entity = parseRecord(line, lineNumber);
+        int id = getId(entity);
+        if (id < FIRST_ID || entities.containsKey(id)) {
+            throw invalidLine(lineNumber, "el id " + id + " está repetido o no es válido", null);
+        }
+        entities.put(id, entity);
+        nextId = Math.max(nextId, id + 1);
+    }
+
+    private int parseNextId(String line, int lineNumber) throws DataAccessException {
+        try {
+            return Integer.parseInt(line.substring(NEXT_ID_HEADER.length()).trim());
+        } catch (NumberFormatException e) {
+            throw invalidLine(lineNumber, e.getMessage(), e);
+        }
+    }
+
+    private T parseRecord(String line, int lineNumber) throws DataAccessException {
         try {
             return fromFields(TextLineCodec.decode(line));
         } catch (RuntimeException e) {
-            throw new DataAccessException(
-                "La línea " + lineNumber + " de " + store.getFile() + " no es válida: " + e.getMessage(), e);
+            throw invalidLine(lineNumber, e.getMessage(), e);
         }
+    }
+
+    private DataAccessException invalidLine(int lineNumber, String reason, Exception cause) {
+        return new DataAccessException(
+            "La línea " + lineNumber + " de " + store.getFile() + " no es válida: " + reason, cause);
     }
 
     private void saveOrUndo(Runnable undo) throws DataAccessException {
@@ -158,11 +208,15 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         } catch (DataAccessException e) {
             undo.run();
             throw e;
+        } catch (RuntimeException e) {
+            undo.run();
+            throw new DataAccessException("No se pudo convertir un registro para guardarlo en " + store.getFile(), e);
         }
     }
 
     private void save() throws DataAccessException {
-        List<String> lines = new ArrayList<>(entities.size());
+        List<String> lines = new ArrayList<>(entities.size() + 1);
+        lines.add(NEXT_ID_HEADER + nextId);
         for (T entity : entities.values()) {
             lines.add(TextLineCodec.encode(toFields(entity)));
         }

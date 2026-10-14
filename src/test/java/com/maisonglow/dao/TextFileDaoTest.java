@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,7 @@ class TextFileDaoTest {
 
         @Override
         protected String[] toFields(Note note) {
+            Objects.requireNonNull(note.text, "text");
             return new String[] {String.valueOf(note.id), note.text};
         }
 
@@ -78,7 +80,7 @@ class TextFileDaoTest {
 
         assertThat(first.id).isEqualTo(1);
         assertThat(second.id).isEqualTo(2);
-        assertThat(Files.readAllLines(file)).containsExactly("1|Corte", "2|Tinte");
+        assertThat(Files.readAllLines(file)).containsExactly("#nextId=3", "1|Corte", "2|Tinte");
     }
 
     @Test
@@ -106,7 +108,7 @@ class TextFileDaoTest {
 
         dao.update(new Note(1, "Corte y secado"));
 
-        assertThat(Files.readAllLines(file)).containsExactly("1|Corte y secado");
+        assertThat(Files.readAllLines(file)).containsExactly("#nextId=2", "1|Corte y secado");
     }
 
     @Test
@@ -118,7 +120,7 @@ class TextFileDaoTest {
         dao.delete(1);
 
         assertThat(dao.findById(1)).isEmpty();
-        assertThat(Files.readAllLines(file)).containsExactly("2|Tinte");
+        assertThat(Files.readAllLines(file)).containsExactly("#nextId=3", "2|Tinte");
     }
 
     @Test
@@ -183,5 +185,48 @@ class TextFileDaoTest {
         assertThatThrownBy(() -> dao.create(rejected)).isInstanceOf(DataAccessException.class);
         assertThat(rejected.id).isZero();
         assertThat(dao.findAll()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("deleting the highest id does not let a later create reuse it")
+    void deletedIdIsNotReused() throws DataAccessException {
+        dao.create(new Note(0, "Corte"));
+        dao.create(new Note(0, "Tinte"));
+        dao.delete(2);
+
+        Note next = new NoteDao(file, "").create(new Note(0, "Manicura"));
+
+        assertThat(next.id).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("a repeated or non-positive id in the file is reported")
+    void invalidIdInFileFails() throws IOException {
+        Files.write(file, List.of("3|Corte", "3|Tinte"));
+        Path zeroIdFile = folder.resolve("zero.txt");
+        Files.write(zeroIdFile, List.of("0|Corte"));
+
+        assertThatThrownBy(() -> dao.findAll()).isInstanceOf(DataAccessException.class).hasMessageContaining("línea 2");
+        assertThatThrownBy(() -> new NoteDao(zeroIdFile, "").findAll()).isInstanceOf(DataAccessException.class);
+    }
+
+    @Test
+    @DisplayName("create rejects an entity that already has an id")
+    void createRejectsSavedEntity() throws DataAccessException {
+        Note saved = dao.create(new Note(0, "Corte"));
+
+        assertThatThrownBy(() -> dao.create(saved)).isInstanceOf(DataAccessException.class);
+        assertThat(saved.id).isEqualTo(1);
+        assertThat(dao.findAll()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("an error while converting a record is wrapped and undone")
+    void conversionErrorIsUndone() throws DataAccessException {
+        Note invalid = new Note(0, null);
+
+        assertThatThrownBy(() -> dao.create(invalid)).isInstanceOf(DataAccessException.class);
+        assertThat(invalid.id).isZero();
+        assertThat(dao.create(new Note(0, "Corte")).id).isEqualTo(1);
     }
 }
