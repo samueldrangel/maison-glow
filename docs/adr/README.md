@@ -19,3 +19,4 @@ Si una decisión cambia, no se borra el ADR: se crea uno nuevo y el anterior pas
 | [0010](0010-dao-en-memoria-primero.md) | DAO en memoria primero, JDBC después | Reemplazado por 0012 |
 | [0011](0011-decisiones-de-diseno-de-la-base-de-datos.md) | Decisiones de diseño de la base de datos | Aceptado |
 | [0012](0012-persistencia-en-archivos-de-texto.md) | Persistencia en archivos de texto en la Entrega 1 | Aceptado |
+| [0013](0013-entidad-tratamiento.md) | La entidad `Servicio` se llama `Treatment` (Tratamiento) | Aceptado |
