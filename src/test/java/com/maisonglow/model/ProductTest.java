@@ -58,12 +58,38 @@ class ProductTest {
 
     @Test
     @DisplayName("addStock increases the available units")
-    void addStock() {
+    void addStock() throws BusinessRuleException {
         Product product = shampoo();
 
         product.addStock(5);
 
         assertThat(product.getStock()).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("deducting zero or a negative quantity fails and keeps the stock")
+    void deductNonPositiveQuantity() {
+        Product product = shampoo();
+
+        assertThatThrownBy(() -> product.deductStock(-3))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasMessageContaining("mayor que cero");
+        assertThatThrownBy(() -> product.deductStock(0))
+            .isInstanceOf(BusinessRuleException.class);
+        assertThat(product.getStock()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("adding zero or a negative quantity fails and keeps the stock")
+    void addNonPositiveQuantity() {
+        Product product = shampoo();
+
+        assertThatThrownBy(() -> product.addStock(-10))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasMessageContaining("mayor que cero");
+        assertThatThrownBy(() -> product.addStock(0))
+            .isInstanceOf(BusinessRuleException.class);
+        assertThat(product.getStock()).isEqualTo(10);
     }
 
     @Test
