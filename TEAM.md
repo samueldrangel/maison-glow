@@ -18,12 +18,12 @@
 
 ### Developer 1
 - `Person` (abstract), `Customer`, `Professional`
-- `CustomerService`, `ProfessionalService`, `BeautyServiceCatalog`
+- `CustomerService`, `ProfessionalService`, `TreatmentService`
 - `StatisticsService` (customer and administrator statistics, low-rotation products), `AdminNotifier`
 - Integration tests and `Main` (console demo)
 
 ### Developer 2
-- `Sellable`, `Product`, `ProductCategory`, `BeautyService`
+- `Sellable`, `Product`, `ProductCategory`, `Treatment`
 - `ProductService` (stock control and low-stock alerts)
 - `Setting`, `SettingDao`, `SettingsService` (business parameters read by the rules and the statistics)
 - `DepositRule`, `ConfirmationRule`, `ReminderRule` (implementations of `AppointmentRule`)
@@ -50,7 +50,7 @@
 5. Add Javadoc and unit tests to every class of the assigned modules.
 
 ### Developer 2
-1. Implement `Sellable`, `Product`, `ProductCategory`, and `BeautyService`.
+1. Implement `Sellable`, `Product`, `ProductCategory`, and `Treatment`.
 2. Implement product management, stock control, and low-stock alerts.
 3. Implement the settings service and the appointment rules (deposit, confirmation, reminder).
 4. Implement the simulated email notifier and the invoice text.

@@ -30,12 +30,12 @@ public class CategoryDaoText extends TextFileDao<ProductCategory> implements Cat
     }
 
     @Override
-    protected int idOf(ProductCategory category) {
+    protected int getId(ProductCategory category) {
         return category.getId();
     }
 
     @Override
-    protected void assignId(ProductCategory category, int id) {
+    protected void setId(ProductCategory category, int id) {
         category.setId(id);
     }
 }

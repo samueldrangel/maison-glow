@@ -89,7 +89,7 @@ Esto cubre **herencia** (`Persona`), **interfaces** (`Vendible`, `ReglaCita`, `C
 
 ### 3.2 Modelo de base de datos
 
-El diseño definitivo está en [`sql/schema.sql`](sql/schema.sql) (22 tablas, [ADR-0011](docs/adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)), con cada tabla marcada por entrega: **D1** (`customer`, `professional`, `professional_service`, `beauty_service`, `product_category`, `product`, `appointment`, `sale`, `sale_line`, `app_setting`), **D2** (usuarios, promociones, pagos, facturas, movimientos de stock, notificaciones) y **AI**. La Entrega 1 implementa las D1 como archivos de texto con los mismos campos. El MER y el diccionario de datos están en `docs/fase4/` (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
+El diseño definitivo está en [`sql/schema.sql`](sql/schema.sql) (22 tablas, [ADR-0011](docs/adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)), con cada tabla marcada por entrega: **D1** (`customer`, `professional`, `professional_treatment`, `treatment`, `product_category`, `product`, `appointment`, `sale`, `sale_line`, `app_setting`), **D2** (usuarios, promociones, pagos, facturas, movimientos de stock, notificaciones) y **AI**. La Entrega 1 implementa las D1 como archivos de texto con los mismos campos. El MER y el diccionario de datos están en `docs/fase4/` (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
 
 ### 3.3 Principios aplicados (previsión)
 
@@ -153,7 +153,7 @@ Se programa contra la interfaz `CrudDao<T>` usando DAO de **archivo de texto** (
 | Bloque | Samuel (Líder) | Nicoll (Dev 1) | Isabella (Dev 2) |
 |---|---|---|---|
 | **Días 1–2** | Repo, ramas, proyecto Maven, `CrudDao<T>`, `TextFileDao<T>`, excepciones, `Validador`; **MER y `schema.sql` (con Nicoll e Isabella)** | `Persona`, `Cliente`, `Profesional` | `Vendible`, `CategoriaProducto`, `Producto`, `Servicio`; mockups: pantalla principal y navegación |
-| **Días 3–6** | `Cita` + `CitaDaoTexto`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `ServicioServicio` + DAO de archivo de texto (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); `ConfiguracionServicio` (tabla `app_setting`); mockups de Productos y Clientes |
+| **Días 3–6** | `Cita` + `CitaDaoTexto`; `CitaServicio` con conflicto de horario (RF-10 a RF-13) | `ClienteServicio`, `ProfesionalServicio`, `TratamientoServicio` + DAO de archivo de texto (RF-01, 02, 06 a 09) | `ProductoServicio`, control de stock y alerta de stock bajo (RF-03 a 05, 19); `ConfiguracionServicio` (tabla `app_setting`); mockups de Productos y Clientes |
 | **Días 7–10** | `Venta`, `DetalleVenta` y `VentaServicio` con descuento de stock (RF-14 a 17) | Estadísticas de cliente/admin y baja rotación (RF-18, 28 a 31) | Reglas `ReglaCita` (RF-26); `NotificadorCorreo` simulado y factura (RF-27); mockups de Citas, Ventas y Estadísticas; validaciones de entrada |
 | **Días 11–14** | Documento Fase 1 y 2, diagramas de paquetes y clases; **backend de IA opcional** (asistente y probador simulados, sin interfaz) si sus tareas 🔴 están cerradas | Pruebas de integración, `Main` de demostración, pruebas JUnit de sus servicios; Javadoc; justificación GRASP/SOLID | Pruebas JUnit de sus servicios; Javadoc; mockups finales (incluye Probador/Asistente); tabla de tareas |
 

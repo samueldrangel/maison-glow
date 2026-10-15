@@ -51,10 +51,11 @@ public class Product implements Sellable {
     /**
      * Removes units from the stock, for example after a sale.
      *
-     * @param quantity the units to remove
-     * @throws BusinessRuleException if there are not enough units
+     * @param quantity the units to remove; must be greater than zero
+     * @throws BusinessRuleException if the quantity is not positive or there are not enough units
      */
     public void deductStock(int quantity) throws BusinessRuleException {
+        requirePositive(quantity);
         if (!hasStock(quantity)) {
             throw new BusinessRuleException("Stock insuficiente de " + name + ": hay " + stock
                 + " y se pidieron " + quantity + ".");
@@ -65,10 +66,18 @@ public class Product implements Sellable {
     /**
      * Adds units to the stock, for example after a restock.
      *
-     * @param quantity the units to add
+     * @param quantity the units to add; must be greater than zero
+     * @throws BusinessRuleException if the quantity is not positive
      */
-    public void addStock(int quantity) {
+    public void addStock(int quantity) throws BusinessRuleException {
+        requirePositive(quantity);
         stock += quantity;
+    }
+
+    private static void requirePositive(int quantity) throws BusinessRuleException {
+        if (quantity <= 0) {
+            throw new BusinessRuleException("La cantidad debe ser mayor que cero.");
+        }
     }
 
     /**

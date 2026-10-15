@@ -38,9 +38,9 @@
 | `active` | INTEGER | NN, 0/1 | Si puede ingresar |
 | `created_at` | TEXT | NN | Fecha de creación |
 
-## Servicios
+## Tratamientos
 
-### `beauty_service` — servicios (D1)
+### `treatment` — tratamientos (D1)
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
 | `id` | INTEGER | PK | Identificador |
@@ -50,11 +50,11 @@
 | `duration_minutes` | INTEGER | NN, > 0 | Duración, define cuánto bloquea la agenda |
 | `active` | INTEGER | NN, 0/1 | Si se ofrece |
 
-### `professional_service` — servicios que ofrece cada profesional (D1)
+### `professional_treatment` — tratamientos que ofrece cada profesional (D1)
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
 | `professional_id` | INTEGER | PK, FK → `professional`, cascada | Profesional |
-| `service_id` | INTEGER | PK, FK → `beauty_service`, cascada | Servicio |
+| `treatment_id` | INTEGER | PK, FK → `treatment`, cascada | Tratamiento |
 
 ## Inventario
 
@@ -95,9 +95,9 @@
 | `id` | INTEGER | PK | Identificador |
 | `customer_id` | INTEGER | NN, FK → `customer` | Cliente |
 | `professional_id` | INTEGER | NN, FK → `professional` | Profesional |
-| `service_id` | INTEGER | NN, FK → `beauty_service` | Servicio |
+| `treatment_id` | INTEGER | NN, FK → `treatment` | Tratamiento |
 | `start_at` | TEXT | NN | Inicio |
-| `end_at` | TEXT | NN, `> start_at` | Fin (inicio + duración del servicio) |
+| `end_at` | TEXT | NN, `> start_at` | Fin (inicio + duración del tratamiento) |
 | `status` | TEXT | NN, `PENDING`/`CONFIRMED`/`COMPLETED`/`CANCELLED`/`NO_SHOW` | Estado (`AppointmentStatus`) |
 | `deposit` | REAL | NN, ≥ 0 | Anticipo exigido por la regla |
 | `reminder_at` | TEXT | — | Momento programado del recordatorio |
@@ -119,8 +119,8 @@
 |---|---|---|---|
 | `id` | INTEGER | PK | Identificador |
 | `sale_id` | INTEGER | NN, FK → `sale`, cascada | Venta |
-| `product_id` | INTEGER | FK → `product` | Producto vendido (excluyente con `service_id`) |
-| `service_id` | INTEGER | FK → `beauty_service` | Servicio vendido (excluyente con `product_id`) |
+| `product_id` | INTEGER | FK → `product` | Producto vendido (excluyente con `treatment_id`) |
+| `treatment_id` | INTEGER | FK → `treatment` | Tratamiento vendido (excluyente con `product_id`) |
 | `promotion_id` | INTEGER | FK → `promotion`; solo con producto | Promoción aplicada |
 | `quantity` | INTEGER | NN, > 0 | Cantidad |
 | `unit_price` | REAL | NN, > 0 | Precio unitario **al momento de vender** |
@@ -232,7 +232,7 @@ Claves iniciales (`sql/seed.sql`): `business_name`, `deposit_percentage`, `min_b
 |---|---|---|
 | `v_low_stock` | Productos activos con `stock <= minimum_stock` | 19 |
 | `v_product_sales` | Unidades vendidas, ingresos y última venta por producto (incluye los que nunca se vendieron) | 28, 29 |
-| `v_service_demand` | Número de citas no canceladas por servicio | 28 |
+| `v_treatment_demand` | Número de citas no canceladas por tratamiento | 28 |
 | `v_customer_stats` | Citas, compras y gasto total por cliente | 18 |
 
 ## Triggers
