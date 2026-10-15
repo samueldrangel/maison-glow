@@ -110,6 +110,30 @@ class SettingsServiceTest {
     }
 
     @Test
+    @DisplayName("update validates before saving, so an invalid value is never written")
+    void updateInvalidValueIsNeverSaved() {
+        int savesBefore = dao.saves;
+
+        assertThatThrownBy(() -> service.update(SettingsService.DEPOSIT_PERCENTAGE, "120"))
+            .isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> service.update(SettingsService.REMINDER_HOURS_BEFORE, "dos"))
+            .isInstanceOf(ValidationException.class);
+
+        assertThat(dao.saves).isEqualTo(savesBefore);
+    }
+
+    @Test
+    @DisplayName("a valid update is written once")
+    void updateValidValueIsSavedOnce() throws Exception {
+        int savesBefore = dao.saves;
+
+        service.update(SettingsService.DEPOSIT_PERCENTAGE, " 40 ");
+
+        assertThat(dao.saves).isEqualTo(savesBefore + 1);
+        assertThat(service.depositPercentage()).isEqualTo(40);
+    }
+
+    @Test
     @DisplayName("update rejects unknown keys")
     void updateUnknownKey() {
         assertThatThrownBy(() -> service.update("unknown_key", "1"))
@@ -130,6 +154,7 @@ class SettingsServiceTest {
     private static final class InMemorySettingDao implements SettingDao {
 
         private final Map<String, Setting> settings = new LinkedHashMap<>();
+        private int saves;
 
         @Override
         public Map<String, Setting> loadAll() {
@@ -139,6 +164,7 @@ class SettingsServiceTest {
         @Override
         public void save(String key, String value) {
             settings.put(key, new Setting(key, value, ""));
+            saves++;
         }
     }
 }
