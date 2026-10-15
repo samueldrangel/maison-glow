@@ -12,13 +12,14 @@ import java.util.Map;
 
 /**
  * Stores the business settings in a text file, one per line with the fields
- * {@code key|value|description}. Reuses the escaping rules of {@link TextFileDao}.
+ * {@code key|value|description}. Reads and writes the file with
+ * {@link TextFileStore} and encodes each line with {@link TextLineCodec}.
  */
 public class SettingDaoText implements SettingDao {
 
     private static final int FIELD_COUNT = 3;
 
-    private final Path file;
+    private final TextFileStore store;
     private Map<String, Setting> settings;
 
     /**
@@ -27,7 +28,7 @@ public class SettingDaoText implements SettingDao {
      * @param file the settings file, usually {@code data/settings.txt}
      */
     public SettingDaoText(Path file) {
-        this.file = file;
+        this.store = new TextFileStore(file);
     }
 
     @Override
@@ -53,8 +54,8 @@ public class SettingDaoText implements SettingDao {
             return;
         }
         settings = new LinkedHashMap<>();
-        for (String line : TextFileDao.readLines(file)) {
-            String[] fields = TextFileDao.splitFields(line);
+        for (String line : store.readLines()) {
+            String[] fields = TextLineCodec.decode(line);
             if (fields.length != FIELD_COUNT) {
                 throw new DataAccessException("Línea de configuración inválida: " + line);
             }
@@ -65,8 +66,8 @@ public class SettingDaoText implements SettingDao {
     private void write() throws DataAccessException {
         List<String> lines = new ArrayList<>();
         for (Setting setting : settings.values()) {
-            lines.add(TextFileDao.joinFields(setting.getKey(), setting.getValue(), setting.getDescription()));
+            lines.add(TextLineCodec.encode(setting.getKey(), setting.getValue(), setting.getDescription()));
         }
-        TextFileDao.writeLines(file, lines);
+        store.writeLines(lines);
     }
 }
