@@ -10,10 +10,10 @@
 > | Diseño (español) | Código (inglés) |
 > |---|---|
 > | `Persona`, `Cliente`, `Profesional` | `Person`, `Customer`, `Professional` |
-> | `Producto`, `Servicio`, `Vendible` | `Product`, `BeautyService`, `Sellable` |
+> | `Producto`, `Tratamiento`, `Vendible` | `Product`, `Treatment`, `Sellable` |
 > | `Cita`, `EstadoCita`, `ReglaCita` | `Appointment`, `AppointmentStatus`, `AppointmentRule` |
 > | `Venta`, `DetalleVenta` | `Sale`, `SaleLine` |
-> | `CitaServicio`, `VentaServicio`, `CatalogoServicios` | `AppointmentService`, `SaleService`, `BeautyServiceCatalog` |
+> | `CitaServicio`, `VentaServicio`, `TratamientoServicio` | `AppointmentService`, `SaleService`, `TreatmentService` |
 > | `NotificadorCorreo`, `Validador` | `EmailNotifier`, `Validator` |
 > | Paquetes `modelo`, `servicio`, `servicio.regla`, `vista`, `excepcion`, `ia` | `model`, `service`, `service.rule`, `ui`, `exception`, `ai` |
 > | Métodos (`descontarStock`, `calcularTotal`, `agendar`) | `deductStock`, `calculateTotal`, `book` |
@@ -32,7 +32,7 @@
 > **Convenciones de este documento**
 > - Paquete raíz: `com.maisonglow`. Dinero como `double` (simplicidad del curso); fechas con `java.time`.
 > - Los `id` son `int`; los asigna el DAO al crear (0 = aún no guardado). Se diseñaron para coincidir con las tablas de `sql/schema.sql`.
-> - Las clases de negocio se nombran `XxxServicio`. **Única excepción:** la lógica de la entidad `Servicio` se llama `CatalogoServicios` para evitar el nombre `ServicioServicio`.
+> - Las clases de negocio se nombran `XxxServicio`, sin excepciones. La entidad que se agenda y se vende se llama `Tratamiento` (no `Servicio`) para no chocar con ese sufijo ([ADR-0013](../adr/0013-entidad-tratamiento.md)); en la interfaz puede seguir mostrándose como "servicio".
 
 ---
 
@@ -94,7 +94,7 @@ flowchart TB
 | 3 | `Profesional` | Concreta | Persona que presta servicios; define su horario y los servicios que ofrece |
 | 4 | `Vendible` | Interfaz | Contrato de todo lo que puede venderse (nombre y precio). Permite ventas polimórficas |
 | 5 | `Producto` | Concreta | Artículo físico con stock y stock mínimo |
-| 6 | `Servicio` | Concreta | Servicio de belleza con precio y duración |
+| 6 | `Tratamiento` | Concreta | Tratamiento de belleza (corte, manicura...) con precio y duración |
 | 7 | `Cita` | Concreta | Reserva de un servicio con un profesional en una fecha/hora; conoce su estado |
 | 8 | `Venta` | Concreta | Transacción comercial de un cliente; agrupa detalles y calcula el total |
 | 9 | `DetalleVenta` | Concreta | Línea de una venta: un `Vendible`, cantidad y precio al momento de vender |
@@ -103,7 +103,7 @@ flowchart TB
 | 12 | `ClienteDaoTexto`, `ProductoDaoTexto`, ... | Concreta | Implementaciones en archivo de texto de los DAO (Entrega 1), sobre la base `TextFileDao<T>` |
 | 13 | `ReglaCita` | Interfaz | Contrato de una regla de negocio de citas |
 | 14 | `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio` | Concretas | Reglas concretas de RF-26 |
-| 15 | `ClienteServicio`, `ProfesionalServicio`, `CatalogoServicios`, `ProductoServicio` | Concretas | Lógica de negocio de cada módulo (CRUD con validación) |
+| 15 | `ClienteServicio`, `ProfesionalServicio`, `TratamientoServicio`, `ProductoServicio` | Concretas | Lógica de negocio de cada módulo (CRUD con validación) |
 | 16 | `CitaServicio` | Concreta | Agendamiento, disponibilidad, conflicto de horario y aplicación de reglas |
 | 17 | `VentaServicio` | Concreta | Registro de ventas, descuento de stock y envío de factura |
 | 18 | `EstadisticaServicio` | Concreta | Estadísticas de cliente y administrador; baja rotación |
@@ -161,15 +161,15 @@ flowchart TB
 | `especialidad` | `String` | Área principal (peluquería, maquillaje...) |
 | `horaInicio` | `LocalTime` | Inicio de su jornada |
 | `horaFin` | `LocalTime` | Fin de su jornada |
-| `servicios` | `List<Servicio>` | Servicios que ofrece (`ArrayList`) |
+| `tratamientos` | `List<Tratamiento>` | Tratamientos que ofrece (`ArrayList`) |
 
 | Método | Tipo de retorno | Descripción |
 |---|---|---|
 | `Profesional(...)` | — | Constructor; inicializa `servicios` vacío |
-| `agregarServicio(Servicio)` / `quitarServicio(Servicio)` | `void` | Mantiene la lista (sin duplicados) |
-| `ofreceServicio(Servicio)` | `boolean` | ¿Presta este servicio? |
+| `agregarTratamiento(Tratamiento)` / `quitarTratamiento(Tratamiento)` | `void` | Mantiene la lista (sin duplicados) |
+| `ofreceTratamiento(Tratamiento)` | `boolean` | ¿Presta este servicio? |
 | `trabajaEn(LocalDateTime inicio, LocalDateTime fin)` | `boolean` | ¿El intervalo cae dentro de su jornada? |
-| `getServicios()` | `List<Servicio>` | Copia inmodificable de la lista |
+| `getTratamientos()` | `List<Tratamiento>` | Copia inmodificable de la lista |
 | `getDescripcionRol()` | `String` | Sobrescrito: devuelve `"Profesional"` |
 
 #### Interfaz: `Vendible`
@@ -204,8 +204,8 @@ flowchart TB
 | `estaBajoStockMinimo()` | `boolean` | `stock <= stockMinimo` (RF-19) |
 | `toString()` / `equals` / `hashCode` | — | Sobrescritos; igualdad por `id` |
 
-#### Clase: `Servicio`
-**Tipo:** Concreta (implementa `Vendible`) · **Responsabilidad principal:** Describir un servicio de belleza con su precio y duración, que determina cuánto tiempo bloquea la agenda.
+#### Clase: `Tratamiento`
+**Tipo:** Concreta (implementa `Vendible`) · **Responsabilidad principal:** Describir un tratamiento de belleza con su precio y duración, que determina cuánto tiempo bloquea la agenda.
 
 | Atributo | Tipo de dato | Descripción |
 |---|---|---|
@@ -218,7 +218,7 @@ flowchart TB
 
 | Método | Tipo de retorno | Descripción |
 |---|---|---|
-| `Servicio(...)` | — | Constructor completo |
+| `Tratamiento(...)` | — | Constructor completo |
 | getters / setters | — | Encapsulamiento |
 | `calcularFin(LocalDateTime inicio)` | `LocalDateTime` | `inicio + duracionMinutos` |
 | `toString()` / `equals` / `hashCode` | — | Sobrescritos; igualdad por `id` |
@@ -231,7 +231,7 @@ flowchart TB
 | `id` | `int` | Identificador |
 | `cliente` | `Cliente` | Quien reserva |
 | `profesional` | `Profesional` | Quien atiende |
-| `servicio` | `Servicio` | Servicio reservado |
+| `tratamiento` | `Tratamiento` | Tratamiento reservado |
 | `fechaHora` | `LocalDateTime` | Inicio de la cita |
 | `estado` | `EstadoCita` | `PENDIENTE`, `CONFIRMADA`, `COMPLETADA`, `CANCELADA`, `NO_ASISTIO` |
 | `anticipo` | `double` | Depósito pagado |
@@ -241,7 +241,7 @@ flowchart TB
 |---|---|---|
 | `Cita(...)` | — | Constructor; estado inicial `PENDIENTE` |
 | getters / setters | — | Encapsulamiento |
-| `getFechaHoraFin()` | `LocalDateTime` | `servicio.calcularFin(fechaHora)` |
+| `getFechaHoraFin()` | `LocalDateTime` | `tratamiento.calcularFin(fechaHora)` |
 | `seCruzaCon(Cita otra)` | `boolean` | Intervalos solapados (inicio < fin ajeno y fin > inicio ajeno) |
 | `confirmar()` / `cancelar()` / `completar()` | `void` | Transiciones de estado; `ReglaNegocioException` si la transición es inválida |
 | `marcarNoAsistio()` | `void` | Cambia a `NO_ASISTIO` e incrementa inasistencias del cliente |
@@ -324,7 +324,7 @@ Todos lanzan `AccesoDatosException`. Interfaces específicas (`CitaDao extends C
 | Método | Tipo de retorno | Descripción |
 |---|---|---|
 | `CitaServicio(CitaDao, List<ReglaCita>)` | — | Constructor con inyección de dependencias |
-| `agendar(Cliente, Profesional, Servicio, LocalDateTime, double anticipo)` | `Cita` | Valida datos, que el profesional ofrezca el servicio y trabaje en ese horario, **sin conflicto** (RF-11/12), aplica reglas y guarda |
+| `agendar(Cliente, Profesional, Tratamiento, LocalDateTime, double anticipo)` | `Cita` | Valida datos, que el profesional ofrezca el servicio y trabaje en ese horario, **sin conflicto** (RF-11/12), aplica reglas y guarda |
 | `verificarDisponibilidad(Profesional, LocalDateTime inicio, LocalDateTime fin)` | `boolean` | Sin cruce con citas activas (reutilizado por el asistente) |
 | `confirmar(int)` / `cancelar(int)` / `completar(int)` | `void` | Cambia el estado y persiste |
 | `reprogramar(int, LocalDateTime)` | `Cita` | Modifica fecha (RF-13) revalidando disponibilidad |
@@ -351,7 +351,7 @@ Todos lanzan `AccesoDatosException`. Interfaces específicas (`CitaDao extends C
 |---|---|---|
 | `ClienteServicio` | CRUD con validación de clientes (documento único, correo válido) | `registrar`, `actualizar`, `buscarPorId`, `buscarPorNombre`, `listar`, `eliminar` |
 | `ProfesionalServicio` | CRUD de profesionales y vínculo con servicios | `registrar`, `asociarServicio(idProf, idServ)`, `listarPorServicio(idServ)` |
-| `CatalogoServicios` | CRUD de servicios (precio > 0, duración > 0) | `registrar`, `actualizar`, `activar/desactivar`, `listar` |
+| `TratamientoServicio` | CRUD de tratamientos (precio > 0, duración > 0) | `registrar`, `actualizar`, `activar/desactivar`, `listar` |
 | `ProductoServicio` | CRUD de productos y control de existencias | `registrar`, `actualizar`, `ajustarStock(id, delta)`, `listarStockBajo()` |
 | `EstadisticaServicio` | Estadísticas (RF-18, 28–31) | `estadisticasCliente(id)`, `productosMasVendidos(n, desde, hasta)`, `productosBajaRotacion(n, desde, hasta)`, `serviciosMasSolicitados(n)` , `clientesFrecuentes(n)` — devuelven `Map<String,Integer>` (HashMap) |
 | `NotificadorCorreo` | Contrato de envío de facturas | `enviarFactura(Cliente, Venta)` |
@@ -383,7 +383,7 @@ classDiagram
         -String especialidad
         -LocalTime horaInicio
         -LocalTime horaFin
-        +ofreceServicio(Servicio) boolean
+        +ofreceTratamiento(Tratamiento) boolean
         +trabajaEn(LocalDateTime, LocalDateTime) boolean
     }
     class Vendible {
@@ -398,7 +398,7 @@ classDiagram
         +descontarStock(int) void
         +estaBajoStockMinimo() boolean
     }
-    class Servicio {
+    class Tratamiento {
         -int duracionMinutos
         +calcularFin(LocalDateTime) LocalDateTime
     }
@@ -432,11 +432,11 @@ classDiagram
     Persona <|-- Cliente
     Persona <|-- Profesional
     Vendible <|.. Producto
-    Vendible <|.. Servicio
-    Profesional "0..*" o-- "0..*" Servicio : ofrece
+    Vendible <|.. Tratamiento
+    Profesional "0..*" o-- "0..*" Tratamiento : ofrece
     Cita "*" --> "1" Cliente
     Cita "*" --> "1" Profesional
-    Cita "*" --> "1" Servicio
+    Cita "*" --> "1" Tratamiento
     Cita --> EstadoCita
     Venta "1" *-- "1..*" DetalleVenta : compuesta por
     DetalleVenta "*" --> "1" Vendible
@@ -501,11 +501,11 @@ classDiagram
 | Relación | Tipo | Justificación |
 |---|---|---|
 | `Cliente`, `Profesional` → `Persona` | **Herencia** | Comparten datos y comportamiento; "es una" persona |
-| `Producto`, `Servicio` → `Vendible` | **Realización** (interfaz) | No comparten estado, solo el contrato de ser vendibles |
+| `Producto`, `Tratamiento` → `Vendible` | **Realización** (interfaz) | No comparten estado, solo el contrato de ser vendibles |
 | `Venta` ◆— `DetalleVenta` | **Composición** | Un detalle no existe sin su venta; se crea y se elimina con ella |
-| `Profesional` ◇— `Servicio` | **Agregación** (N:M) | El servicio existe sin el profesional (tabla `profesional_servicio`) |
-| `Cita` → `Cliente`/`Profesional`/`Servicio` | **Asociación** | La cita referencia entidades independientes |
-| `DetalleVenta` → `Vendible` | **Asociación** polimórfica | Apunta a un `Producto` o a un `Servicio` indistintamente |
+| `Profesional` ◇— `Tratamiento` | **Agregación** (N:M) | El servicio existe sin el profesional (tabla `profesional_tratamiento`) |
+| `Cita` → `Cliente`/`Profesional`/`Tratamiento` | **Asociación** | La cita referencia entidades independientes |
+| `DetalleVenta` → `Vendible` | **Asociación** polimórfica | Apunta a un `Producto` o a un `Tratamiento` indistintamente |
 | `CitaServicio` ◇— `ReglaCita` | **Agregación** | Las reglas se inyectan y existen fuera del servicio |
 | `XxxServicio` ⇢ `CrudDao`, `NotificadorCorreo` | **Dependencia** (inyectada) | Dependen de abstracciones, no de implementaciones |
 
@@ -521,7 +521,7 @@ classDiagram
 | **Polimorfismo por interfaz** | `Venta` recorre `List<DetalleVenta>` que apuntan a `Vendible`; `CitaServicio` itera `List<ReglaCita>` | Código sin `if (tipo == ...)` |
 | **Polimorfismo por herencia** | `persona.getDescripcionRol()` | Cada subclase responde a su manera |
 | **Métodos sobrescritos** | `toString()`, `equals()`, `hashCode()`, `getDescripcionRol()`, `getPrecio()` | Representación y comparación coherentes |
-| **Colecciones** | `ArrayList` (`servicios`, `detalles`, resultados de `listar`), `HashMap` (caché de los DAO; estadísticas), `Optional` | Requisito de la Fase 3 |
+| **Colecciones** | `ArrayList` (`tratamientos`, `detalles`, resultados de `listar`), `HashMap` (caché de los DAO; estadísticas), `Optional` | Requisito de la Fase 3 |
 
 ---
 
@@ -533,7 +533,7 @@ Tecnología: **JavaFX + FXML + CSS** ([ADR-0009](../adr/0009-ui-con-javafx.md)).
 |---|---|---|---|---|
 | M1 | Principal / navegación | Menú lateral, barra superior, panel de contenido | Navegar entre módulos | RF-20 |
 | M2 | Clientes | Tabla, formulario, buscador | Guardar/Buscar → `ClienteServicio` | RF-01, 02 |
-| M3 | Profesionales y servicios | Tablas, lista de servicios por profesional | Asociar → `ProfesionalServicio`, `CatalogoServicios` | RF-06 a 09 |
+| M3 | Profesionales y servicios | Tablas, lista de servicios por profesional | Asociar → `ProfesionalServicio`, `TratamientoServicio` | RF-06 a 09 |
 | M4 | Productos e inventario | Tabla con alerta de stock bajo, formulario | Guardar/Ajustar → `ProductoServicio` | RF-03 a 05, 19 |
 | M5 | Agenda de citas | Selector de fecha, lista del día, formulario de cita | Agendar/Cancelar → `CitaServicio` | RF-10 a 13 |
 | M6 | Nueva venta | Cliente, productos/servicios, carrito, total | Agregar/Cobrar → `VentaServicio` | RF-14 a 17 |
@@ -571,10 +571,10 @@ Los errores (`ValidacionException`, `ReglaNegocioException`) se muestran como al
 | **Information Expert** | `Producto.descontarStock()`, `estaBajoStockMinimo()` | El producto conoce su stock; nadie más debe manipularlo |
 | **Information Expert** | `Cita.seCruzaCon()` y `Cita.getFechaHoraFin()` | La cita conoce su inicio y la duración del servicio |
 | **Information Expert** | `Venta.calcularTotal()`, `DetalleVenta.calcularSubtotal()` | Cada una tiene los datos para calcular su parte |
-| **Information Expert** | `Profesional.trabajaEn()`, `ofreceServicio()` | Conoce su jornada y su lista de servicios |
+| **Information Expert** | `Profesional.trabajaEn()`, `ofreceTratamiento()` | Conoce su jornada y su lista de servicios |
 | **Low Coupling** | `CitaServicio` depende de `CitaDao` y `ReglaCita` (interfaces); la IA solo habla con `servicio` | Cambiar archivos de texto por JDBC o añadir reglas no afecta a quien las usa |
 | **High Cohesion** | `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`; `Validador` | Cada clase hace una sola cosa bien definida |
-| **Polymorphism** | `Vendible` (`Producto`/`Servicio`), `Persona.getDescripcionRol()`, `ReglaCita` | Se evitan condicionales por tipo; se añade un tipo sin tocar a quien lo usa |
+| **Polymorphism** | `Vendible` (`Producto`/`Tratamiento`), `Persona.getDescripcionRol()`, `ReglaCita` | Se evitan condicionales por tipo; se añade un tipo sin tocar a quien lo usa |
 | **Pure Fabrication** | `Validador`, `XxxDaoTexto`, `NotificadorCorreoSimulado` | Clases que no existen en el dominio, creadas para lograr bajo acoplamiento y reutilización |
 | **Indirection** | `CrudDao<T>` entre servicios y almacenamiento | Aísla el negocio de la tecnología de persistencia |
 | **Protected Variations** | `ReglaCita`, `NotificadorCorreo`, interfaces de `ia` | Protegen al sistema de cambios en reglas, proveedor de correo o de IA |
@@ -587,7 +587,7 @@ Los errores (`ValidacionException`, `ReglaNegocioException`) se muestran como al
 |---|---|---|
 | **SRP** — Responsabilidad única | `Producto` (solo inventario/precio), `XxxDao` (solo persistencia), `CitaServicio` (solo reglas de agendamiento), `Validador` (solo validación), `NotificadorCorreo` (solo envío) | Cada clase tiene **un motivo de cambio**: cambiar el SQL no toca el negocio; cambiar el correo no toca ventas |
 | **OCP** — Abierto/cerrado | Relación `CitaServicio` → `ReglaCita`; `Venta` → `Vendible` | Una nueva regla (p. ej. `ReglaPenalizacion`) o un nuevo tipo vendible (p. ej. `Combo`) se **agrega como clase nueva** sin modificar `CitaServicio` ni `Venta` |
-| **LSP** — Sustitución de Liskov | `Cliente`/`Profesional` por `Persona`; `Producto`/`Servicio` por `Vendible`; `DaoTexto`/`DaoJdbc` por `CrudDao` | Pueden usarse donde se espera la abstracción sin romper el comportamiento (los DAO respetan el mismo contrato y excepciones) |
+| **LSP** — Sustitución de Liskov | `Cliente`/`Profesional` por `Persona`; `Producto`/`Tratamiento` por `Vendible`; `DaoTexto`/`DaoJdbc` por `CrudDao` | Pueden usarse donde se espera la abstracción sin romper el comportamiento (los DAO respetan el mismo contrato y excepciones) |
 | **ISP** — Segregación de interfaces | `Vendible` (3 métodos), `NotificadorCorreo` (1 método), `CitaDao` extiende `CrudDao` solo con lo extra | Las clases no se ven obligadas a implementar métodos que no usan |
 | **DIP** — Inversión de dependencias | Constructores de `CitaServicio`, `VentaServicio` reciben interfaces (`CitaDao`, `CrudDao<Producto>`, `NotificadorCorreo`) | El negocio depende de abstracciones; la implementación concreta se elige en un único punto de arranque |
 
@@ -611,9 +611,9 @@ Checklist por clase antes de abrir un Pull Request:
 | Responsable | Clases |
 |---|---|
 | **Samuel** | `CrudDao`, `TextFileDao`, excepciones, `Validador`, `Cita`, `EstadoCita`, `CitaDao(Texto)`, `CitaServicio`, interfaz `ReglaCita`, `Venta`, `DetalleVenta`, `VentaDao(Texto)`, `VentaServicio`; **paquete `ia`** (opcional en la Entrega 1, sin interfaz): `AsistenteInteligente`, `HerramientaAsistente`, `RegistroHerramientas` y las herramientas, `ProbadorVirtual` y sus versiones simuladas |
-| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO de archivo de texto y servicios, `CatalogoServicios`, `EstadisticaServicio`, `NotificadorAdministrador`, pruebas de integración y `Main` |
-| **Isabella** | `Vendible`, `Producto`, `CategoriaProducto`, `Servicio`, sus DAO de texto, `ProductoServicio`, `Configuracion`/`ConfiguracionServicio` (tabla `app_setting`), `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`, `NotificadorCorreo(Simulado)`, mockups M1–M9 |
+| **Nicoll** | `Persona`, `Cliente`, `Profesional`, sus DAO de archivo de texto y servicios, `TratamientoServicio`, `EstadisticaServicio`, `NotificadorAdministrador`, pruebas de integración y `Main` |
+| **Isabella** | `Vendible`, `Producto`, `CategoriaProducto`, `Tratamiento`, sus DAO de texto, `ProductoServicio`, `Configuracion`/`ConfiguracionServicio` (tabla `app_setting`), `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`, `NotificadorCorreo(Simulado)`, mockups M1–M9 |
 
-> Esta distribución sigue [`../roadmap.md`](../roadmap.md). Ojo: la entidad `Servicio` es de Isabella pero su lógica (`CatalogoServicios`) es de Nicoll; coordinen la firma de `Servicio` desde el día 1. `ReglaCita` la define Samuel (contrato) y sus implementaciones, que leen `ConfiguracionServicio`, las escribe Isabella.
+> Esta distribución sigue [`../roadmap.md`](../roadmap.md). Ojo: la entidad `Tratamiento` es de Isabella pero su lógica (`TratamientoServicio`) es de Nicoll; coordinen la firma de `Tratamiento` desde el día 1. `ReglaCita` la define Samuel (contrato) y sus implementaciones, que leen `ConfiguracionServicio`, las escribe Isabella.
 >
 > **Coherencia con `schema.sql`:** `Producto` referencia una `CategoriaProducto` (tabla `product_category`); `Cliente` guarda `fechaRegistro` e `inasistencias`; `Cita` guarda `anticipo` y `recordatorio`; `Venta` puede enlazar su `Cita`. Los parámetros del negocio (porcentaje de anticipo, aviso mínimo, ventana de baja rotación) se leen de `ConfiguracionServicio`, no se escriben en el código.

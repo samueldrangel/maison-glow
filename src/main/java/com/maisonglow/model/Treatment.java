@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Represents a beauty service offered by the business, such as a haircut or
+ * Represents a treatment offered by the business, such as a haircut or
  * a manicure. Its duration determines how long it blocks a professional's
  * schedule, and it can be sold like any other {@link Sellable} item.
  */
-public class BeautyService implements Sellable {
+public class Treatment implements Sellable {
 
     private int id;
     private String name;
@@ -18,15 +18,15 @@ public class BeautyService implements Sellable {
     private boolean active;
 
     /**
-     * Creates an active beauty service.
+     * Creates an active treatment.
      *
-     * @param id              the identifier; 0 if the service is not stored yet
-     * @param name            the service name
-     * @param description     a short description of the service
-     * @param price           the service price
-     * @param durationMinutes how long the service takes, in minutes
+     * @param id              the identifier; 0 if the treatment is not stored yet
+     * @param name            the treatment name
+     * @param description     a short description of the treatment
+     * @param price           the treatment price
+     * @param durationMinutes how long the treatment takes, in minutes
      */
-    public BeautyService(int id, String name, String description, double price, int durationMinutes) {
+    public Treatment(int id, String name, String description, double price, int durationMinutes) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -36,24 +36,24 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Calculates when the service ends if it starts at the given moment.
+     * Calculates when the treatment ends if it starts at the given moment.
      *
-     * @param start the start of the service
-     * @return the start plus the service duration
+     * @param start the start of the treatment
+     * @return the start plus the treatment duration
      */
     public LocalDateTime calculateEnd(LocalDateTime start) {
         return start.plusMinutes(durationMinutes);
     }
 
     /**
-     * Makes the service available for new appointments and sales.
+     * Makes the treatment available for new appointments and sales.
      */
     public void activate() {
         active = true;
     }
 
     /**
-     * Withdraws the service from the catalog without deleting its history.
+     * Withdraws the treatment from the catalog without deleting its history.
      */
     public void deactivate() {
         active = false;
@@ -79,7 +79,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Changes the service name.
+     * Changes the treatment name.
      *
      * @param name the new name
      */
@@ -88,7 +88,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Returns the description of the service.
+     * Returns the description of the treatment.
      *
      * @return the description
      */
@@ -97,7 +97,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Changes the description of the service.
+     * Changes the description of the treatment.
      *
      * @param description the new description
      */
@@ -111,7 +111,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Changes the service price.
+     * Changes the treatment price.
      *
      * @param price the new price
      */
@@ -120,7 +120,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Returns how long the service takes.
+     * Returns how long the treatment takes.
      *
      * @return the duration in minutes
      */
@@ -129,7 +129,7 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Changes how long the service takes.
+     * Changes how long the treatment takes.
      *
      * @param durationMinutes the new duration in minutes
      */
@@ -138,9 +138,9 @@ public class BeautyService implements Sellable {
     }
 
     /**
-     * Indicates whether the service is currently offered.
+     * Indicates whether the treatment is currently offered.
      *
-     * @return {@code true} if the service is active
+     * @return {@code true} if the treatment is active
      */
     public boolean isActive() {
         return active;
@@ -151,10 +151,10 @@ public class BeautyService implements Sellable {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof BeautyService service)) {
+        if (!(other instanceof Treatment treatment)) {
             return false;
         }
-        return id == service.id;
+        return id == treatment.id;
     }
 
     @Override
