@@ -5,7 +5,6 @@ import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Setting;
 
-import java.util.Map;
 
 /**
  * Gives typed access to the business parameters, so that rules and
@@ -16,7 +15,7 @@ public class SettingsService {
 
     /** Name shown on invoices and screens. */
     public static final String BUSINESS_NAME = "business_name";
-    /** Percentage of the service price required as deposit. */
+    /** Percentage of the treatment price required as deposit. */
     public static final String DEPOSIT_PERCENTAGE = "deposit_percentage";
     /** Minimum hours between booking and the appointment start. */
     public static final String MIN_BOOKING_NOTICE_HOURS = "min_booking_notice_hours";
@@ -56,7 +55,7 @@ public class SettingsService {
     }
 
     /**
-     * Returns the deposit required when booking, as a percentage of the service price.
+     * Returns the deposit required when booking, as a percentage of the treatment price.
      *
      * @return a value between 0 and 100
      * @throws ValidationException if the setting is missing or out of range
@@ -133,7 +132,8 @@ public class SettingsService {
     }
 
     /**
-     * Changes the value of an existing setting after checking it.
+     * Changes the value of an existing setting. The new value is checked
+     * before it is stored, so an invalid value never reaches the file.
      *
      * @param key   the setting key
      * @param value the new value, as text
@@ -141,60 +141,66 @@ public class SettingsService {
      * @throws DataAccessException if the setting cannot be stored
      */
     public void update(String key, String value) throws ValidationException, DataAccessException {
-        Map<String, Setting> settings = settingDao.loadAll();
-        if (!settings.containsKey(key)) {
+        if (!settingDao.loadAll().containsKey(key)) {
             throw new ValidationException("No existe el parámetro de configuración " + key + ".");
         }
-        String previous = settings.get(key).getValue();
-        settingDao.save(key, value);
-        try {
-            checkValue(key);
-        } catch (ValidationException e) {
-            settingDao.save(key, previous);
-            throw e;
-        }
+        checkValue(key, value);
+        settingDao.save(key, value.trim());
     }
 
-    private void checkValue(String key) throws ValidationException, DataAccessException {
+    private void checkValue(String key, String value) throws ValidationException {
         switch (key) {
-            case DEPOSIT_PERCENTAGE, LOW_ROTATION_DISCOUNT_PERCENTAGE -> percentage(key);
-            case MIN_BOOKING_NOTICE_HOURS, REMINDER_HOURS_BEFORE -> wholeNumber(key, 0);
-            case NO_SHOW_PENALTY_THRESHOLD, LOW_ROTATION_WINDOW_DAYS, LOW_ROTATION_TOP_N -> wholeNumber(key, 1);
-            default -> read(key);
+            case DEPOSIT_PERCENTAGE, LOW_ROTATION_DISCOUNT_PERCENTAGE -> parsePercentage(key, value);
+            case MIN_BOOKING_NOTICE_HOURS, REMINDER_HOURS_BEFORE -> parseWholeNumber(key, value, 0);
+            case NO_SHOW_PENALTY_THRESHOLD, LOW_ROTATION_WINDOW_DAYS, LOW_ROTATION_TOP_N ->
+                parseWholeNumber(key, value, 1);
+            default -> requireValue(key, value);
         }
     }
 
     private String read(String key) throws ValidationException, DataAccessException {
         Setting setting = settingDao.loadAll().get(key);
-        if (setting == null || setting.getValue().isBlank()) {
-            throw new ValidationException("Falta el parámetro de configuración " + key + ".");
-        }
-        return setting.getValue().trim();
+        return requireValue(key, setting == null ? null : setting.getValue());
     }
 
     private double percentage(String key) throws ValidationException, DataAccessException {
-        double value;
-        try {
-            value = Double.parseDouble(read(key));
-        } catch (NumberFormatException e) {
-            throw new ValidationException("El parámetro " + key + " debe ser un número.", e);
-        }
-        if (value < 0 || value > MAX_PERCENTAGE) {
-            throw new ValidationException("El parámetro " + key + " debe estar entre 0 y 100.");
-        }
-        return value;
+        return parsePercentage(key, read(key));
     }
 
     private int wholeNumber(String key, int minimum) throws ValidationException, DataAccessException {
-        int value;
+        return parseWholeNumber(key, read(key), minimum);
+    }
+
+    private static String requireValue(String key, String value) throws ValidationException {
+        if (value == null || value.isBlank()) {
+            throw new ValidationException("Falta el parámetro de configuración " + key + ".");
+        }
+        return value.trim();
+    }
+
+    private static double parsePercentage(String key, String value) throws ValidationException {
+        double number;
         try {
-            value = Integer.parseInt(read(key));
+            number = Double.parseDouble(requireValue(key, value));
+        } catch (NumberFormatException e) {
+            throw new ValidationException("El parámetro " + key + " debe ser un número.", e);
+        }
+        if (number < 0 || number > MAX_PERCENTAGE) {
+            throw new ValidationException("El parámetro " + key + " debe estar entre 0 y 100.");
+        }
+        return number;
+    }
+
+    private static int parseWholeNumber(String key, String value, int minimum) throws ValidationException {
+        int number;
+        try {
+            number = Integer.parseInt(requireValue(key, value));
         } catch (NumberFormatException e) {
             throw new ValidationException("El parámetro " + key + " debe ser un número entero.", e);
         }
-        if (value < minimum) {
+        if (number < minimum) {
             throw new ValidationException("El parámetro " + key + " debe ser al menos " + minimum + ".");
         }
-        return value;
+        return number;
     }
 }
