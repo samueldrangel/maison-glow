@@ -100,7 +100,8 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         throws DataAccessException {
         int id = Integer.parseInt(idField);
         return dao.findById(id).orElseThrow(() ->
-            new DataAccessException("El registro referencia un " + entityName + " con id " + id + " que no existe."));
+            new DataAccessException("No existe el registro de " + entityName + " con id " + id
+                + " al que se hace referencia."));
     }
 
     /**
