@@ -20,12 +20,12 @@
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ✅ Hecha |
 | 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ⬜ Pendiente |
 | 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ⬜ Pendiente |
-| 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ⬜ Pendiente |
+| 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ✅ Hecha |
 | 11 | S-04 | `Appointment` y su DAO | Samuel | 🔴 | Día 3 | N-01, I-01, S-03 | ✅ Hecha |
 | 12 | N-03 | Catálogo de tratamientos (DAO + servicio) | Nicoll | 🔴 | Día 4 | I-01, S-03 | ✅ Hecha |
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ⬜ Pendiente |
-| 14 | S-05 | `AppointmentService`: agendar y evitar cruces | Samuel | 🔴 | Día 5 | S-04 | ⬜ Pendiente |
-| 15 | S-06 | `Sale` y `SaleLine` (y su DAO) | Samuel | 🔴 | Día 5 | I-02, S-03 | ⬜ Pendiente |
+| 14 | S-05 | `AppointmentService`: agendar y evitar cruces | Samuel | 🔴 | Día 5 | S-04 | ✅ Hecha |
+| 15 | S-06 | `Sale` y `SaleLine` (y su DAO) | Samuel | 🔴 | Día 5 | I-02, S-03 | ✅ Hecha |
 | 16 | I-06 | Diagrama de paquetes y de clases final | Isabella | 🔴 | Día 7 | N-01, I-01, I-02, S-04, S-06 | ⬜ Pendiente |
 | 17 | S-07 | `SaleService`: registrar venta y descontar stock | Samuel | 🔴 | Día 7 | S-06, I-03 | ⬜ Pendiente |
 | 18 | I-05 | Mockups M5–M7 | Isabella | 🔴 | Día 8 | I-04 | ⬜ Pendiente |

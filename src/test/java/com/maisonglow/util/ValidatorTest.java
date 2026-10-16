@@ -27,6 +27,15 @@ class ValidatorTest {
     }
 
     @Test
+    @DisplayName("requirePresent accepts any value and rejects null")
+    void requirePresent() {
+        assertThatCode(() -> Validator.requirePresent(new Object(), "fecha")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> Validator.requirePresent(null, "fecha"))
+            .isInstanceOf(ValidationException.class)
+            .hasMessage("El campo fecha es obligatorio.");
+    }
+
+    @Test
     @DisplayName("requireEmail accepts a well-formed address")
     void requireEmailAcceptsValidAddress() {
         assertThatCode(() -> Validator.requireEmail("ana.perez@correo.com")).doesNotThrowAnyException();
