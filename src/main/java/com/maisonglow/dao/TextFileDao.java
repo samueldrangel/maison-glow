@@ -86,6 +86,24 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
     protected abstract void setId(T entity, int id);
 
     /**
+     * Finds the entity that a record references by id, for subclasses that
+     * rebuild related entities with other DAOs (ADR-0012).
+     *
+     * @param dao        where the related entity is stored
+     * @param idField    the id as written in the record
+     * @param entityName the Spanish name of the related entity, for the error message
+     * @param <E>        the type of the related entity
+     * @return the related entity
+     * @throws DataAccessException if no entity has that id or it cannot be read
+     */
+    protected static <E> E findRelated(CrudDao<E> dao, String idField, String entityName)
+        throws DataAccessException {
+        int id = Integer.parseInt(idField);
+        return dao.findById(id).orElseThrow(() ->
+            new DataAccessException("El registro referencia un " + entityName + " con id " + id + " que no existe."));
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @throws DataAccessException also if the entity already has an id, that
