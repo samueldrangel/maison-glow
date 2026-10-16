@@ -117,12 +117,6 @@ public class AppointmentDaoText extends TextFileDao<Appointment> implements Appo
         appointment.setId(id);
     }
 
-    private static <E> E findRelated(CrudDao<E> dao, String idField, String entityName) throws DataAccessException {
-        int id = Integer.parseInt(idField);
-        return dao.findById(id).orElseThrow(() ->
-            new DataAccessException("La cita referencia un " + entityName + " con id " + id + " que no existe."));
-    }
-
     private static void restoreDeposit(Appointment appointment, double deposit) throws DataAccessException {
         try {
             appointment.setDeposit(deposit);
