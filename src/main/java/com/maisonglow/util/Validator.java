@@ -31,6 +31,19 @@ public final class Validator {
     }
 
     /**
+     * Checks that a required value, such as a date or a selected customer, was given.
+     *
+     * @param value     the value to check
+     * @param fieldName the field name used in the error message
+     * @throws ValidationException if the value is {@code null}
+     */
+    public static void requirePresent(Object value, String fieldName) throws ValidationException {
+        if (value == null) {
+            throw new ValidationException("El campo " + fieldName + " es obligatorio.");
+        }
+    }
+
+    /**
      * Checks that a text value has a valid email format.
      *
      * @param email the email address to check
