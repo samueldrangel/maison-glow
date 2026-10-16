@@ -2,6 +2,7 @@ package com.maisonglow.model;
 
 import com.maisonglow.exception.BusinessRuleException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -97,7 +98,40 @@ public class Appointment {
      * @return {@code true} if both slots share some time
      */
     public boolean overlapsWith(Appointment other) {
-        return start.isBefore(other.end) && end.isAfter(other.start);
+        return overlapsWith(other.start, other.end);
+    }
+
+    /**
+     * Indicates whether this appointment shares some time with the given
+     * slot. Touching slots do not overlap.
+     *
+     * @param otherStart the start of the slot
+     * @param otherEnd   the end of the slot
+     * @return {@code true} if both slots share some time
+     */
+    public boolean overlapsWith(LocalDateTime otherStart, LocalDateTime otherEnd) {
+        return start.isBefore(otherEnd) && end.isAfter(otherStart);
+    }
+
+    /**
+     * Returns a copy of this appointment moved to a new start, with the same
+     * id, duration, status and deposit. The reminder is not copied because it
+     * belonged to the old start; the booking rules schedule it again. This
+     * appointment is left unchanged, so a rejected move has no effect.
+     *
+     * @param newStart when the moved appointment starts
+     * @return the moved copy
+     * @throws BusinessRuleException if the appointment is no longer active
+     */
+    public Appointment rescheduledTo(LocalDateTime newStart) throws BusinessRuleException {
+        Objects.requireNonNull(newStart, "newStart");
+        if (!blocksSchedule()) {
+            throw new BusinessRuleException("No se puede reprogramar una cita " + status.getLabel() + ".");
+        }
+        LocalDateTime newEnd = newStart.plus(Duration.between(start, end));
+        Appointment moved = new Appointment(id, customer, professional, treatment, newStart, newEnd, status, createdAt);
+        moved.deposit = deposit;
+        return moved;
     }
 
     /**
