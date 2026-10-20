@@ -38,7 +38,7 @@
 | 25 | N-09 | Documento GRASP y SOLID con clases reales | Nicoll | 🔴 | Día 11 | N-01…N-06 | ⬜ Pendiente |
 | 26 | S-11 | Consolidar documentos de Fase 1 y 2 | Samuel | 🔴 | Día 11 | todas las 🔴 | ⬜ Pendiente |
 | 27 | S-12 | **IA (backend):** asistente con herramientas controladas | Samuel | 🟢 | Día 11 | S-05, N-02, I-03, I-10 y todas sus 🔴 | ⬜ Pendiente |
-| 28 | N-11 | Demo de consola (`Main`) | Nicoll | 🟢 | Día 12 | N-10 | ⬜ Pendiente |
+| 28 | N-11 | Demo de consola (`Main`) | Nicoll | 🟢 | Día 12 | N-10 | ✅ Hecha |
 | 29 | S-13 | **IA (backend):** probador virtual simulado | Samuel | 🟢 | Día 12 | N-02, S-12 | ⬜ Pendiente |
 | 30 | I-08 | Mockups M8–M9 (IA) | Isabella | 🟢 | Día 12 | I-05 | ⬜ Pendiente |
 
