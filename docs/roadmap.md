@@ -18,15 +18,9 @@
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
 | 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ✅ Hecha |
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ✅ Hecha |
- 
 | 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ✅ Hecha |
-| 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ⬜ Pendiente |
-| 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ⬜ Pendiente |
-
-| 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ⬜ Pendiente |
 | 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ✅ Hecha |
 | 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ✅ Hecha |
-
 | 11 | S-04 | `Appointment` y su DAO | Samuel | 🔴 | Día 3 | N-01, I-01, S-03 | ✅ Hecha |
 | 12 | N-03 | Catálogo de tratamientos (DAO + servicio) | Nicoll | 🔴 | Día 4 | I-01, S-03 | ✅ Hecha |
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ⬜ Pendiente |
@@ -36,7 +30,7 @@
 | 17 | S-07 | `SaleService`: registrar venta y descontar stock | Samuel | 🔴 | Día 7 | S-06, I-03 | ⬜ Pendiente |
 | 18 | I-05 | Mockups M5–M7 | Isabella | 🔴 | Día 8 | I-04 | ⬜ Pendiente |
 | 19 | N-05 | `StatisticsService` (cliente y administrador) | Nicoll | 🟠 | Día 8 | S-05, S-07 *(o contrato)*, I-10 | ✅ Hecha |
-| 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ⬜ Pendiente |
+| 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ✅ Hecha |
 | 21 | I-07 | `EmailNotifier` simulado y factura | Isabella | 🟠 | Día 9 | S-06 | ✅ Hecha |
 | 22 | N-06 | Productos de baja rotación y aviso al administrador | Nicoll | 🟠 | Día 10 | N-05 | ⬜ Pendiente |
 | 23 | N-10 | Pruebas de integración (escenario completo) | Nicoll | 🟠 | Día 11 | S-07, N-05, I-11 | ⬜ Pendiente |
