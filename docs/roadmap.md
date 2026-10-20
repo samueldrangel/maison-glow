@@ -33,7 +33,7 @@
 | 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ✅ Hecha |
 | 21 | I-07 | `EmailNotifier` simulado y factura | Isabella | 🟠 | Día 9 | S-06 | ✅ Hecha |
 | 22 | N-06 | Productos de baja rotación y aviso al administrador | Nicoll | 🟠 | Día 10 | N-05 | ✅ Hecha |
-| 23 | N-10 | Pruebas de integración (escenario completo) | Nicoll | 🟠 | Día 11 | S-07, N-05, I-11 | ⬜ Pendiente |
+| 23 | N-10 | Pruebas de integración (escenario completo) | Nicoll | 🟠 | Día 11 | S-07, N-05, I-11 | ✅ Hecha |
 | 24 | N-07 | Sugerencia de promociones | Nicoll | 🟢 | Día 11 | N-06 | ✅ Hecha |
 | 25 | N-09 | Documento GRASP y SOLID con clases reales | Nicoll | 🔴 | Día 11 | N-01…N-06 | ⬜ Pendiente |
 | 26 | S-11 | Consolidar documentos de Fase 1 y 2 | Samuel | 🔴 | Día 11 | todas las 🔴 | ⬜ Pendiente |
