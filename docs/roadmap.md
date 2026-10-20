@@ -18,9 +18,15 @@
 | 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
 | 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ✅ Hecha |
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ✅ Hecha |
+ 
+| 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ✅ Hecha |
+| 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ⬜ Pendiente |
+| 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ⬜ Pendiente |
+
 | 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ⬜ Pendiente |
 | 9 | I-03 | Módulo de productos (DAO + servicio) | Isabella | 🔴 | Día 3 | I-02, S-03 | ✅ Hecha |
 | 10 | I-10 | Configuración del negocio (`SettingsService`) | Isabella | 🔴 | Día 3 | S-03 | ✅ Hecha |
+
 | 11 | S-04 | `Appointment` y su DAO | Samuel | 🔴 | Día 3 | N-01, I-01, S-03 | ✅ Hecha |
 | 12 | N-03 | Catálogo de tratamientos (DAO + servicio) | Nicoll | 🔴 | Día 4 | I-01, S-03 | ⬜ Pendiente |
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ⬜ Pendiente |
