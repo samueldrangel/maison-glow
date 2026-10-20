@@ -58,6 +58,45 @@ class AppointmentTest {
     }
 
     @Test
+    @DisplayName("overlapsWith also compares against a free slot")
+    void overlapsWithSlot() {
+        Appointment nine = bookAt(NINE);
+
+        assertThat(nine.overlapsWith(NINE.plusMinutes(40), NINE.plusMinutes(60))).isTrue();
+        assertThat(nine.overlapsWith(NINE.plusMinutes(45), NINE.plusMinutes(60))).isFalse();
+    }
+
+    @Test
+    @DisplayName("rescheduledTo keeps id, duration, status and deposit, and drops the old reminder")
+    void rescheduledToKeepsData() throws BusinessRuleException {
+        Appointment appointment = Appointment.restore(7, ana, laura, haircut, NINE, NINE.plusMinutes(60),
+            AppointmentStatus.CONFIRMED, NINE.minusDays(1));
+        appointment.setDeposit(10000);
+        appointment.setReminderAt(NINE.minusHours(24));
+
+        Appointment moved = appointment.rescheduledTo(NINE.plusDays(1));
+
+        assertThat(moved.getId()).isEqualTo(7);
+        assertThat(moved.getStart()).isEqualTo(NINE.plusDays(1));
+        assertThat(moved.getEnd()).isEqualTo(NINE.plusDays(1).plusMinutes(60));
+        assertThat(moved.getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
+        assertThat(moved.getDeposit()).isEqualTo(10000);
+        assertThat(moved.getReminderAt()).isNull();
+        assertThat(appointment.getStart()).isEqualTo(NINE);
+    }
+
+    @Test
+    @DisplayName("a closed appointment cannot be rescheduled")
+    void closedAppointmentCannotBeRescheduled() throws BusinessRuleException {
+        Appointment appointment = bookAt(NINE);
+        appointment.cancel();
+
+        assertThatThrownBy(() -> appointment.rescheduledTo(NINE.plusDays(1)))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasMessage("No se puede reprogramar una cita cancelada.");
+    }
+
+    @Test
     @DisplayName("a pending appointment can be confirmed and then completed")
     void confirmThenComplete() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
