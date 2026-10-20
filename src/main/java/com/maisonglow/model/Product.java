@@ -44,6 +44,7 @@ public class Product implements Sellable {
      * @param quantity the units requested
      * @return {@code true} if the stock covers the quantity
      */
+    @Override
     public boolean hasStock(int quantity) {
         return stock >= quantity;
     }
@@ -54,6 +55,7 @@ public class Product implements Sellable {
      * @param quantity the units to remove; must be greater than zero
      * @throws BusinessRuleException if the quantity is not positive or there are not enough units
      */
+    @Override
     public void deductStock(int quantity) throws BusinessRuleException {
         requirePositive(quantity);
         if (!hasStock(quantity)) {
@@ -69,6 +71,7 @@ public class Product implements Sellable {
      * @param quantity the units to add; must be greater than zero
      * @throws BusinessRuleException if the quantity is not positive
      */
+    @Override
     public void addStock(int quantity) throws BusinessRuleException {
         requirePositive(quantity);
         stock += quantity;
