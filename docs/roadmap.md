@@ -30,8 +30,8 @@
 | 17 | S-07 | `SaleService`: registrar venta y descontar stock | Samuel | 🔴 | Día 7 | S-06, I-03 | ⬜ Pendiente |
 | 18 | I-05 | Mockups M5–M7 | Isabella | 🔴 | Día 8 | I-04 | ⬜ Pendiente |
 | 19 | N-05 | `StatisticsService` (cliente y administrador) | Nicoll | 🟠 | Día 8 | S-05, S-07 *(o contrato)*, I-10 | ⬜ Pendiente |
-| 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ✅ Hecha |
-| 21 | I-07 | `EmailNotifier` simulado y factura | Isabella | 🟠 | Día 9 | S-06 | ⬜ Pendiente |
+| 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ⬜ Pendiente |
+| 21 | I-07 | `EmailNotifier` simulado y factura | Isabella | 🟠 | Día 9 | S-06 | ✅ Hecha |
 | 22 | N-06 | Productos de baja rotación y aviso al administrador | Nicoll | 🟠 | Día 10 | N-05 | ⬜ Pendiente |
 | 23 | N-10 | Pruebas de integración (escenario completo) | Nicoll | 🟠 | Día 11 | S-07, N-05, I-11 | ⬜ Pendiente |
 | 24 | N-07 | Sugerencia de promociones | Nicoll | 🟢 | Día 11 | N-06 | ⬜ Pendiente |
