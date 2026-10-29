@@ -26,7 +26,7 @@
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ✅ Hecha |
 | 14 | S-05 | `AppointmentService`: agendar y evitar cruces | Samuel | 🔴 | Día 5 | S-04 | ✅ Hecha |
 | 15 | S-06 | `Sale` y `SaleLine` (y su DAO) | Samuel | 🔴 | Día 5 | I-02, S-03 | ✅ Hecha |
-| 16 | I-06 | Diagrama de paquetes y de clases final | Samuel | 🔴 | Día 7 | N-01, I-01, I-02, S-04, S-06 | ⬜ Pendiente |
+| 16 | I-06 | Diagrama de paquetes y de clases final | Samuel | 🔴 | Día 7 | N-01, I-01, I-02, S-04, S-06 | ✅ Hecha |
 | 17 | S-07 | `SaleService`: registrar venta y descontar stock | Samuel | 🔴 | Día 7 | S-06, I-03 | ✅ Hecha |
 | 18 | I-05 | Mockups M5–M7 | Samuel | 🔴 | Día 8 | I-04 | ✅ Hecha |
 | 19 | N-05 | `StatisticsService` (cliente y administrador) | Nicoll | 🟠 | Día 8 | S-05, S-07 *(o contrato)*, I-10 | ✅ Hecha |
