@@ -24,7 +24,9 @@ Clientes, profesionales, servicios, productos e inventario, citas, ventas y fact
 ## Documentación
 
 - [Planificación del proyecto](PLANIFICACION.md)
-- [Diseño de clases (Fase 2)](docs/fase2/diseno-clases.md)
+- [Identificación y especificación del problema (Fase 1)](docs/fase1/documento-fase1.md)
+- [Diseño de clases (Fase 2)](docs/fase2/diseno-clases.md) y [diagramas finales](docs/fase2/diagramas.md)
+- [Equipo](TEAM.md) y [control de versiones](docs/version-control.md)
 - [Decisiones de arquitectura (ADR)](docs/adr/README.md)
 - [Índice de documentación](docs/README.md)
 
