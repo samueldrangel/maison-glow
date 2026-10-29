@@ -47,6 +47,7 @@ config.properties
 # Runtime data files (ADR-0012); only the preloaded ones are versioned
 data/*.txt
 data/*.txt.tmp
+data/session/
 !data/settings.txt
 !data/categories.txt
 
