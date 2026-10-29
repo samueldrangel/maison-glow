@@ -46,4 +46,15 @@ Ramas: `main` (estable, protegida) · `develop` (integración) · `feature/<modu
 
 ## Ejecución
 
-_Pendiente: se documentará cuando exista el proyecto Maven (Entrega 1)._
+La Entrega 1 no tiene interfaz gráfica: el sistema se muestra por consola, con dos modos.
+
+```bash
+mvn -q compile
+mvn -q exec:java -Dexec.args=demo   # demostración automática: corre el escenario completo y lo imprime
+mvn -q exec:java -Dexec.args=menu   # consola interactiva: menús para registrar, listar, actualizar y consultar
+mvn -q exec:java                    # sin argumentos: pregunta qué modo abrir
+```
+
+- **Demostración:** cada ejecución trabaja sobre una copia limpia de los datos en una carpeta temporal, así que se puede repetir sin límite.
+- **Consola interactiva:** guarda los datos en `data/session/` (Git los ignora) y los conserva entre ejecuciones. Para empezar de cero, borrar esa carpeta. Cada módulo (clientes, tratamientos, profesionales, productos, citas, ventas, estadísticas y configuración) muestra un menú numerado; `0` vuelve al menú anterior.
+- Las fechas se escriben `aaaa-mm-dd`, las horas `hh:mm` y los precios sin puntos (`28000`).
