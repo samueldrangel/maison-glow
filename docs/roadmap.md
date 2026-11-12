@@ -15,7 +15,7 @@
 | 2 | S-02 | Diseño de la BD (MER y `schema.sql`) | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 3 | N-01 | `Person`, `Customer`, `Professional` | Nicoll | 🔴 | Día 1 | S-01 | ✅ Hecha |
 | 4 | I-01 | `Treatment` | Isabella | 🔴 | Día 1 | S-01 | ✅ Hecha |
-| 5 | I-04 | Mockups base M1–M4 | Isabella | 🔴 | Día 1 | — | ⬜ Pendiente |
+| 5 | I-04 | Mockups base M1–M4 | Samuel | 🔴 | Día 1 | — | ✅ Hecha |
 | 6 | S-03 | Base `TextFileDao<T>` (archivos de texto) | Samuel | 🔴 | Día 2 | S-01 | ✅ Hecha |
 | 7 | I-02 | `ProductCategory` y `Product` | Isabella | 🔴 | Día 2 | S-01 | ✅ Hecha |
 | 8 | N-02 | Módulo de clientes (DAO + servicio) | Nicoll | 🔴 | Día 3 | N-01, S-03 | ✅ Hecha |
@@ -26,21 +26,21 @@
 | 13 | N-04 | Módulo de profesionales (DAO + servicio) | Nicoll | 🔴 | Día 5 | N-01, N-03 | ✅ Hecha |
 | 14 | S-05 | `AppointmentService`: agendar y evitar cruces | Samuel | 🔴 | Día 5 | S-04 | ✅ Hecha |
 | 15 | S-06 | `Sale` y `SaleLine` (y su DAO) | Samuel | 🔴 | Día 5 | I-02, S-03 | ✅ Hecha |
-| 16 | I-06 | Diagrama de paquetes y de clases final | Isabella | 🔴 | Día 7 | N-01, I-01, I-02, S-04, S-06 | ⬜ Pendiente |
+| 16 | I-06 | Diagrama de paquetes y de clases final | Samuel | 🔴 | Día 7 | N-01, I-01, I-02, S-04, S-06 | ✅ Hecha |
 | 17 | S-07 | `SaleService`: registrar venta y descontar stock | Samuel | 🔴 | Día 7 | S-06, I-03 | ✅ Hecha |
-| 18 | I-05 | Mockups M5–M7 | Isabella | 🔴 | Día 8 | I-04 | ⬜ Pendiente |
+| 18 | I-05 | Mockups M5–M7 | Samuel | 🔴 | Día 8 | I-04 | ✅ Hecha |
 | 19 | N-05 | `StatisticsService` (cliente y administrador) | Nicoll | 🟠 | Día 8 | S-05, S-07 *(o contrato)*, I-10 | ✅ Hecha |
 | 20 | I-11 | Reglas de cita (anticipo, confirmación, recordatorio) | Isabella | 🟠 | Día 9 | S-05, I-10 | ✅ Hecha |
 | 21 | I-07 | `EmailNotifier` simulado y factura | Isabella | 🟠 | Día 9 | S-06 | ✅ Hecha |
 | 22 | N-06 | Productos de baja rotación y aviso al administrador | Nicoll | 🟠 | Día 10 | N-05 | ✅ Hecha |
 | 23 | N-10 | Pruebas de integración (escenario completo) | Nicoll | 🟠 | Día 11 | S-07, N-05, I-11 | ✅ Hecha |
 | 24 | N-07 | Sugerencia de promociones | Nicoll | 🟢 | Día 11 | N-06 | ✅ Hecha |
-| 25 | N-09 | Documento GRASP y SOLID con clases reales | Nicoll | 🔴 | Día 11 | N-01…N-06 | ⬜ Pendiente |
-| 26 | S-11 | Consolidar documentos de Fase 1 y 2 | Samuel | 🔴 | Día 11 | todas las 🔴 | ⬜ Pendiente |
+| 25 | N-09 | Documento GRASP y SOLID con clases reales | Samuel | 🔴 | Día 11 | N-01…N-06 | ✅ Hecha |
+| 26 | S-11 | Consolidar documentos de Fase 1 y 2 | Samuel | 🔴 | Día 11 | todas las 🔴 | 🟨 En progreso |
 | 27 | S-12 | **IA (backend):** asistente con herramientas controladas | Samuel | 🟢 | Día 11 | S-05, N-02, I-03, I-10 y todas sus 🔴 | ⬜ Pendiente |
 | 28 | N-11 | Demo de consola (`Main`) | Nicoll | 🟢 | Día 12 | N-10 | ✅ Hecha |
 | 29 | S-13 | **IA (backend):** probador virtual simulado | Samuel | 🟢 | Día 12 | N-02, S-12 | ⬜ Pendiente |
-| 30 | I-08 | Mockups M8–M9 (IA) | Isabella | 🟢 | Día 12 | I-05 | ⬜ Pendiente |
+| 30 | I-08 | Mockups M8–M9 (IA) | Samuel | 🟢 | Día 12 | I-05 | ✅ Hecha |
 
 **Estados:** ⬜ Pendiente · 🟨 En progreso · ✅ Hecha (fusionada en `develop`).
 
@@ -128,8 +128,15 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | S-11 | 🔴 | 11–14 | Consolidar documentos | todas las 🔴 | `docs/phase1-phase2` | Documento de Fase 1 (portada a bibliografía), actualizar `TEAM.md` y `docs/version-control.md` (commits y PR por integrante). |
 | S-12 | 🟢 | 11–13 | **IA (backend):** asistente con herramientas | S-05, N-02, I-03, I-10 y todas sus 🔴 | `feature/ai-assistant` | Paquete `ai` ([ADR-0005](adr/0005-ia-desacoplada-por-interfaces.md), [ADR-0006](adr/0006-herramientas-del-asistente-tipo-mcp.md)): interfaces `SmartAssistant` y `AssistantTool`, `ToolRegistry` (lista blanca), herramientas `FindCustomerTool`, `ListLowStockTool`, `ListAppointmentsByDateTool`, `CheckAvailabilityTool` y `BookAppointmentTool` (esta exige confirmación y no crea la cita hasta recibirla). Las herramientas llaman a los `*Service`, **nunca a los DAO**. `SimulatedAssistant` responde sin red. Pruebas con Mockito. **Sin interfaz gráfica.** **Listo cuando** una herramienta no registrada se rechaza y `BookAppointmentTool` respeta el cruce de horarios y la confirmación. |
 | S-13 | 🟢 | 12–13 | **IA (backend):** probador virtual simulado | N-02, S-12 | `feature/ai-try-on` | `TryOnService`, `TryOnRequest`/`TryOnResult` y `SimulatedTryOnService` (resultado rotulado "simulación, no garantía"). Exige un cliente registrado y valida el tipo de transformación con `Validator`. Pruebas unitarias. **Listo cuando** una solicitud inválida lanza `ValidationException` y la válida devuelve el resultado simulado. |
+| I-04 | 🔴 | 1–8 | Mockups base M1–M4 | — | `docs/mockups-core` | En Figma o draw.io, exportados a `docs/fase2/mockups/`: M1 principal y navegación, M2 clientes, M3 profesionales/servicios, M4 productos. Cada uno con componentes y eventos anotados. |
+| I-05 | 🔴 | 8–11 | Mockups M5–M7 | I-04 | `docs/mockups-operations` | M5 agenda de citas, M6 nueva venta (carrito), M7 estadísticas. |
+| I-06 | 🔴 | 7–12 | Diagrama de paquetes y de clases | N-01, I-01, I-02, S-04, S-06 | `docs/diagrams` | Diagrama de paquetes y de clases **final** (draw.io o Mermaid) basado en el código real, guardado en `docs/fase2/`. |
+| N-09 | 🔴 | 11–13 | Documento GRASP y SOLID | N-01…N-06 | `docs/grasp-solid` | Cada PR agrega su fila de GRASP/SOLID/Clean Code; esta tarea **consolida** y completa las secciones 7 y 8 de `diseno-clases.md` con las clases reales implementadas (clase y método concretos). |
+| I-08 | 🟢 | 12–14 | Mockups M8–M9 | I-05 | `docs/mockups-ai` | Probador virtual y asistente (para la Entrega 2). |
 
-> **Regla de corte de IA:** S-12 y S-13 se abren solo si **todos los 🔴** de Samuel están ✅. Si el Día 12 no hay una versión estable, no se fusionan: pasan completas a la Entrega 2.
+> **Reasignación:** I-04, I-05, I-06, N-09 e I-08 pasaron de Isabella (I-xx) y Nicoll (N-09) a Samuel para agilizar la Entrega 1. Conservan su ID original. Las pruebas de cada integrante (N-08, I-09) y sus tareas ya fusionadas no cambian.
+>
+> **Regla de corte de IA:** S-12 y S-13 se abren solo si **todos los 🔴** de Samuel (incluidas las reasignadas) están ✅. Si el Día 12 no hay una versión estable, no se fusionan: pasan completas a la Entrega 2.
 
 ### 4.2 Nicoll Gómez — Developer 1
 
@@ -143,7 +150,6 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | N-06 | 🟠 | 10–11 | Baja rotación | N-05 | `feature/low-rotation` | `lowRotationProducts(...)` (RF-29) usando la ventana y el top N de `SettingsService` (sin números fijos) y `AdminNotifier` (interfaz) con implementación simulada que lista los productos de baja rotación (RF-30). |
 | N-07 | 🟢 | 11–12 | Sugerencia de promociones | N-06 | `feature/promotion-suggestion` | `suggestPromotions(customerId)`: productos de baja rotación que el cliente aún no compró, con el descuento de `SettingsService` (RF-31). Solo **sugiere**; la tabla `promotion` es de la Entrega 2. |
 | N-08 | 🔴 | 2–14 | Pruebas de sus clases | cada tarea | en su propia rama | JUnit 5 + AssertJ (+ Mockito en `StatisticsService`); cobertura ≥ 70 % en `service`. |
-| N-09 | 🔴 | 11–13 | Documento GRASP y SOLID | N-01…N-06 | `docs/grasp-solid` | Cada PR agrega su fila de GRASP/SOLID/Clean Code; esta tarea **consolida** y completa las secciones 7 y 8 de `diseno-clases.md` con las clases reales implementadas (clase y método concretos). |
 | N-10 | 🟠 | 11–12 | Pruebas de integración | S-07, N-05, I-11 | `feature/integration-tests` | Escenario completo con DAO de archivo de texto (sobre archivos temporales): registrar cliente, profesional, servicio y producto → agendar (y rechazar cruce, aplicando las reglas) → vender → verificar stock y estadísticas. |
 | N-11 | 🟢 | 12–13 | Demo de consola | N-10 | `feature/console-demo` | `Main` que ejecuta el escenario e imprime resultados (para mostrar la lógica sin UI). Es el único punto donde se arman los DAO y servicios (DIP). |
 
@@ -155,12 +161,8 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | I-02 | 🔴 | 2–3 | `ProductCategory` y `Product` | S-01 | `feature/product-model` | `ProductCategory` (id, nombre) con `CategoryDao`/`CategoryDaoText` y `data/categories.txt` precargado con las categorías de `sql/seed.sql`. `Product` implementa `Sellable`, referencia su `ProductCategory` y tiene `active`; `hasStock`, `deductStock` (lanza `BusinessRuleException` si no alcanza), `addStock`, `isBelowMinimum()`. **Listo cuando** hay pruebas de descuento exacto, descuento excesivo y umbral. |
 | I-03 | 🔴 | 3–5 | Módulo de productos | I-02, S-03 | `feature/product-service` | `ProductDao` + `ProductDaoText` + `ProductService`: registrar (nombre único, categoría existente, precio > 0, stock ≥ 0), actualizar, `adjustStock`, `listLowStock()` (RF-03, 04, 05, 19). |
 | I-10 | 🔴 | 3–4 | Configuración del negocio | S-03 | `feature/settings-service` | `Setting`, `SettingDao`/`SettingDaoText` (lee y guarda `data/settings.txt`, clave de texto) y `SettingsService` con getters tipados (contrato de la sección 3) y validación de rangos (porcentajes 0–100, horas ≥ 0). Evita números fijos en reglas y estadísticas. **Listo cuando** un valor inválido en el archivo lanza `ValidationException` y cambiar un valor se refleja sin tocar código. |
-| I-04 | 🔴 | 1–8 | Mockups base M1–M4 | — | `docs/mockups-core` | En Figma o draw.io, exportados a `docs/fase2/mockups/`: M1 principal y navegación, M2 clientes, M3 profesionales/servicios, M4 productos. Cada uno con componentes y eventos anotados. |
-| I-05 | 🔴 | 8–11 | Mockups M5–M7 | I-04 | `docs/mockups-operations` | M5 agenda de citas, M6 nueva venta (carrito), M7 estadísticas. |
-| I-06 | 🔴 | 7–12 | Diagrama de paquetes y de clases | N-01, I-01, I-02, S-04, S-06 | `docs/diagrams` | Diagrama de paquetes y de clases **final** (draw.io o Mermaid) basado en el código real, guardado en `docs/fase2/`. |
 | I-07 | 🟠 | 9–10 | Factura y correo simulado | S-06 | `feature/email-notifier` | `EmailNotifier` (interfaz) y `SimulatedEmailNotifier` (imprime el correo); `InvoiceFormatter` que arma el texto de la factura desde una `Sale` (RF-27). |
 | I-11 | 🟠 | 9–10 | Reglas de cita | S-05, I-10 | `feature/appointment-rules` | `DepositRule`, `ConfirmationRule`, `ReminderRule` implementan `AppointmentRule` y leen sus parámetros de `SettingsService` (anticipo %, aviso mínimo, recordatorio, penalización por inasistencias) (RF-26, ADR-0007). **Listo cuando** agregar una regla nueva no obliga a modificar `AppointmentService` y una cita de un cliente con inasistencias sobre el umbral exige el pago completo. |
-| I-08 | 🟢 | 12–14 | Mockups M8–M9 | I-05 | `docs/mockups-ai` | Probador virtual y asistente (para la Entrega 2). |
 | I-09 | 🔴 | 2–14 | Pruebas de sus clases | cada tarea | en su propia rama | JUnit 5 + AssertJ; cobertura ≥ 70 % en `service`. |
 
 ## 5. Flujo de Git de cada integrante
@@ -189,7 +191,7 @@ mvn clean verify                 # debe pasar
 **Reglas**
 1. **Nunca** commits directos a `develop` ni `main`; **nunca** `push --force` en ramas compartidas.
 2. Un PR = una tarea. Título en formato Conventional Commits (`feat(product): add product service`).
-3. **Revisor:** Samuel revisa los PR de Nicoll e Isabella; **Nicoll o Isabella** (una de las dos, alternando) revisan los de Samuel. Ningún PR se fusiona sin una aprobación ajena al autor.
+3. **Revisor:** Samuel revisa los PR de Nicoll e Isabella; **Nicoll o Isabella** (una de las dos, alternando) revisan los de Samuel. Ningún PR se fusiona sin una aprobación ajena al autor. **Excepción (reasignación de tareas pendientes a Samuel):** los PR de las tareas reasignadas (I-04, I-05, I-06, N-09, I-08) y los demás PR de Samuel pendientes de la Entrega 1 los revisa y fusiona Samuel sin esperar a Nicoll o Isabella.
 4. **Merge normal** (no *squash*) para conservar los commits individuales (evidencia de cada integrante).
 5. Borrar la rama remota tras el merge; el siguiente trabajo empieza otra vez desde `develop` actualizado.
 6. Mensajes de commit: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, con alcance: `feat(customer): add duplicate document check`.

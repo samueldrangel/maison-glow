@@ -24,10 +24,12 @@ import com.maisonglow.model.Product;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Sale;
 import com.maisonglow.model.Treatment;
+import com.maisonglow.service.AdminNotifier;
 import com.maisonglow.service.AppointmentService;
 import com.maisonglow.service.ContactData;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.CustomerStatistics;
+import com.maisonglow.service.EmailNotifier;
 import com.maisonglow.service.LowRotationService;
 import com.maisonglow.service.ProductData;
 import com.maisonglow.service.ProductService;
@@ -45,6 +47,20 @@ import com.maisonglow.service.WorkSchedule;
 import com.maisonglow.service.rule.ConfirmationRule;
 import com.maisonglow.service.rule.DepositRule;
 import com.maisonglow.service.rule.ReminderRule;
+import com.maisonglow.ui.console.AppointmentModule;
+import com.maisonglow.ui.console.ConsoleClosedException;
+import com.maisonglow.ui.console.ConsoleIo;
+import com.maisonglow.ui.console.ConsoleModule;
+import com.maisonglow.ui.console.CustomerModule;
+import com.maisonglow.ui.console.MainMenu;
+import com.maisonglow.ui.console.Menu;
+import com.maisonglow.ui.console.MenuOption;
+import com.maisonglow.ui.console.ProductModule;
+import com.maisonglow.ui.console.ProfessionalModule;
+import com.maisonglow.ui.console.SaleModule;
+import com.maisonglow.ui.console.SettingsModule;
+import com.maisonglow.ui.console.StatisticsModule;
+import com.maisonglow.ui.console.TreatmentModule;
 import com.maisonglow.util.InvoiceFormatter;
 
 import java.io.IOException;
@@ -58,14 +74,20 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Console demo of Delivery 1 (N-11). Wires the text-file DAOs and the
- * services (the only place where concrete classes are created) and runs the
- * complete business scenario over a fresh copy of the data folder, so it can
- * be executed any number of times.
+ * Console entry point of Delivery 1. Wires the text-file DAOs and the
+ * services (the only place where concrete classes are created) and offers two
+ * ways to see the system working: the automatic demo (N-11), which runs the
+ * complete business scenario over a fresh copy of the data folder so it can
+ * be executed any number of times, and the interactive console, where the
+ * user registers, lists and changes data through menus over a folder that
+ * keeps its data between runs.
  */
 public final class Main {
 
     private static final Path SOURCE_DATA = Path.of("data");
+    private static final Path SESSION_DATA = SOURCE_DATA.resolve("session");
+    private static final String DEMO_ARGUMENT = "demo";
+    private static final String INTERACTIVE_ARGUMENT = "menu";
     private static final Locale COLOMBIA = Locale.forLanguageTag("es-CO");
     private static final WorkSchedule EIGHT_TO_SIX = new WorkSchedule(LocalTime.of(8, 0), LocalTime.of(18, 0));
 
@@ -82,7 +104,7 @@ public final class Main {
     private final LowRotationService lowRotation;
     private final PromotionService promotions;
 
-    private Main(Path data) {
+    Main(Path data) {
         this.data = data;
         CustomerDao customerDao = new CustomerDaoText(file("customers.txt"));
         TreatmentDao treatmentDao = new TreatmentDaoText(file("treatments.txt"));
@@ -109,12 +131,37 @@ public final class Main {
     }
 
     /**
-     * Runs the console demo.
+     * Starts the console. With the argument {@code demo} it runs the automatic
+     * demo, with {@code menu} it opens the interactive console, and without
+     * arguments it asks which of the two to run.
      *
-     * @param args the command-line arguments; currently unused
+     * @param args the command-line arguments
      */
     public static void main(String[] args) {
         System.out.println("Maison Glow - Sistema de gestión para negocios de belleza");
+        ConsoleIo console = ConsoleIo.system();
+        if (args.length > 0 && DEMO_ARGUMENT.equalsIgnoreCase(args[0])) {
+            runDemo();
+        } else if (args.length > 0 && INTERACTIVE_ARGUMENT.equalsIgnoreCase(args[0])) {
+            runInteractive(console);
+        } else {
+            chooseMode(console);
+        }
+    }
+
+    private static void chooseMode(ConsoleIo console) {
+        Menu modes = new Menu(console, "Modo de ejecución", "Salir", List.of(
+            new MenuOption("Ejecutar la demostración automática", Main::runDemo),
+            new MenuOption("Abrir la consola interactiva (los datos se conservan)",
+                () -> runInteractive(console))));
+        try {
+            modes.run();
+        } catch (ConsoleClosedException e) {
+            console.println();
+        }
+    }
+
+    private static void runDemo() {
         try {
             new Main(prepareDemoFolder()).run();
         } catch (IOException | DataAccessException e) {
@@ -124,11 +171,50 @@ public final class Main {
         }
     }
 
+    private static void runInteractive(ConsoleIo console) {
+        try {
+            Main application = new Main(prepareSessionFolder());
+            console.println("Datos de la consola interactiva en: " + application.data.toAbsolutePath());
+            new MainMenu(console, application.consoleModules(console)).run();
+        } catch (IOException | DataAccessException e) {
+            System.out.println("Error de datos: " + e.getMessage());
+        } catch (ValidationException e) {
+            System.out.println("Error en la configuración: " + e.getMessage());
+        }
+    }
+
     private static Path prepareDemoFolder() throws IOException {
         Path folder = Files.createTempDirectory("maison-glow-demo");
+        copySettingsAndCategories(folder);
+        return folder;
+    }
+
+    private static Path prepareSessionFolder() throws IOException {
+        Files.createDirectories(SESSION_DATA);
+        if (Files.notExists(SESSION_DATA.resolve("settings.txt"))) {
+            copySettingsAndCategories(SESSION_DATA);
+        }
+        return SESSION_DATA;
+    }
+
+    private static void copySettingsAndCategories(Path folder) throws IOException {
         Files.copy(SOURCE_DATA.resolve("settings.txt"), folder.resolve("settings.txt"));
         Files.copy(SOURCE_DATA.resolve("categories.txt"), folder.resolve("categories.txt"));
-        return folder;
+    }
+
+    List<ConsoleModule> consoleModules(ConsoleIo console) throws ValidationException, DataAccessException {
+        EmailNotifier emailNotifier = new SimulatedEmailNotifier(new InvoiceFormatter(settings.businessName()),
+            System.out);
+        AdminNotifier adminNotifier = new SimulatedAdminNotifier(System.out);
+        return List.of(
+            new CustomerModule(console, customers),
+            new TreatmentModule(console, treatments),
+            new ProfessionalModule(console, professionals),
+            new ProductModule(console, products),
+            new AppointmentModule(console, appointments, customers, professionals, treatments),
+            new SaleModule(console, sales, customers, products, treatments, emailNotifier),
+            new StatisticsModule(console, statistics, lowRotation, promotions, adminNotifier, clock),
+            new SettingsModule(console, settings));
     }
 
     private void run() throws ValidationException, BusinessRuleException, DataAccessException {

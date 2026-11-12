@@ -563,33 +563,53 @@ Los errores (`ValidacionException`, `ReglaNegocioException`) se muestran como al
 
 ## 7. Patrones GRASP
 
-| Patrón | Clase / lugar donde se aplica | Razón de diseño |
+Clases y métodos **reales** de `src/main/java/com/maisonglow` (nombres del código, ver la tabla de nomenclatura al inicio). Diagramas: [`diagramas.md`](diagramas.md).
+
+| Patrón | Clase y método | Razón de diseño |
 |---|---|---|
-| **Creator** | `Venta.agregarDetalle()` crea `DetalleVenta` | `Venta` contiene (compone) los detalles y tiene los datos para inicializarlos |
-| **Creator** | `CitaServicio.agendar()` crea `Cita` | El servicio tiene los datos (cliente, profesional, servicio, hora) y las reglas para crearla válida |
-| **Controller** | `CitaServicio`, `VentaServicio`, `ClienteServicio`... | Reciben las operaciones del sistema desde la UI sin ser parte de la UI; los controladores FXML solo delegan en ellos |
-| **Information Expert** | `Producto.descontarStock()`, `estaBajoStockMinimo()` | El producto conoce su stock; nadie más debe manipularlo |
-| **Information Expert** | `Cita.seCruzaCon()` y `Cita.getFechaHoraFin()` | La cita conoce su inicio y la duración del servicio |
-| **Information Expert** | `Venta.calcularTotal()`, `DetalleVenta.calcularSubtotal()` | Cada una tiene los datos para calcular su parte |
-| **Information Expert** | `Profesional.trabajaEn()`, `ofreceTratamiento()` | Conoce su jornada y su lista de servicios |
-| **Low Coupling** | `CitaServicio` depende de `CitaDao` y `ReglaCita` (interfaces); la IA solo habla con `servicio` | Cambiar archivos de texto por JDBC o añadir reglas no afecta a quien las usa |
-| **High Cohesion** | `ReglaAnticipo`, `ReglaConfirmacion`, `ReglaRecordatorio`; `Validador` | Cada clase hace una sola cosa bien definida |
-| **Polymorphism** | `Vendible` (`Producto`/`Tratamiento`), `Persona.getDescripcionRol()`, `ReglaCita` | Se evitan condicionales por tipo; se añade un tipo sin tocar a quien lo usa |
-| **Pure Fabrication** | `Validador`, `XxxDaoTexto`, `NotificadorCorreoSimulado` | Clases que no existen en el dominio, creadas para lograr bajo acoplamiento y reutilización |
-| **Indirection** | `CrudDao<T>` entre servicios y almacenamiento | Aísla el negocio de la tecnología de persistencia |
-| **Protected Variations** | `ReglaCita`, `NotificadorCorreo`, interfaces de `ia` | Protegen al sistema de cambios en reglas, proveedor de correo o de IA |
+| **Creator** | `Sale.addLine(Sellable, int)` crea el `SaleLine` | `Sale` contiene (compone) sus líneas y tiene el ítem y la cantidad para inicializarlas; suma cantidad si el ítem ya está |
+| **Creator** | `AppointmentService.book(...)` crea el `Appointment` | El servicio tiene cliente, profesional, tratamiento y hora, y aplica las reglas antes de guardar |
+| **Creator** | `CustomerService.register`, `ProductService.register`, `TreatmentService.register`, `ProfessionalService.register` | Cada servicio valida el DTO y crea su entidad ya válida |
+| **Controller** | `AppointmentService`, `SaleService`, `CustomerService`, `ProductService`, `ProfessionalService`, `TreatmentService`, `StatisticsService` | Reciben las operaciones del sistema sin ser parte de la UI; la interfaz de la Entrega 2 solo delegará en ellos |
+| **Information Expert** | `Product.deductStock(int)`, `Product.isBelowMinimum()` | El producto conoce su stock y su mínimo; nadie más lo modifica |
+| **Information Expert** | `Appointment.overlapsWith(Appointment)`, `Appointment.rescheduledTo(LocalDateTime)` | La cita conoce su inicio y su fin (la duración viene de `Treatment.calculateEnd`) |
+| **Information Expert** | `Sale.calculateTotal()`, `SaleLine.calculateSubtotal()` | Cada una tiene los datos para calcular su parte |
+| **Information Expert** | `Professional.worksDuring(LocalDateTime, LocalDateTime)`, `Professional.offers(Treatment)` | Conoce su jornada y los tratamientos que presta |
+| **Information Expert** | `AppointmentStatus.canChangeTo(AppointmentStatus)` | El enum conoce qué transiciones son válidas; `Appointment.confirm/cancel/complete/markNoShow` solo le preguntan |
+| **Information Expert** | `Appointment.markNoShow()` → `Customer.registerNoShow()` | La cita sabe que el cliente faltó; el cliente conoce su contador |
+| **Low Coupling** | `AppointmentService` depende de `AppointmentDao`, `CrudDao<Customer>` y `AppointmentRule` (interfaces) | Cambiar archivos de texto por JDBC o agregar una regla no afecta al servicio |
+| **High Cohesion** | `DepositRule`, `ConfirmationRule`, `ReminderRule`; `Validator`; `InvoiceFormatter` | Cada clase hace una sola cosa bien definida |
+| **High Cohesion** | `StatisticsService`, `LowRotationService`, `PromotionService` | La estadística, la baja rotación y las promociones se separaron en tres servicios con un propósito cada uno |
+| **Polymorphism** | `Sellable.deductStock/addStock/hasStock` (`Product` sobrescribe; `Treatment` usa el método por defecto) | `SaleService.register` descuenta el stock de cualquier línea sin preguntar su tipo |
+| **Polymorphism** | `Person.getRoleDescription()`; `AppointmentRule.apply(Appointment)` | Cada subclase o regla responde a su manera |
+| **Pure Fabrication** | `Validator`, `TextFileDao`, `TextFileStore`, `TextLineCodec`, `InvoiceFormatter`, `SimulatedEmailNotifier`, `SimulatedAdminNotifier` | Clases que no existen en el dominio, creadas para lograr bajo acoplamiento y reutilización |
+| **Indirection** | `CrudDao<T>` entre servicios y almacenamiento; `EmailNotifier` entre el llamador (`Main`) y el envío del correo | Aísla el negocio de la tecnología de persistencia y del proveedor de correo |
+| **Protected Variations** | `AppointmentRule`, `EmailNotifier`, `AdminNotifier`, `CrudDao<T>`, `SettingsService` | Protegen al sistema de cambios en reglas, proveedor de correo, persistencia y parámetros del negocio |
 
 ---
 
 ## 8. Principios SOLID
 
-| Principio | Dónde es observable | Argumento |
+| Principio | Clase y lugar | Argumento |
 |---|---|---|
-| **SRP** — Responsabilidad única | `Producto` (solo inventario/precio), `XxxDao` (solo persistencia), `CitaServicio` (solo reglas de agendamiento), `Validador` (solo validación), `NotificadorCorreo` (solo envío) | Cada clase tiene **un motivo de cambio**: cambiar el SQL no toca el negocio; cambiar el correo no toca ventas |
-| **OCP** — Abierto/cerrado | Relación `CitaServicio` → `ReglaCita`; `Venta` → `Vendible` | Una nueva regla (p. ej. `ReglaPenalizacion`) o un nuevo tipo vendible (p. ej. `Combo`) se **agrega como clase nueva** sin modificar `CitaServicio` ni `Venta` |
-| **LSP** — Sustitución de Liskov | `Cliente`/`Profesional` por `Persona`; `Producto`/`Tratamiento` por `Vendible`; `DaoTexto`/`DaoJdbc` por `CrudDao` | Pueden usarse donde se espera la abstracción sin romper el comportamiento (los DAO respetan el mismo contrato y excepciones) |
-| **ISP** — Segregación de interfaces | `Vendible` (3 métodos), `NotificadorCorreo` (1 método), `CitaDao` extiende `CrudDao` solo con lo extra | Las clases no se ven obligadas a implementar métodos que no usan |
-| **DIP** — Inversión de dependencias | Constructores de `CitaServicio`, `VentaServicio` reciben interfaces (`CitaDao`, `CrudDao<Producto>`, `NotificadorCorreo`) | El negocio depende de abstracciones; la implementación concreta se elige en un único punto de arranque |
+| **SRP** — Responsabilidad única | `Product` (solo inventario y precio), `CustomerDaoText` (solo persistencia), `AppointmentService` (solo agendamiento), `Validator` (solo validación), `SettingsService` (solo parámetros), `InvoiceFormatter` (solo el texto de la factura) | Cada clase tiene **un motivo de cambio**: cambiar el formato del archivo no toca el negocio; cambiar la factura no toca ventas |
+| **SRP** | `TextFileDao` (plantilla), `TextFileStore` (lectura y escritura del archivo), `TextLineCodec` (separador `\|` y escape) | La persistencia se dividió en tres piezas; un DAO concreto solo define `toFields` y `fromFields` |
+| **OCP** — Abierto/cerrado | `AppointmentService` → lista de `AppointmentRule`; `Sale.addLine(Sellable, int)` | Una regla nueva (p. ej. una penalización) o un nuevo `Sellable` se **agrega como clase nueva**; `AppointmentService` y `Sale` no se modifican |
+| **LSP** — Sustitución de Liskov | `Customer`/`Professional` por `Person`; `Product`/`Treatment` por `Sellable`; las `XxxDaoText` por `CrudDao<T>` | Se usan donde se espera la abstracción sin romper el comportamiento; todos los DAO lanzan `DataAccessException` |
+| **ISP** — Segregación de interfaces | `EmailNotifier` (1 método), `AdminNotifier` (1 método), `AppointmentRule` (2), `SettingDao` (2, sin `CrudDao`), `AppointmentDao` agrega solo `findByProfessional` y `findByDate` | Ninguna clase implementa métodos que no usa; `SettingDao` no hereda de `CrudDao` porque su clave es texto |
+| **DIP** — Inversión de dependencias | Constructores de `AppointmentService`, `SaleService`, `StatisticsService`, `LowRotationService`, `PromotionService` y de las tres reglas | Reciben interfaces o servicios por constructor; ningún servicio hace `new` de un DAO ni de un notificador. **Solo `Main` arma las piezas** |
+
+### 8.1 Limitaciones conocidas
+
+Para no afirmar más de lo que hace el código:
+
+| Dónde | Qué pasa | Principio afectado | Plan |
+|---|---|---|---|
+| `SaleService.saveProducts` y `giveBackStock` | Usan `instanceof Product` para decidir qué filas guardar en `ProductDao` tras descontar o devolver stock | OCP, Polymorphism | El descuento de stock **sí** es polimórfico (`Sellable.deductStock`); solo la persistencia del producto pregunta el tipo. Un `Combo` nuevo no se guardaría sin tocar el servicio |
+| `LowRotationService.unitsSoldSince`, `PromotionService` | Usan `instanceof Product` para contar solo ventas de productos | OCP | Aceptable: la baja rotación aplica solo a productos (RF-29) |
+| `SaleLineDaoText.columnOf` | `instanceof Product` y `instanceof Treatment` para elegir la columna `product_id` o `treatment_id` | OCP | Refleja el `CHECK` de `sale_line` (una línea es de producto **o** de servicio); está en la capa de datos, no en el negocio |
+| Ciclo `service` ⇄ `service.rule` | `SettingsService` vive en `service` y lo usan las reglas | Low Coupling | Ver [`diagramas.md`](diagramas.md#1-diagrama-de-paquetes); se resuelve en la Entrega 2 |
+| `AppointmentService.book` con 5 parámetros | Supera el máximo de 3 de Clean Code | Clean Code | Se mantiene por claridad del contrato (RF-10); los demás servicios usan DTO (`ContactData`, `ProductData`, `TreatmentData`, `WorkSchedule`) |
 
 ---
 
