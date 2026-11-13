@@ -31,6 +31,23 @@
     -mg-accent-dark: -mg-gold-dark;
     -mg-accent-glow: rgba(168, 119, 79, 0.45);
 
+    /* Tonos de los chips de estado: fondo, texto y punto. Cambiando estas lineas cambian todos los chips. */
+    -mg-chip-ok-bg: #dde9df;
+    -mg-chip-ok: #3f6650;
+    -mg-chip-ok-dot: #5f8f72;
+    -mg-chip-alert-bg: #f6dcd5;
+    -mg-chip-alert: #9c4436;
+    -mg-chip-alert-dot: #c25a47;
+    -mg-chip-gold-bg: #f3e6cf;
+    -mg-chip-gold: #8a6a2f;
+    -mg-chip-gold-dot: #cf9d4a;
+    -mg-chip-rose-bg: #f3dfe1;
+    -mg-chip-rose: #8a525a;
+    -mg-chip-rose-dot: #b08187;
+    -mg-chip-neutral-bg: #e9e3e0;
+    -mg-chip-neutral: #75686c;
+    -mg-chip-neutral-dot: #9a8d91;
+
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
     -fx-background-color: -mg-cream;
@@ -464,7 +481,7 @@
 }
 
 /* Un chip lleva un punto de estado como grafico: <graphic><Circle radius="3.5" styleClass="chip-dot"/></graphic> */
-.chip-success, .chip-warning, .chip-neutral, .chip-gold {
+.chip-success, .chip-warning, .chip-gold, .chip-rose, .chip-neutral {
     -fx-background-radius: 13 3 13 3;
     -fx-padding: 3 12 3 10;
     -fx-font-size: 12px;
@@ -473,39 +490,48 @@
 }
 
 .chip-success {
-    -fx-background-color: -mg-success-bg;
-    -fx-text-fill: -mg-success;
+    -fx-background-color: -mg-chip-ok-bg;
+    -fx-text-fill: -mg-chip-ok;
 }
 
 .chip-success .chip-dot {
-    -fx-fill: -mg-success;
+    -fx-fill: -mg-chip-ok-dot;
 }
 
 .chip-warning {
-    -fx-background-color: -mg-warning-bg;
-    -fx-text-fill: -mg-warning;
+    -fx-background-color: -mg-chip-alert-bg;
+    -fx-text-fill: -mg-chip-alert;
 }
 
 .chip-warning .chip-dot {
-    -fx-fill: -mg-warning;
-}
-
-.chip-neutral {
-    -fx-background-color: #efe9e6;
-    -fx-text-fill: -mg-text-muted;
-}
-
-.chip-neutral .chip-dot {
-    -fx-fill: -mg-text-muted;
+    -fx-fill: -mg-chip-alert-dot;
 }
 
 .chip-gold {
-    -fx-background-color: -mg-gold-soft;
-    -fx-text-fill: -mg-gold-dark;
+    -fx-background-color: -mg-chip-gold-bg;
+    -fx-text-fill: -mg-chip-gold;
 }
 
 .chip-gold .chip-dot {
-    -fx-fill: -mg-gold;
+    -fx-fill: -mg-chip-gold-dot;
+}
+
+.chip-rose {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-text-fill: -mg-chip-rose;
+}
+
+.chip-rose .chip-dot {
+    -fx-fill: -mg-chip-rose-dot;
+}
+
+.chip-neutral {
+    -fx-background-color: -mg-chip-neutral-bg;
+    -fx-text-fill: -mg-chip-neutral;
+}
+
+.chip-neutral .chip-dot {
+    -fx-fill: -mg-chip-neutral-dot;
 }
 
 /* ---- Tablas (todas las listas): cabecera clara, filas con linea fina y barra dorada en la seleccionada ---- */
