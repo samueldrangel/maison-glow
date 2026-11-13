@@ -57,6 +57,18 @@ class IconsTest {
     }
 
     @Test
+    @DisplayName("the star of the brand is a small icon marked as sparkle")
+    void theStarIsMarked() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+
+        StackPane star = FxTest.onFxThread(Icons::sparkle);
+
+        assertThat(star.getStyleClass()).contains("sparkle");
+        assertThat(star.getPrefWidth()).isEqualTo(15);
+        assertThat(((SVGPath) star.getChildren().get(0)).getContent()).isNotBlank();
+    }
+
+    @Test
     @DisplayName("the medallion holds the icon of its kind and the tone class")
     void theMedallionHoldsTheIcon() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");

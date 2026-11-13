@@ -21,7 +21,8 @@ public final class Icons {
         INFO("M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 16v-4 M12 8h.01"),
         QUESTION("M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01"),
         SUCCESS("M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01l-3-3"),
-        ALERT_CIRCLE("M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 8v4 M12 16h.01");
+        ALERT_CIRCLE("M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 8v4 M12 16h.01"),
+        SPARKLE("M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z");
 
         private final String path;
 
@@ -63,6 +64,18 @@ public final class Icons {
         box.setPrefSize(size, size);
         box.setMaxSize(size, size);
         return box;
+    }
+
+    /**
+     * The four-point star of the brand, for the main action of a screen. A button that has it as its
+     * graphic makes it twinkle while the cursor is over the button ({@link Animations#lift}).
+     *
+     * @return the star in a small box, with the style class {@code sparkle}
+     */
+    public static StackPane sparkle() {
+        StackPane star = small(Kind.SPARKLE, 15);
+        star.getStyleClass().add("sparkle");
+        return star;
     }
 
     /**
