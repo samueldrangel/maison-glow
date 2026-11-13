@@ -73,6 +73,16 @@ public final class AlertPresenter {
     }
 
     /**
+     * Shows a brief notice that goes away by itself and does not interrupt the user, for good news
+     * such as "Venta registrada". Use {@link #showInfo(String)} when the user must read it first.
+     *
+     * @param text what to tell the user
+     */
+    public void toast(String text) {
+        Toast.show(owner.get(), text);
+    }
+
+    /**
      * Asks the user to confirm something before doing it.
      *
      * @param question what is about to happen
