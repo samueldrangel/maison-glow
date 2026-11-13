@@ -1,21 +1,7 @@
 package com.maisonglow;
 
 import java.math.BigDecimal;
-import com.maisonglow.dao.AppointmentDao;
-import com.maisonglow.dao.AppointmentDaoText;
-import com.maisonglow.dao.CategoryDao;
-import com.maisonglow.dao.CategoryDaoText;
-import com.maisonglow.dao.CustomerDao;
-import com.maisonglow.dao.CustomerDaoText;
-import com.maisonglow.dao.ProductDao;
-import com.maisonglow.dao.ProductDaoText;
-import com.maisonglow.dao.ProfessionalDao;
-import com.maisonglow.dao.ProfessionalDaoText;
-import com.maisonglow.dao.SaleDao;
-import com.maisonglow.dao.SaleDaoText;
-import com.maisonglow.dao.SettingDaoText;
-import com.maisonglow.dao.TreatmentDao;
-import com.maisonglow.dao.TreatmentDaoText;
+import com.maisonglow.ai.AiConfig;
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
@@ -45,9 +31,7 @@ import com.maisonglow.service.StatisticsService;
 import com.maisonglow.service.TreatmentData;
 import com.maisonglow.service.TreatmentService;
 import com.maisonglow.service.WorkSchedule;
-import com.maisonglow.service.rule.ConfirmationRule;
 import com.maisonglow.service.rule.DepositRule;
-import com.maisonglow.service.rule.ReminderRule;
 import com.maisonglow.ui.console.AppointmentModule;
 import com.maisonglow.ui.console.ConsoleClosedException;
 import com.maisonglow.ui.console.ConsoleIo;
@@ -85,8 +69,6 @@ import java.util.Locale;
  */
 public final class Main {
 
-    private static final Path SOURCE_DATA = Path.of("data");
-    private static final Path SESSION_DATA = SOURCE_DATA.resolve("session");
     private static final String DEMO_ARGUMENT = "demo";
     private static final String INTERACTIVE_ARGUMENT = "menu";
     private static final Locale COLOMBIA = Locale.forLanguageTag("es-CO");
@@ -107,28 +89,17 @@ public final class Main {
 
     Main(Path data) {
         this.data = data;
-        CustomerDao customerDao = new CustomerDaoText(file("customers.txt"));
-        TreatmentDao treatmentDao = new TreatmentDaoText(file("treatments.txt"));
-        ProfessionalDao professionalDao = new ProfessionalDaoText(file("professionals.txt"),
-            file("professional_treatments.txt"), treatmentDao);
-        CategoryDao categoryDao = new CategoryDaoText(file("categories.txt"));
-        ProductDao productDao = new ProductDaoText(file("products.txt"), categoryDao);
-        AppointmentDao appointmentDao = new AppointmentDaoText(file("appointments.txt"), customerDao,
-            professionalDao, treatmentDao);
-        SaleDao saleDao = new SaleDaoText(file("sales.txt"), file("sale_lines.txt"), customerDao, appointmentDao,
-            productDao, treatmentDao);
-
-        settings = new SettingsService(new SettingDaoText(file("settings.txt")));
-        customers = new CustomerService(customerDao);
-        treatments = new TreatmentService(treatmentDao);
-        professionals = new ProfessionalService(professionalDao, treatmentDao);
-        products = new ProductService(productDao, categoryDao);
-        appointments = new AppointmentService(appointmentDao, customerDao, List.of(new DepositRule(settings),
-            new ConfirmationRule(settings, clock), new ReminderRule(settings)));
-        sales = new SaleService(saleDao, productDao);
-        statistics = new StatisticsService(saleDao, appointmentDao);
-        lowRotation = new LowRotationService(saleDao, productDao, settings);
-        promotions = new PromotionService(lowRotation, saleDao, settings);
+        AppContext context = new AppContext(data, clock, AiConfig.simulated());
+        settings = context.settings();
+        customers = context.customers();
+        treatments = context.treatments();
+        professionals = context.professionals();
+        products = context.products();
+        appointments = context.appointments();
+        sales = context.sales();
+        statistics = context.statistics();
+        lowRotation = context.lowRotation();
+        promotions = context.promotions();
     }
 
     /**
@@ -174,7 +145,7 @@ public final class Main {
 
     private static void runInteractive(ConsoleIo console) {
         try {
-            Main application = new Main(prepareSessionFolder());
+            Main application = new Main(AppContext.sessionFolder());
             console.println("Datos de la consola interactiva en: " + application.data.toAbsolutePath());
             new MainMenu(console, application.consoleModules(console)).run();
         } catch (IOException | DataAccessException e) {
@@ -186,21 +157,8 @@ public final class Main {
 
     private static Path prepareDemoFolder() throws IOException {
         Path folder = Files.createTempDirectory("maison-glow-demo");
-        copySettingsAndCategories(folder);
+        AppContext.seed(folder);
         return folder;
-    }
-
-    private static Path prepareSessionFolder() throws IOException {
-        Files.createDirectories(SESSION_DATA);
-        if (Files.notExists(SESSION_DATA.resolve("settings.txt"))) {
-            copySettingsAndCategories(SESSION_DATA);
-        }
-        return SESSION_DATA;
-    }
-
-    private static void copySettingsAndCategories(Path folder) throws IOException {
-        Files.copy(SOURCE_DATA.resolve("settings.txt"), folder.resolve("settings.txt"));
-        Files.copy(SOURCE_DATA.resolve("categories.txt"), folder.resolve("categories.txt"));
     }
 
     List<ConsoleModule> consoleModules(ConsoleIo console) throws ValidationException, DataAccessException {
@@ -285,10 +243,6 @@ public final class Main {
                 + money(suggestion.promotionalPrice()) + String.format(COLOMBIA, " (%.0f %% de descuento)",
                 suggestion.discountPercentage()));
         }
-    }
-
-    private Path file(String name) {
-        return data.resolve(name);
     }
 
     private static String money(BigDecimal amount) {
