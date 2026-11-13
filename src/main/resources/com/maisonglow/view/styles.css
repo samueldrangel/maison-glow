@@ -405,3 +405,79 @@
     -fx-border-radius: 10;
     -fx-text-fill: -mg-rose-dark;
 }
+
+/* ---- Pantallas de lista + formulario (plantilla templates/ListFormTemplate.fxml) ---- */
+.form-card {
+    -fx-padding: 20;
+}
+
+.form-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 22px;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 0 0 6 0;
+}
+
+.form-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 6 0 0 0;
+}
+
+.search-field {
+    -fx-padding: 10 14 10 14;
+}
+
+.button-secondary {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: -mg-rose;
+    -fx-border-radius: 10;
+    -fx-text-fill: -mg-rose-dark;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.button-secondary:hover {
+    -fx-background-color: -mg-active;
+}
+
+/* ---- Tablas (todas las listas): cabecera clara, filas con linea fina ---- */
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: -mg-surface;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-size: 42;
+}
+
+.table-view .column-header .label {
+    -fx-padding: 0 0 0 12;
+    -fx-text-fill: -mg-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-cell-size: 46;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -mg-cream;
+}
+
+.table-cell {
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent;
+    -fx-text-fill: -mg-text;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -mg-rose-dark;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -mg-text-muted;
+}
