@@ -596,3 +596,20 @@
 .tone-error .line-icon {
     -fx-stroke: -mg-warning;
 }
+
+/* ---- Aviso breve (Toast): no interrumpe; entra abajo a la derecha y se va solo ---- */
+.toast {
+    -fx-background-color: -mg-ink;
+    -fx-background-radius: 18;
+    -fx-padding: 13 22 13 16;
+    -fx-effect: dropshadow(gaussian, rgba(36, 24, 28, 0.35), 22, 0.1, 0, 8);
+}
+
+.toast-text {
+    -fx-text-fill: -mg-cream;
+    -fx-font-size: 14px;
+}
+
+.toast .line-icon {
+    -fx-stroke: -mg-gold;
+}
