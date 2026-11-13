@@ -5,9 +5,13 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +22,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -124,6 +129,86 @@ class MainViewTest {
         } catch (ReflectiveOperationException | RuntimeException e) {
             assumeTrue(false, "cannot simulate the cursor: " + e);
         }
+    }
+
+    @Test
+    @DisplayName("shows the sub-entries of Citas only while one of them is the current screen")
+    void opensTheGroupOfTheCurrentScreen() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        VBox subEntries = (VBox) root.lookup(".nav-sub-list");
+        ToggleButton agenda = entry(root, "Agenda");
+        ToggleButton customers = entry(root, "Clientes");
+
+        assertThat(onFxThread(subEntries::isVisible)).as("closed while on Inicio").isFalse();
+
+        onFxThread(() -> {
+            agenda.fire();
+            return null;
+        });
+        assertThat(await(subEntries::isVisible, visible -> visible)).as("open on Agenda").isTrue();
+        assertThat(await(subEntries::getMaxHeight, height -> height < 0)).as("fully open").isNegative();
+
+        onFxThread(() -> {
+            customers.fire();
+            return null;
+        });
+        assertThat(await(subEntries::isVisible, visible -> !visible)).as("closed again on Clientes").isFalse();
+    }
+
+    @Test
+    @DisplayName("the Citas header leads to Agenda")
+    void theHeaderLeadsToTheFirstSubEntry() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        Button header = (Button) root.lookup(".nav-group");
+        ToggleButton agenda = entry(root, "Agenda");
+
+        onFxThread(() -> {
+            header.fire();
+            return null;
+        });
+
+        Toggle selected = onFxThread(() -> agenda.getToggleGroup().getSelectedToggle());
+        assertThat(((Node) selected).getUserData()).isEqualTo("APPOINTMENTS");
+    }
+
+    @Test
+    @DisplayName("shows the logo in the sidebar")
+    void showsTheLogos() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+
+        assertThat(((ImageView) root.lookup("#logoFull")).getImage().isError()).isFalse();
+        assertThat(((ImageView) root.lookup("#logoMark")).getImage().isError()).isFalse();
+    }
+
+    private Parent shownMainView() throws Exception {
+        AppContext.seed(data);
+        AppContext context = new AppContext(data);
+        return onFxThread(() -> {
+            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"),
+                context);
+            new Scene(loaded, 1100, 720);
+            loaded.applyCss();
+            loaded.layout();
+            return loaded;
+        });
+    }
+
+    private static ToggleButton entry(Parent root, String text) {
+        return root.lookupAll(".nav-button").stream().filter(ToggleButton.class::isInstance)
+            .map(ToggleButton.class::cast).filter(button -> text.equals(button.getText())).findFirst().orElseThrow();
+    }
+
+    /** Reads a value on the JavaFX thread until it satisfies the condition (the motions take a moment). */
+    private static <T> T await(Supplier<T> reading, Predicate<T> done) throws Exception {
+        T value = onFxThread(reading);
+        for (int attempt = 0; attempt < 40 && !done.test(value); attempt++) {
+            Thread.sleep(50);
+            value = onFxThread(reading);
+        }
+        return value;
     }
 
     @Test
