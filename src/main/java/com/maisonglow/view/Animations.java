@@ -6,6 +6,8 @@ import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Labeled;
 import javafx.util.Duration;
 
@@ -23,6 +25,8 @@ public final class Animations {
     private static final Duration POP = Duration.millis(260);
     private static final double RISE = 10;
     private static final double NUDGE = 3;
+    private static final double LIFT = 2;
+    private static final String LIFTED = "maisonglow.lifted";
 
     private Animations() {
     }
@@ -75,6 +79,45 @@ public final class Animations {
         shake.setAutoReverse(true);
         shake.setOnFinished(event -> node.setTranslateX(0));
         shake.play();
+    }
+
+    /**
+     * A button that rises a little while the cursor is over it and sinks while it is pressed.
+     * Installing it twice on the same button does nothing.
+     *
+     * @param button the button
+     */
+    public static void lift(ButtonBase button) {
+        Objects.requireNonNull(button, "button");
+        if (button.getProperties().putIfAbsent(LIFTED, Boolean.TRUE) != null) {
+            return;
+        }
+        TranslateTransition rise = new TranslateTransition(QUICK, button);
+        rise.setInterpolator(Interpolator.EASE_OUT);
+        button.hoverProperty().addListener((observable, was, hovered) -> {
+            rise.stop();
+            rise.setToY(hovered ? -LIFT : 0);
+            rise.playFromStart();
+        });
+        ScaleTransition sink = new ScaleTransition(Duration.millis(90), button);
+        button.pressedProperty().addListener((observable, was, pressed) -> {
+            sink.stop();
+            sink.setToX(pressed ? 0.97 : 1);
+            sink.setToY(pressed ? 0.97 : 1);
+            sink.playFromStart();
+        });
+    }
+
+    /**
+     * Gives the lift motion to every primary, gold and secondary button of a screen.
+     *
+     * @param root the screen, or any container of buttons
+     */
+    public static void installButtonMotion(Parent root) {
+        Objects.requireNonNull(root, "root");
+        for (String style : new String[]{".button-primary", ".button-gold", ".button-secondary"}) {
+            root.lookupAll(style).stream().filter(ButtonBase.class::isInstance).forEach(button -> lift((ButtonBase) button));
+        }
     }
 
     /**
