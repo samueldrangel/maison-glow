@@ -34,7 +34,7 @@
 | 11 | N-16 | Vistas de IA: Asistente (M9) y Probador virtual (M8) | Nicoll | 🟢 | Día 13 | N-15, S-12, S-13, S-14 | ⬜ Pendiente |
 | — | S-12 | **IA:** asistente con herramientas (simulado) | Samuel | 🔴 | libre | — | 🟨 En progreso |
 | — | S-13 | **IA:** probador virtual (simulado) | Samuel | 🔴 | libre | — | 🟨 En progreso |
-| — | S-14 | **IA:** `AiConfig` y fábrica de proveedores (simulado/API) | Samuel | 🔴 | libre | S-12, S-13 | ⬜ Pendiente |
+| — | S-14 | **IA:** `AiConfig` y fábrica de proveedores (simulado/API) | Samuel | 🔴 | libre | S-12, S-13 | 🟨 En progreso |
 | — | S-15 | **IA:** adaptador por API del asistente | Samuel | 🟠 | libre | S-14 | ⬜ Pendiente |
 | — | S-16 | **IA:** adaptador por API del probador virtual | Samuel | 🟢 | libre | S-14 | ⬜ Pendiente |
 | — | S-17 | **IA:** persistencia de conversaciones y sesiones de prueba | Samuel | 🟢 | libre | S-12, S-13 | ⬜ Pendiente |
