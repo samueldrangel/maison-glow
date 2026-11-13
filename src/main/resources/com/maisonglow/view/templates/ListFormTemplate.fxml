@@ -26,7 +26,7 @@
             <HBox alignment="CENTER_LEFT" spacing="12">
                 <Label text="Título de la vista" styleClass="view-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="newButton" text="Nuevo" styleClass="button-primary"/>
+                <Button fx:id="newButton" text="Nuevo" styleClass="button-gold"/>
             </HBox>
             <TextField fx:id="searchField" promptText="Buscar..." styleClass="search-field"/>
             <TableView fx:id="table" VBox.vgrow="ALWAYS">
