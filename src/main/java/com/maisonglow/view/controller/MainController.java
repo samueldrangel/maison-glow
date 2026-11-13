@@ -12,6 +12,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -27,6 +29,7 @@ import javafx.util.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -42,6 +45,7 @@ public final class MainController {
 
     private final AppContext context;
     private final List<NavGroup> groups = new ArrayList<>();
+    private final DoubleProperty sidebarWidth = new SimpleDoubleProperty(COLLAPSED_WIDTH);
     private Timeline sidebarMotion;
 
     @FXML
@@ -98,6 +102,7 @@ public final class MainController {
         clip.widthProperty().bind(sidebar.widthProperty());
         clip.heightProperty().bind(sidebar.heightProperty());
         sidebar.setClip(clip);
+        sidebarWidth.addListener((observable, was, width) -> sidebar.setStyle(widthStyle(width.doubleValue())));
         sidebar.hoverProperty().addListener((observable, was, hovered) -> moveSidebar(hovered));
 
         sidebar.lookupAll(".nav-button").stream().filter(Labeled.class::isInstance)
@@ -118,17 +123,27 @@ public final class MainController {
         if (expand && !sidebar.getStyleClass().contains("expanded")) {
             sidebar.getStyleClass().add("expanded");
         }
-        double width = expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+        sidebarWidth.set(sidebar.getWidth());
+        // Set it now: the property may not change (same value), and the :hover rule would jump first.
+        sidebar.setStyle(widthStyle(sidebarWidth.get()));
         sidebarMotion = new Timeline(new KeyFrame(SIDEBAR_MOTION,
-            new KeyValue(sidebar.minWidthProperty(), width, Interpolator.EASE_BOTH),
-            new KeyValue(sidebar.prefWidthProperty(), width, Interpolator.EASE_BOTH),
-            new KeyValue(sidebar.maxWidthProperty(), width, Interpolator.EASE_BOTH)));
+            new KeyValue(sidebarWidth, expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH, Interpolator.EASE_BOTH)));
         sidebarMotion.setOnFinished(event -> {
+            // The CSS already describes the final state, so it takes over again.
+            sidebar.setStyle("");
             if (!expand) {
                 sidebar.getStyleClass().remove("expanded");
             }
         });
         sidebarMotion.play();
+    }
+
+    /**
+     * The width goes in an inline style because that is the only thing that wins over styles.css (a
+     * value set from code would lose against the {@code :hover} rule and the bar would flicker).
+     */
+    private static String widthStyle(double width) {
+        return String.format(Locale.ROOT, "-fx-min-width: %1$.1f; -fx-pref-width: %1$.1f; -fx-max-width: %1$.1f;", width);
     }
 
     @FXML

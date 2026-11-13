@@ -134,6 +134,23 @@ class MainViewTest {
     }
 
     @Test
+    @DisplayName("the sidebar grows smoothly instead of jumping to its final width")
+    void growsSmoothly() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        Region sidebar = (Region) root.lookup(".sidebar");
+
+        double justAfterEntering = onFxThread(() -> {
+            setHover(sidebar, true);
+            return widthOf(sidebar, root);
+        });
+        double finalWidth = await(() -> widthOf(sidebar, root), width -> width == 240);
+
+        assertThat(justAfterEntering).as("it starts from the collapsed width").isLessThan(240);
+        assertThat(finalWidth).isEqualTo(240);
+    }
+
+    @Test
     @DisplayName("shows the sub-entries of Citas only while one of them is the current screen")
     void opensTheGroupOfTheCurrentScreen() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
