@@ -185,6 +185,28 @@ class MainViewTest {
     }
 
     @Test
+    @DisplayName("stays open when the cursor leaves for an instant and comes back")
+    void staysOpenOnAQuickExit() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        Region sidebar = (Region) root.lookup(".sidebar");
+        onFxThread(() -> {
+            setHover(sidebar, true);
+            return null;
+        });
+        await(() -> widthOf(sidebar, root), width -> width == 240);
+
+        onFxThread(() -> {
+            setHover(sidebar, false);
+            setHover(sidebar, true);
+            return null;
+        });
+        Thread.sleep(500);
+
+        assertThat(onFxThread(() -> widthOf(sidebar, root))).isEqualTo(240);
+    }
+
+    @Test
     @DisplayName("the icons and the avatar do not move when the bar opens")
     void iconsStayInPlace() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
@@ -213,6 +235,24 @@ class MainViewTest {
             }
         }
         return positions;
+    }
+
+    @Test
+    @DisplayName("the isotipo sits inside the collapsed bar")
+    void theIsotipoFitsTheCollapsedBar() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        ImageView isotipo = (ImageView) root.lookup("#logoMark");
+
+        double[] edges = onFxThread(() -> {
+            root.applyCss();
+            root.layout();
+            var bounds = isotipo.localToScene(isotipo.getBoundsInLocal());
+            return new double[]{bounds.getMinX(), bounds.getMaxX()};
+        });
+
+        assertThat(edges[0]).isGreaterThanOrEqualTo(0);
+        assertThat(edges[1]).isLessThanOrEqualTo(76);
     }
 
     @Test
