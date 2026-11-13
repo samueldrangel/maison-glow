@@ -85,7 +85,8 @@ class MainViewTest {
 
         StackPane content = (StackPane) root.lookup(".content-area");
         assertThat(content.getChildren()).hasSize(1);
-        for (ToggleButton entry : root.lookupAll(".nav-button").stream().map(ToggleButton.class::cast).toList()) {
+        for (ToggleButton entry : root.lookupAll(".nav-button").stream().filter(ToggleButton.class::isInstance)
+            .map(ToggleButton.class::cast).toList()) {
             onFxThread(() -> {
                 entry.fire();
                 return null;
