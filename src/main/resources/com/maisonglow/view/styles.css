@@ -446,6 +446,28 @@
     -fx-stroke: -mg-warning;
 }
 
+/* El campo de texto que lleva dentro un selector de fecha o un combo editable no repite el recuadro. */
+.date-picker .text-field, .date-picker .text-field:focused, .combo-box .text-field, .combo-box .text-field:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+    -fx-padding: 4 6 4 8;
+}
+
+/* Flecha de los combos y boton del calendario: sin el recuadro gris por defecto. */
+.combo-box .arrow-button, .date-picker .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0 14 14 0;
+}
+
+.combo-box .arrow-button .arrow, .date-picker .arrow-button .arrow {
+    -fx-background-color: -mg-text-muted;
+}
+
+.combo-box:hover .arrow-button .arrow, .date-picker:hover .arrow-button .arrow {
+    -fx-background-color: -mg-gold-dark;
+}
+
 .search-field {
     -fx-padding: 11 18 11 18;
     -fx-background-radius: 22;
