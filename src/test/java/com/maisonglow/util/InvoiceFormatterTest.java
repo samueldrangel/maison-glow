@@ -1,5 +1,6 @@
 package com.maisonglow.util;
 
+import com.maisonglow.service.SaleService;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Product;
 import com.maisonglow.model.ProductCategory;
@@ -23,7 +24,7 @@ class InvoiceFormatterTest {
         Customer ana = new Customer(1, "1065123456", "Ana Pérez", "3001234567", "ana@correo.com");
         Product shampoo = new Product(1, "Shampoo", new ProductCategory(1, "Cabello"), 28000, 10, 2);
         Treatment haircut = new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
-        return Sale.restore(12, ana, LocalDateTime.of(2026, 10, 13, 15, 30),
+        return SaleService.restoreSale(12, ana, LocalDateTime.of(2026, 10, 13, 15, 30),
             List.of(SaleLine.restore(shampoo, 2, 28000), SaleLine.restore(haircut, 1, 35000)));
     }
 

@@ -41,7 +41,7 @@ User-facing messages are in Spanish; code, identifiers and Javadoc are in Englis
 
 ## Architecture
 
-Maison Glow follows a layered architecture. Dependencies point downward only: the presentation layer calls services, services use DAO interfaces, and DAOs know nothing about the layers above them. Only `Main` creates concrete objects (composition root), so every service receives its dependencies through its constructor.
+Maison Glow follows a layered architecture. Dependencies point downward only: the presentation layer calls services, services use DAO interfaces, and DAOs know nothing about the layers above them. Only `Main` creates concrete objects (composition root), so every service receives its dependencies through its constructor. Models hold data and structural invariants; business operations and calculations belong to services ([ADR-0014](docs/adr/0014-modelos-de-datos-y-reglas-en-servicios.md)).
 
 ```mermaid
 flowchart TB
@@ -53,7 +53,6 @@ flowchart TB
     subgraph BIZ["Business layer"]
         SERVICE["service<br/>use cases, DTOs, notifiers"]
         RULE["service.rule<br/>AppointmentRule strategies"]
-        MODEL["model<br/>entities and domain behavior"]
     end
 
     subgraph DATA["Data access layer"]
@@ -62,7 +61,8 @@ flowchart TB
 
     STORE[("data/*.txt<br/>text files")]
 
-    subgraph CROSS["Cross-cutting"]
+    subgraph CROSS["Shared data and utilities"]
+        MODEL["model<br/>data entities and relationships"]
         UTIL["util<br/>Validator, InvoiceFormatter"]
         EXC["exception<br/>Validation, BusinessRule, DataAccess"]
     end
@@ -85,7 +85,6 @@ flowchart TB
     SERVICE --> UTIL
     SERVICE --> EXC
     DAO --> EXC
-    MODEL --> EXC
 
     JFX -.-> SERVICE
     AI -.-> SERVICE
@@ -98,17 +97,18 @@ flowchart TB
 | Layer | Package | Responsibility |
 |---|---|---|
 | Presentation | `com.maisonglow.ui.console`, `Main` | Read input, show results and errors. No business rules |
-| Business | `service`, `service.rule`, `model` | Use cases, validation, business rules; entities that own their behavior (`Product.deductStock`, `Appointment.overlapsWith`, `Sale.addLine`) |
+| Business | `service`, `service.rule` | Use cases, validation, business rules, inventory operations and sale calculations |
+| Shared data | `model` | Entity data, identity and relationships; no business operations |
 | Data access | `dao` | `CrudDao<T>` contract and its text-file implementations over a generic `TextFileDao<T>` |
 | Cross-cutting | `util`, `exception` | Input validation, invoice text, a three-exception hierarchy |
 
 Design decisions and their alternatives are recorded as Architecture Decision Records in [`docs/adr/`](docs/adr/README.md). Key points:
 
 - **Persistence behind an interface.** Services depend on `CrudDao<T>`, so replacing text files with SQLite does not change business code ([ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md)).
-- **Open for extension.** Appointment rules are strategies injected into `AppointmentService`; new rules and new sellable item types are added as new classes ([ADR-0007](docs/adr/0007-reglas-de-cita-como-estrategias.md)).
+- **Open for extension.** Appointment rules are strategies injected into `AppointmentService`; new rules are added as new classes ([ADR-0007](docs/adr/0007-reglas-de-cita-como-estrategias.md)).
 - **AI never blocks the business.** The AI features sit behind interfaces with a simulated implementation, and their tools call services, never DAOs ([ADR-0005](docs/adr/0005-ia-desacoplada-por-interfaces.md), [ADR-0006](docs/adr/0006-herramientas-del-asistente-tipo-mcp.md)).
 
-Class and package diagrams generated from the code: [`docs/fase2/diagramas.md`](docs/fase2/diagramas.md).
+Class and package diagrams from the original implementation (see ADR-0014 for the current responsibility split): [`docs/fase2/diagramas.md`](docs/fase2/diagramas.md).
 
 ## Tech stack
 
@@ -250,7 +250,9 @@ In Delivery 1 every entity is stored in a text file, one record per line, with `
 | `sales.txt`, `sale_lines.txt` | `sale`, `sale_line` |
 | `settings.txt` | `app_setting` |
 
-A sale validates the stock of every line before touching any file, so an invalid sale changes nothing.
+A sale checks current stored stock before writing. DAOs retain serialized snapshots and return detached objects, so editing a result cannot silently alter stored data. Money uses `BigDecimal` throughout input, calculation and storage.
+
+Failed sale or no-show writes trigger compensating updates. Text files do not provide transactions across files after an abrupt shutdown or if compensation also fails; see [ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md).
 
 ## Testing
 
@@ -269,11 +271,12 @@ Project documents are written in Spanish, as required by the course.
 | Document | Content |
 |---|---|
 | [Phase 1](docs/fase1/documento-fase1.md) | Problem statement, state of the art, objectives, functional and non-functional requirements |
-| [Class design](docs/fase2/diseno-clases.md) | Packages, classes, relationships, GRASP and SOLID with the real classes |
-| [Diagrams](docs/fase2/diagramas.md) | Package and class diagrams generated from the code |
+| [Class design](docs/fase2/diseno-clases.md) | Initial class design, relationships, GRASP and SOLID (historical; amended by ADR-0014) |
+| [Diagrams](docs/fase2/diagramas.md) | Original implementation diagrams; responsibility changes are recorded in ADR-0014 |
 | [UI mockups](docs/fase2/mockups/README.md) | Screens for the JavaFX interface |
 | [ER model](docs/fase4/modelo-entidad-relacion.md) and [data dictionary](docs/fase4/diccionario-de-datos.md) | Database design |
 | [ADRs](docs/adr/README.md) | Architecture decisions and alternatives |
+| [Current model/service boundary](docs/adr/0014-modelos-de-datos-y-reglas-en-servicios.md) | Refactored responsibilities, decimal money and recovery limits |
 | [Roadmap](docs/roadmap.md) | Delivery 1 tasks, owners and dependencies |
 | [Version control](docs/version-control.md) | Commits and pull requests per member |
 | [Project plan](PLANIFICACION.md) | Scope, schedule and risks |

@@ -37,13 +37,13 @@ class ProductDaoTextTest {
         Path file = folder.resolve("products.txt");
         Product product = new ProductDaoText(file, categoryDao)
             .create(new Product(0, "Shampoo", hair, 28000.5, 10, 3));
-        product.deactivate();
+        product.setActive(false);
         new ProductDaoText(file, categoryDao).update(product);
 
         Product reloaded = new ProductDaoText(file, categoryDao).findById(product.getId()).orElseThrow();
 
         assertThat(reloaded.getCategory().getName()).isEqualTo("Cabello");
-        assertThat(reloaded.getPrice()).isEqualTo(28000.5);
+        assertThat(reloaded.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(28000.5));
         assertThat(reloaded.getStock()).isEqualTo(10);
         assertThat(reloaded.getMinimumStock()).isEqualTo(3);
         assertThat(reloaded.isActive()).isFalse();

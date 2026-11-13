@@ -1,6 +1,5 @@
 package com.maisonglow.dao;
 
-import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Product;
 import com.maisonglow.model.SaleLine;
@@ -74,7 +73,7 @@ class SaleLineDaoText extends TextFileDao<SaleLineDaoText.StoredLine> {
         fields[columnOf(line.getItem())] = String.valueOf(line.getItem().getId());
         fields[PROMOTION_ID] = NO_VALUE;
         fields[QUANTITY] = String.valueOf(line.getQuantity());
-        fields[UNIT_PRICE] = String.valueOf(line.getUnitPrice());
+        fields[UNIT_PRICE] = line.getUnitPrice().toPlainString();
         return fields;
     }
 
@@ -101,11 +100,10 @@ class SaleLineDaoText extends TextFileDao<SaleLineDaoText.StoredLine> {
 
     private SaleLine restoreLine(String[] fields) throws DataAccessException {
         Sellable item = findItem(fields[PRODUCT_ID], fields[TREATMENT_ID]);
-        try {
-            return SaleLine.restore(item, Integer.parseInt(fields[QUANTITY]), Double.parseDouble(fields[UNIT_PRICE]));
-        } catch (BusinessRuleException e) {
-            throw new DataAccessException("La línea de venta guardada no es válida: " + e.getMessage(), e);
-        }
+        int quantity = Integer.parseInt(fields[QUANTITY]);
+        java.math.BigDecimal price = new java.math.BigDecimal(fields[UNIT_PRICE]);
+        if (quantity <= 0 || price.signum() <= 0) throw new DataAccessException("La línea de venta guardada no es válida.");
+        return SaleLine.restore(item, quantity, price);
     }
 
     private Sellable findItem(String productId, String treatmentId) throws DataAccessException {

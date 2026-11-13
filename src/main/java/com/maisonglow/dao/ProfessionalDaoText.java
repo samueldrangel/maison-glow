@@ -63,7 +63,7 @@ public class ProfessionalDaoText extends TextFileDao<Professional> implements Pr
     public Professional create(Professional professional) throws DataAccessException {
         Professional created = super.create(professional);
         try {
-            writeLinks();
+            writeLinks(professional);
         } catch (DataAccessException e) {
             undoCreate(created, e);
             throw e;
@@ -82,14 +82,20 @@ public class ProfessionalDaoText extends TextFileDao<Professional> implements Pr
 
     @Override
     public void update(Professional professional) throws DataAccessException {
+        Professional previous = findById(professional.getId()).orElseThrow(() -> new DataAccessException("No existe el profesional."));
         super.update(professional);
-        writeLinks();
+        try { writeLinks(professional); }
+        catch (DataAccessException e) {
+            try { super.update(previous); }
+            catch (DataAccessException undoError) { if (undoError != e) e.addSuppressed(undoError); }
+            throw e;
+        }
     }
 
     @Override
     public void delete(int id) throws DataAccessException {
         super.delete(id);
-        writeLinks();
+        writeLinks(null);
     }
 
     @Override
@@ -131,11 +137,13 @@ public class ProfessionalDaoText extends TextFileDao<Professional> implements Pr
             fields[PHONE], fields[EMAIL], fields[SPECIALTY],
             LocalTime.parse(fields[WORK_START]), LocalTime.parse(fields[WORK_END]));
         if (INACTIVE_FLAG.equals(fields[ACTIVE])) {
-            professional.deactivate();
+            professional.setActive(false);
         }
+        List<Treatment> offered = new ArrayList<>();
         for (String treatmentId : treatmentIdsOf(professional.getId())) {
-            professional.addTreatment(findRelated(treatments, treatmentId, "tratamiento"));
+            offered.add(findRelated(treatments, treatmentId, "tratamiento"));
         }
+        professional.setTreatments(offered);
         return professional;
     }
 
@@ -172,14 +180,16 @@ public class ProfessionalDaoText extends TextFileDao<Professional> implements Pr
         return links;
     }
 
-    private void writeLinks() throws DataAccessException {
+    private void writeLinks(Professional replacement) throws DataAccessException {
         List<String> lines = new ArrayList<>();
-        for (Professional professional : findAll()) {
+        for (Professional stored : findAll()) {
+            Professional professional = replacement != null && stored.getId() == replacement.getId() ? replacement : stored;
             for (Treatment treatment : professional.getTreatments()) {
                 lines.add(TextLineCodec.encode(String.valueOf(professional.getId()),
                     String.valueOf(treatment.getId())));
             }
         }
         linksStore.writeLines(lines);
+        treatmentIdsByProfessional = null;
     }
 }

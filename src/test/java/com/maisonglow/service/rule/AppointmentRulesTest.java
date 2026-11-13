@@ -1,5 +1,6 @@
 package com.maisonglow.service.rule;
 
+import com.maisonglow.service.ProfessionalService;
 import com.maisonglow.dao.AppointmentDao;
 import com.maisonglow.dao.CrudDao;
 import com.maisonglow.exception.BusinessRuleException;
@@ -51,7 +52,7 @@ class AppointmentRulesTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        laura.addTreatment(haircut);
+        ProfessionalService.addTreatment(laura, haircut);
         lenient().when(settings.depositPercentage()).thenReturn(30.0);
         lenient().when(settings.noShowPenaltyThreshold()).thenReturn(3);
         lenient().when(settings.minBookingNoticeHours()).thenReturn(2);
@@ -60,8 +61,8 @@ class AppointmentRulesTest {
 
     private Appointment appointmentAt(Customer customer, LocalDateTime start, double deposit)
         throws BusinessRuleException {
-        Appointment appointment = new Appointment(0, customer, laura, haircut, start);
-        appointment.setDeposit(deposit);
+        Appointment appointment = AppointmentService.newAppointment(0, customer, laura, haircut, start);
+        AppointmentService.setDeposit(appointment, deposit);
         return appointment;
     }
 
@@ -91,7 +92,7 @@ class AppointmentRulesTest {
         Appointment partial = appointmentAt(missing, NOW.plusDays(1), 30000);
         Appointment full = appointmentAt(missing, NOW.plusDays(1), 40000);
 
-        assertThat(rule.requiredDeposit(partial)).isEqualTo(40000);
+        assertThat(rule.requiredDeposit(partial)).isEqualByComparingTo(java.math.BigDecimal.valueOf(40000));
         assertThatThrownBy(() -> rule.apply(partial)).isInstanceOf(BusinessRuleException.class);
         assertThatCode(() -> rule.apply(full)).doesNotThrowAnyException();
     }
@@ -102,8 +103,7 @@ class AppointmentRulesTest {
         Customer once = new Customer(2, "1002", "Marta Díaz", "3004445555", "marta@correo.com",
             LocalDate.of(2026, 1, 10), 2);
 
-        assertThat(new DepositRule(settings).requiredDeposit(appointmentAt(once, NOW.plusDays(1), 0)))
-            .isEqualTo(12000);
+        assertThat(new DepositRule(settings).requiredDeposit(appointmentAt(once, NOW.plusDays(1), 0))).isEqualByComparingTo(java.math.BigDecimal.valueOf(12000));
     }
 
     @Test

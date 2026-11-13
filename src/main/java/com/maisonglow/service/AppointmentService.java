@@ -6,12 +6,14 @@ import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Appointment;
+import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Treatment;
 import com.maisonglow.service.rule.AppointmentRule;
 import com.maisonglow.util.Validator;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,14 +66,21 @@ public class AppointmentService {
     public Appointment book(Customer customer, Professional professional, Treatment treatment,
                             LocalDateTime start, double deposit)
         throws ValidationException, BusinessRuleException, DataAccessException {
+        if (!Double.isFinite(deposit) || deposit < 0) throw new BusinessRuleException("El anticipo no puede ser negativo ni infinito.");
+        return book(customer, professional, treatment, start, BigDecimal.valueOf(deposit));
+    }
+
+    public Appointment book(Customer customer, Professional professional, Treatment treatment,
+                            LocalDateTime start, BigDecimal deposit)
+        throws ValidationException, BusinessRuleException, DataAccessException {
         Validator.requirePresent(customer, "cliente");
         Validator.requirePresent(professional, "profesional");
         Validator.requirePresent(treatment, "tratamiento");
         Validator.requirePresent(start, "fecha y hora");
         requireBookable(professional, treatment);
-        Appointment appointment = new Appointment(NOT_STORED_ID, customer, professional, treatment, start);
+        Appointment appointment = AppointmentService.newAppointment(NOT_STORED_ID, customer, professional, treatment, start);
         requireFreeSlot(appointment);
-        appointment.setDeposit(deposit);
+        AppointmentService.setDeposit(appointment, deposit);
         applyRules(appointment);
         return appointmentDao.create(appointment);
     }
@@ -92,7 +101,7 @@ public class AppointmentService {
     public Appointment reschedule(int appointmentId, LocalDateTime newStart)
         throws ValidationException, BusinessRuleException, DataAccessException {
         Validator.requirePresent(newStart, "nueva fecha y hora");
-        Appointment moved = find(appointmentId).rescheduledTo(newStart);
+        Appointment moved = rescheduledTo(find(appointmentId), newStart);
         requireBookable(moved.getProfessional(), moved.getTreatment());
         requireFreeSlot(moved);
         applyRules(moved);
@@ -108,7 +117,7 @@ public class AppointmentService {
      * @throws DataAccessException   if the appointment cannot be read or stored
      */
     public void confirm(int appointmentId) throws BusinessRuleException, DataAccessException {
-        changeStatus(appointmentId, Appointment::confirm);
+        changeStatus(appointmentId, AppointmentStatus.CONFIRMED, "confirmar");
     }
 
     /**
@@ -119,7 +128,7 @@ public class AppointmentService {
      * @throws DataAccessException   if the appointment cannot be read or stored
      */
     public void cancel(int appointmentId) throws BusinessRuleException, DataAccessException {
-        changeStatus(appointmentId, Appointment::cancel);
+        changeStatus(appointmentId, AppointmentStatus.CANCELLED, "cancelar");
     }
 
     /**
@@ -130,7 +139,7 @@ public class AppointmentService {
      * @throws DataAccessException   if the appointment cannot be read or stored
      */
     public void complete(int appointmentId) throws BusinessRuleException, DataAccessException {
-        changeStatus(appointmentId, Appointment::complete);
+        changeStatus(appointmentId, AppointmentStatus.COMPLETED, "completar");
     }
 
     /**
@@ -142,8 +151,30 @@ public class AppointmentService {
      * @throws DataAccessException   if the appointment or the customer cannot be read or stored
      */
     public void markNoShow(int appointmentId) throws BusinessRuleException, DataAccessException {
-        Appointment appointment = changeStatus(appointmentId, Appointment::markNoShow);
-        customerDao.update(appointment.getCustomer());
+        Appointment appointment = find(appointmentId);
+        Customer customer = appointment.getCustomer();
+        AppointmentStatus previousStatus = appointment.getStatus();
+        int previousCount = customer.getNoShowCount();
+        changeStatus(appointment, AppointmentStatus.NO_SHOW, "marcar como inasistencia");
+        try { customer.setNoShowCount(Math.addExact(previousCount, 1)); }
+        catch (ArithmeticException e) {
+            appointment.setStatus(previousStatus);
+            throw new BusinessRuleException("El contador de inasistencias excede el máximo permitido.");
+        }
+        boolean appointmentSaved = false;
+        try {
+            appointmentDao.update(appointment);
+            appointmentSaved = true;
+            customerDao.update(customer);
+        } catch (DataAccessException e) {
+            appointment.setStatus(previousStatus);
+            customer.setNoShowCount(previousCount);
+            if (appointmentSaved) {
+                try { appointmentDao.update(appointment); }
+                catch (DataAccessException undoError) { if (undoError != e) e.addSuppressed(undoError); }
+            }
+            throw e;
+        }
     }
 
     /**
@@ -177,7 +208,7 @@ public class AppointmentService {
         Validator.requirePresent(start, "inicio");
         Validator.requirePresent(end, "fin");
         return professional.isActive()
-            && professional.worksDuring(start, end)
+            && AppointmentService.worksDuring(professional, start, end)
             && !hasConflict(professional, start, end, NOT_STORED_ID);
     }
 
@@ -188,14 +219,14 @@ public class AppointmentService {
         if (!treatment.isActive()) {
             throw new BusinessRuleException("El tratamiento " + treatment.getName() + " no está disponible.");
         }
-        if (!professional.offers(treatment)) {
+        if (!ProfessionalService.offers(professional, treatment)) {
             throw new BusinessRuleException(professional.getName() + " no ofrece " + treatment.getName() + ".");
         }
     }
 
     private void requireFreeSlot(Appointment appointment) throws BusinessRuleException, DataAccessException {
         Professional professional = appointment.getProfessional();
-        if (!professional.worksDuring(appointment.getStart(), appointment.getEnd())) {
+        if (!AppointmentService.worksDuring(professional, appointment.getStart(), appointment.getEnd())) {
             throw new BusinessRuleException(professional.getName() + " solo atiende de "
                 + professional.getWorkStart() + " a " + professional.getWorkEnd() + ".");
         }
@@ -207,9 +238,9 @@ public class AppointmentService {
     private boolean hasConflict(Professional professional, LocalDateTime start, LocalDateTime end, int ignoredId)
         throws DataAccessException {
         return appointmentDao.findByProfessional(professional.getId()).stream()
-            .filter(Appointment::blocksSchedule)
+            .filter(AppointmentService::blocksSchedule)
             .filter(other -> other.getId() != ignoredId)
-            .anyMatch(other -> other.overlapsWith(start, end));
+            .anyMatch(other -> AppointmentService.overlapsWith(other, start, end));
     }
 
     private void applyRules(Appointment appointment)
@@ -219,11 +250,13 @@ public class AppointmentService {
         }
     }
 
-    private Appointment changeStatus(int appointmentId, StatusChange change)
+    private Appointment changeStatus(int appointmentId, AppointmentStatus next, String action)
         throws BusinessRuleException, DataAccessException {
         Appointment appointment = find(appointmentId);
-        change.applyTo(appointment);
-        appointmentDao.update(appointment);
+        AppointmentStatus previous = appointment.getStatus();
+        changeStatus(appointment, next, action);
+        try { appointmentDao.update(appointment); }
+        catch (DataAccessException e) { appointment.setStatus(previous); throw e; }
         return appointment;
     }
 
@@ -232,10 +265,69 @@ public class AppointmentService {
             new BusinessRuleException("No existe la cita con id " + appointmentId + "."));
     }
 
-    /** A status change of an appointment, such as confirming or cancelling it. */
-    @FunctionalInterface
-    private interface StatusChange {
+    public static Appointment newAppointment(int id, Customer customer, Professional professional,
+                                              Treatment treatment, LocalDateTime start) {
+        return new Appointment(id, customer, professional, treatment, start, calculateEnd(treatment, start),
+            AppointmentStatus.PENDING, LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+    }
 
-        void applyTo(Appointment appointment) throws BusinessRuleException;
+    public static LocalDateTime calculateEnd(Treatment treatment, LocalDateTime start) {
+        Objects.requireNonNull(treatment, "treatment"); Objects.requireNonNull(start, "start");
+        if (treatment.getDurationMinutes() <= 0) throw new IllegalArgumentException("La duración debe ser mayor que cero.");
+        return start.plusMinutes(treatment.getDurationMinutes());
+    }
+
+    public static boolean worksDuring(Professional professional, LocalDateTime start, LocalDateTime end) {
+        return start.toLocalDate().equals(end.toLocalDate()) && start.isBefore(end)
+            && !start.toLocalTime().isBefore(professional.getWorkStart())
+            && !end.toLocalTime().isAfter(professional.getWorkEnd());
+    }
+
+    public static boolean overlapsWith(Appointment appointment, Appointment other) {
+        return overlapsWith(appointment, other.getStart(), other.getEnd());
+    }
+
+    public static boolean overlapsWith(Appointment appointment, LocalDateTime start, LocalDateTime end) {
+        return appointment.getStart().isBefore(end) && appointment.getEnd().isAfter(start);
+    }
+
+    public static boolean blocksSchedule(Appointment appointment) { return blocksSchedule(appointment.getStatus()); }
+    public static boolean blocksSchedule(AppointmentStatus status) {
+        return status == AppointmentStatus.PENDING || status == AppointmentStatus.CONFIRMED;
+    }
+
+    public static boolean canChangeTo(AppointmentStatus current, AppointmentStatus next) {
+        return switch (next) {
+            case PENDING -> false;
+            case CONFIRMED -> current == AppointmentStatus.PENDING;
+            case COMPLETED, CANCELLED, NO_SHOW -> blocksSchedule(current);
+        };
+    }
+
+    public static void changeStatus(Appointment appointment, AppointmentStatus next, String action) throws BusinessRuleException {
+        if (!canChangeTo(appointment.getStatus(), next)) {
+            throw new BusinessRuleException("No se puede " + action + " una cita " + appointment.getStatus().getLabel() + ".");
+        }
+        appointment.setStatus(next);
+    }
+
+    public static Appointment rescheduledTo(Appointment appointment, LocalDateTime newStart) throws BusinessRuleException {
+        Objects.requireNonNull(newStart, "newStart");
+        if (!blocksSchedule(appointment)) throw new BusinessRuleException("No se puede reprogramar una cita " + appointment.getStatus().getLabel() + ".");
+        Appointment moved = new Appointment(appointment.getId(), appointment.getCustomer(), appointment.getProfessional(),
+            appointment.getTreatment(), newStart, newStart.plus(java.time.Duration.between(appointment.getStart(), appointment.getEnd())),
+            appointment.getStatus(), appointment.getCreatedAt());
+        moved.setDeposit(appointment.getDeposit());
+        return moved;
+    }
+
+    public static void setDeposit(Appointment appointment, double deposit) throws BusinessRuleException {
+        if (!Double.isFinite(deposit)) throw new BusinessRuleException("El anticipo debe ser un número finito.");
+        setDeposit(appointment, BigDecimal.valueOf(deposit));
+    }
+
+    public static void setDeposit(Appointment appointment, BigDecimal deposit) throws BusinessRuleException {
+        if (deposit == null || deposit.signum() < 0) throw new BusinessRuleException("El anticipo no puede ser negativo.");
+        appointment.setDeposit(deposit);
     }
 }

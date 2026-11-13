@@ -50,7 +50,7 @@ public final class ProductModule extends MenuModule {
         String name = console().readLine("Nombre");
         showCategories();
         int categoryId = console().readInt("Id de la categoría");
-        double price = console().readDouble("Precio");
+        java.math.BigDecimal price = console().readDecimal("Precio");
         int minimumStock = console().readInt("Stock mínimo");
         return new ProductData(name, categoryId, price, minimumStock);
     }

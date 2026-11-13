@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.dao.AppointmentDao;
 import com.maisonglow.dao.SaleDao;
 import com.maisonglow.exception.ValidationException;
@@ -60,11 +61,11 @@ class StatisticsServiceTest {
     }
 
     private Sale sale(int id, Customer customer, Sellable item, int quantity) throws Exception {
-        return Sale.restore(id, customer, SOLD_AT, List.of(SaleLine.restore(item, quantity, item.getPrice())));
+        return SaleService.restoreSale(id, customer, SOLD_AT, List.of(SaleLine.restore(item, quantity, item.getPrice())));
     }
 
     private Appointment appointment(int id, Customer customer, Treatment treatment) {
-        return new Appointment(id, customer, laura, treatment, LocalDateTime.of(2026, 10, 20, 9, 0));
+        return AppointmentService.newAppointment(id, customer, laura, treatment, LocalDateTime.of(2026, 10, 20, 9, 0));
     }
 
     @Test
@@ -72,9 +73,9 @@ class StatisticsServiceTest {
     void customerStatistics() throws Exception {
         when(saleDao.findByCustomer(1)).thenReturn(List.of(sale(1, ana, shampoo, 2), sale(2, ana, haircut, 1)));
         Appointment completed = appointment(1, ana, haircut);
-        completed.complete();
+        AppointmentService.changeStatus(completed, AppointmentStatus.COMPLETED, "completar");
         Appointment missed = appointment(2, ana, haircut);
-        missed.markNoShow();
+        AppointmentService.changeStatus(missed, AppointmentStatus.NO_SHOW, "marcar como inasistencia");
         when(appointmentDao.findAll()).thenReturn(List.of(completed, missed, appointment(3, ana, manicure),
             appointment(4, luis, manicure)));
 
@@ -116,7 +117,7 @@ class StatisticsServiceTest {
     @DisplayName("topTreatments ignores cancelled appointments and orders ties by name")
     void topTreatments() throws Exception {
         Appointment cancelled = appointment(3, luis, haircut);
-        cancelled.cancel();
+        AppointmentService.changeStatus(cancelled, AppointmentStatus.CANCELLED, "cancelar");
         when(appointmentDao.findAll()).thenReturn(List.of(appointment(1, ana, haircut), appointment(2, ana, manicure),
             cancelled));
 

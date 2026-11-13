@@ -77,8 +77,14 @@ public final class Validator {
      * @param fieldName the field name used in the error message
      * @throws ValidationException if the number is zero or negative
      */
+    public static void requirePositive(java.math.BigDecimal value, String fieldName) throws ValidationException {
+        if (value == null || value.signum() <= 0) {
+            throw new ValidationException("El campo " + fieldName + " debe ser mayor que cero.");
+        }
+    }
+
     public static void requirePositive(double value, String fieldName) throws ValidationException {
-        if (value <= 0) {
+        if (!Double.isFinite(value) || value <= 0) {
             throw new ValidationException("El campo " + fieldName + " debe ser mayor que cero.");
         }
     }

@@ -120,7 +120,7 @@ public class CustomerService {
      */
     public void registerNoShow(int id) throws BusinessRuleException, DataAccessException {
         Customer customer = findById(id);
-        customer.registerNoShow();
+        customer.setNoShowCount(customer.getNoShowCount() + 1);
         customerDao.update(customer);
     }
 

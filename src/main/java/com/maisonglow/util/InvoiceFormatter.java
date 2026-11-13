@@ -1,5 +1,7 @@
 package com.maisonglow.util;
 
+import java.math.BigDecimal;
+import com.maisonglow.service.SaleService;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Sale;
 import com.maisonglow.model.SaleLine;
@@ -51,7 +53,7 @@ public class InvoiceFormatter {
             invoice.append(formatLine(line)).append('\n');
         }
         invoice.append(SINGLE_RULE).append('\n')
-            .append(String.format(COLOMBIA, "%-40s%16s", "TOTAL", money(sale.calculateTotal()))).append('\n')
+            .append(String.format(COLOMBIA, "%-40s%16s", "TOTAL", money(sale.getTotal()))).append('\n')
             .append(DOUBLE_RULE);
         return invoice.toString();
     }
@@ -68,10 +70,10 @@ public class InvoiceFormatter {
     private String formatLine(SaleLine line) {
         String description = line.getQuantity() + " x " + line.getItem().getName();
         return String.format(COLOMBIA, "%-28s%12s%16s",
-            description, money(line.getUnitPrice()), money(line.calculateSubtotal()));
+            description, money(line.getUnitPrice()), money(SaleService.calculateSubtotal(line)));
     }
 
-    private String money(double value) {
+    private String money(BigDecimal value) {
         return String.format(COLOMBIA, "$ %,.0f", value);
     }
 }

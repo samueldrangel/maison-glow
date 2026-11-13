@@ -1,6 +1,5 @@
 package com.maisonglow.dao;
 
-import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Appointment;
 import com.maisonglow.model.AppointmentStatus;
@@ -82,7 +81,7 @@ public class AppointmentDaoText extends TextFileDao<Appointment> implements Appo
         fields[START_AT] = appointment.getStart().toString();
         fields[END_AT] = appointment.getEnd().toString();
         fields[STATUS] = appointment.getStatus().name();
-        fields[DEPOSIT] = String.valueOf(appointment.getDeposit());
+        fields[DEPOSIT] = appointment.getDeposit().toPlainString();
         fields[REMINDER_AT] = formatOptional(appointment.getReminderAt());
         fields[CREATED_AT] = appointment.getCreatedAt().toString();
         return fields;
@@ -102,7 +101,9 @@ public class AppointmentDaoText extends TextFileDao<Appointment> implements Appo
             LocalDateTime.parse(fields[END_AT]),
             AppointmentStatus.valueOf(fields[STATUS]),
             LocalDateTime.parse(fields[CREATED_AT]));
-        restoreDeposit(appointment, Double.parseDouble(fields[DEPOSIT]));
+        java.math.BigDecimal deposit = new java.math.BigDecimal(fields[DEPOSIT]);
+        if (deposit.signum() < 0) throw new DataAccessException("El anticipo guardado no es válido.");
+        appointment.setDeposit(deposit);
         appointment.setReminderAt(parseOptional(fields[REMINDER_AT]));
         return appointment;
     }
@@ -115,14 +116,6 @@ public class AppointmentDaoText extends TextFileDao<Appointment> implements Appo
     @Override
     protected void setId(Appointment appointment, int id) {
         appointment.setId(id);
-    }
-
-    private static void restoreDeposit(Appointment appointment, double deposit) throws DataAccessException {
-        try {
-            appointment.setDeposit(deposit);
-        } catch (BusinessRuleException e) {
-            throw new DataAccessException("El anticipo guardado no es válido: " + deposit, e);
-        }
     }
 
     private static String formatOptional(LocalDateTime value) {

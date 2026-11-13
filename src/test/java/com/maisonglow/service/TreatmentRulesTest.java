@@ -1,4 +1,7 @@
-package com.maisonglow.model;
+package com.maisonglow.service;
+
+import com.maisonglow.model.Sellable;
+import com.maisonglow.model.Treatment;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,7 +11,7 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Treatment tests")
-class TreatmentTest {
+class TreatmentRulesTest {
 
     private Treatment haircut() {
         return new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
@@ -21,7 +24,7 @@ class TreatmentTest {
 
         assertThat(((Treatment) treatment).isActive()).isTrue();
         assertThat(treatment.getName()).isEqualTo("Corte de cabello");
-        assertThat(treatment.getPrice()).isEqualTo(35000);
+        assertThat(treatment.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(35000));
     }
 
     @Test
@@ -29,7 +32,7 @@ class TreatmentTest {
     void calculateEndAddsDuration() {
         LocalDateTime start = LocalDateTime.of(2026, 10, 20, 9, 30);
 
-        assertThat(haircut().calculateEnd(start)).isEqualTo(LocalDateTime.of(2026, 10, 20, 10, 15));
+        assertThat(AppointmentService.calculateEnd(haircut(), start)).isEqualTo(LocalDateTime.of(2026, 10, 20, 10, 15));
     }
 
     @Test
@@ -37,10 +40,10 @@ class TreatmentTest {
     void deactivateAndActivate() {
         Treatment treatment = haircut();
 
-        treatment.deactivate();
+        treatment.setActive(false);
         assertThat(treatment.isActive()).isFalse();
 
-        treatment.activate();
+        treatment.setActive(true);
         assertThat(treatment.isActive()).isTrue();
     }
 

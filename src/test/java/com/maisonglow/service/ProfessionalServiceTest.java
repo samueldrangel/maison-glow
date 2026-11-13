@@ -127,7 +127,7 @@ class ProfessionalServiceTest {
 
         service.assignTreatment(laura.getId(), haircut.getId());
 
-        assertThat(newProfessionalDao().findById(laura.getId()).orElseThrow().offers(haircut)).isTrue();
+        assertThat(ProfessionalService.offers(newProfessionalDao().findById(laura.getId()).orElseThrow(), haircut)).isTrue();
     }
 
     @Test
@@ -135,7 +135,7 @@ class ProfessionalServiceTest {
     void assignTreatmentRejected() throws Exception {
         Professional laura = service.register(LAURA, "Peluquería", DAY);
         Treatment dye = treatmentDao.create(new Treatment(0, "Tinte", "Color completo", 90000, 120));
-        dye.deactivate();
+        dye.setActive(false);
         treatmentDao.update(dye);
         service.assignTreatment(laura.getId(), haircut.getId());
 

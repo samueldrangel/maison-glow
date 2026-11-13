@@ -1,5 +1,7 @@
 # Documentación — Maison Glow
 
+Arquitectura vigente tras la sustentación: [modelos de datos y reglas en servicios](adr/0014-modelos-de-datos-y-reglas-en-servicios.md).
+
 | Carpeta | Contenido |
 |---|---|
 | [`adr/`](adr/README.md) | Registros de Decisiones de Arquitectura (por qué elegimos cada tecnología/patrón) |

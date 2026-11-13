@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import java.math.BigDecimal;
 import com.maisonglow.dao.AppointmentDao;
 import com.maisonglow.dao.SaleDao;
 import com.maisonglow.exception.DataAccessException;
@@ -51,7 +52,7 @@ public class StatisticsService {
         List<Appointment> appointments = appointmentDao.findAll().stream()
             .filter(appointment -> appointment.getCustomer().getId() == customerId)
             .toList();
-        double totalSpent = sales.stream().mapToDouble(Sale::calculateTotal).sum();
+        BigDecimal totalSpent = sales.stream().map(Sale::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new CustomerStatistics(sales.size(), totalSpent, appointments.size(),
             count(appointments, AppointmentStatus.COMPLETED), count(appointments, AppointmentStatus.NO_SHOW));
     }

@@ -10,11 +10,11 @@ La asignatura exige arquitectura en 3 capas, patrón DAO, GRASP y SOLID (RNF-01,
 ## Decisión
 Tres capas con dependencia en una sola dirección:
 
-1. **Presentación** (`vista`): ventanas Swing. Solo captura datos y muestra resultados.
-2. **Negocio** (`servicio`, `modelo`, `servicio.regla`): reglas, validaciones y coordinación. Las clases `*Servicio` hacen de *Controller* GRASP.
-3. **Datos** (`dao`): acceso JDBC a la base de datos.
+1. **Presentación** (`Main` y `ui.console`; JavaFX previsto): captura datos y muestra resultados.
+2. **Negocio** (`service`, `service.rule`): reglas, cálculos, validaciones y coordinación. Las clases `*Service` hacen de *Controller* GRASP.
+3. **Datos** (`dao`): archivos de texto en la Entrega 1; JDBC en la Entrega 2.
 
-Regla: `vista → servicio → dao`. La vista no conoce SQL ni DAO. Las entidades (`modelo`) son compartidas por todas las capas. Se evita una capa extra de "controlador" separada del servicio para no duplicar clases.
+Regla: `presentación → service → dao`. La presentación no accede directamente a la persistencia. Las entidades (`model`) son estructuras de datos compartidas: atributos, constructores, acceso al estado, identidad y validaciones estructurales básicas. No ejecutan reglas de negocio ni modifican otras entidades. Los DAO no dependen de servicios. Se evita una capa extra de "controlador" separada del servicio para no duplicar clases.
 
 ## Alternativas consideradas
 - **MVC clásico con controlador propio:** añade una clase por módulo sin aportar claridad en este tamaño de proyecto.
@@ -25,3 +25,7 @@ Regla: `vista → servicio → dao`. La vista no conoce SQL ni DAO. Las entidade
 - (+) Fácil de explicar, dibujar y evaluar; permite repartir trabajo por módulo.
 - (+) Cada capa se puede probar de forma aislada.
 - (−) Las entidades de dominio se usan también en la UI (sin DTOs); aceptable a esta escala.
+
+## Enmienda (2026-11-11)
+
+Se centraliza el comportamiento en los servicios siguiendo la observación de la sustentación. La distribución vigente y sus pruebas se describen en [ADR-0014](0014-modelos-de-datos-y-reglas-en-servicios.md). El modelo queda fuera del paquete que implementa las reglas de negocio.

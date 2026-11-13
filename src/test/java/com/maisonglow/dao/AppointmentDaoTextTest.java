@@ -1,5 +1,6 @@
 package com.maisonglow.dao;
 
+import com.maisonglow.service.AppointmentService;
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Appointment;
@@ -57,15 +58,15 @@ class AppointmentDaoTextTest {
     }
 
     private Appointment book(Professional professional, LocalDateTime start) throws DataAccessException {
-        return dao.create(new Appointment(0, ana, professional, haircut, start));
+        return dao.create(AppointmentService.newAppointment(0, ana, professional, haircut, start));
     }
 
     @Test
     @DisplayName("every field survives a save and a reload")
     void roundTripKeepsAllFields() throws Exception {
-        Appointment booked = new Appointment(0, ana, laura, haircut, OCT_20_AT_9);
-        booked.confirm();
-        booked.setDeposit(10500);
+        Appointment booked = AppointmentService.newAppointment(0, ana, laura, haircut, OCT_20_AT_9);
+        AppointmentService.changeStatus(booked, AppointmentStatus.CONFIRMED, "confirmar");
+        AppointmentService.setDeposit(booked, 10500);
         booked.setReminderAt(OCT_20_AT_9.minusHours(24));
         dao.create(booked);
 
@@ -77,7 +78,7 @@ class AppointmentDaoTextTest {
         assertThat(loaded.getStart()).isEqualTo(OCT_20_AT_9);
         assertThat(loaded.getEnd()).isEqualTo(OCT_20_AT_9.plusMinutes(45));
         assertThat(loaded.getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
-        assertThat(loaded.getDeposit()).isEqualTo(10500);
+        assertThat(loaded.getDeposit()).isEqualByComparingTo(java.math.BigDecimal.valueOf(10500));
         assertThat(loaded.getReminderAt()).isEqualTo(OCT_20_AT_9.minusHours(24));
         assertThat(loaded.getCreatedAt()).isEqualTo(booked.getCreatedAt());
     }
@@ -96,7 +97,7 @@ class AppointmentDaoTextTest {
         Appointment booked = book(laura, OCT_20_AT_9);
 
         assertThat(Files.readAllLines(file).get(1)).isEqualTo(
-            "1|1|1|1|2026-10-20T09:00|2026-10-20T09:45|PENDING|0.0||" + booked.getCreatedAt());
+            "1|1|1|1|2026-10-20T09:00|2026-10-20T09:45|PENDING|0||" + booked.getCreatedAt());
     }
 
     @Test
@@ -117,7 +118,7 @@ class AppointmentDaoTextTest {
         book(laura, OCT_20_AT_9.plusHours(2));
         book(laura, OCT_20_AT_9.plusDays(1));
         Appointment cancelled = book(sofia, OCT_20_AT_9);
-        cancelled.cancel();
+        AppointmentService.changeStatus(cancelled, AppointmentStatus.CANCELLED, "cancelar");
         dao.update(cancelled);
 
         assertThat(dao.findByDate(LocalDate.of(2026, 10, 20)))

@@ -41,8 +41,8 @@ class CustomerTest {
     void registerNoShowIncrements() {
         Customer customer = ana();
 
-        customer.registerNoShow();
-        customer.registerNoShow();
+        customer.setNoShowCount(customer.getNoShowCount() + 1);
+        customer.setNoShowCount(customer.getNoShowCount() + 1);
 
         assertThat(customer.getNoShowCount()).isEqualTo(2);
     }

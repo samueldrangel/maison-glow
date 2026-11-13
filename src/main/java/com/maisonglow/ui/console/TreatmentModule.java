@@ -45,7 +45,7 @@ public final class TreatmentModule extends MenuModule {
     private TreatmentData askData() {
         String name = console().readLine("Nombre");
         String description = console().readLine("Descripción (opcional)");
-        double price = console().readDouble("Precio");
+        java.math.BigDecimal price = console().readDecimal("Precio");
         int minutes = console().readInt("Duración en minutos");
         return new TreatmentData(name, description, price, minutes);
     }

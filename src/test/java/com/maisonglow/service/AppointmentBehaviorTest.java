@@ -1,4 +1,10 @@
-package com.maisonglow.model;
+package com.maisonglow.service;
+
+import com.maisonglow.model.Appointment;
+import com.maisonglow.model.AppointmentStatus;
+import com.maisonglow.model.Customer;
+import com.maisonglow.model.Professional;
+import com.maisonglow.model.Treatment;
 
 import com.maisonglow.exception.BusinessRuleException;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Appointment tests")
-class AppointmentTest {
+class AppointmentBehaviorTest {
 
     private static final LocalDateTime NINE = LocalDateTime.of(2026, 10, 20, 9, 0);
 
@@ -21,7 +27,7 @@ class AppointmentTest {
     private final Treatment haircut = new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
 
     private Appointment bookAt(LocalDateTime start) {
-        return new Appointment(0, ana, laura, haircut, start);
+        return AppointmentService.newAppointment(0, ana, laura, haircut, start);
     }
 
     @Test
@@ -30,7 +36,7 @@ class AppointmentTest {
         Appointment appointment = bookAt(NINE);
 
         assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.PENDING);
-        assertThat(appointment.blocksSchedule()).isTrue();
+        assertThat(AppointmentService.blocksSchedule(appointment)).isTrue();
         assertThat(appointment.getEnd()).isEqualTo(NINE.plusMinutes(45));
         assertThat(appointment.getDeposit()).isZero();
         assertThat(appointment.getReminderAt()).isNull();
@@ -51,10 +57,10 @@ class AppointmentTest {
     void overlapsWith() {
         Appointment nine = bookAt(NINE);
 
-        assertThat(nine.overlapsWith(bookAt(NINE.plusMinutes(30)))).isTrue();
-        assertThat(nine.overlapsWith(bookAt(NINE.minusMinutes(30)))).isTrue();
-        assertThat(nine.overlapsWith(bookAt(NINE.plusMinutes(45)))).isFalse();
-        assertThat(nine.overlapsWith(bookAt(NINE.minusMinutes(45)))).isFalse();
+        assertThat(AppointmentService.overlapsWith(nine, bookAt(NINE.plusMinutes(30)))).isTrue();
+        assertThat(AppointmentService.overlapsWith(nine, bookAt(NINE.minusMinutes(30)))).isTrue();
+        assertThat(AppointmentService.overlapsWith(nine, bookAt(NINE.plusMinutes(45)))).isFalse();
+        assertThat(AppointmentService.overlapsWith(nine, bookAt(NINE.minusMinutes(45)))).isFalse();
     }
 
     @Test
@@ -62,8 +68,8 @@ class AppointmentTest {
     void overlapsWithSlot() {
         Appointment nine = bookAt(NINE);
 
-        assertThat(nine.overlapsWith(NINE.plusMinutes(40), NINE.plusMinutes(60))).isTrue();
-        assertThat(nine.overlapsWith(NINE.plusMinutes(45), NINE.plusMinutes(60))).isFalse();
+        assertThat(AppointmentService.overlapsWith(nine, NINE.plusMinutes(40), NINE.plusMinutes(60))).isTrue();
+        assertThat(AppointmentService.overlapsWith(nine, NINE.plusMinutes(45), NINE.plusMinutes(60))).isFalse();
     }
 
     @Test
@@ -71,16 +77,16 @@ class AppointmentTest {
     void rescheduledToKeepsData() throws BusinessRuleException {
         Appointment appointment = Appointment.restore(7, ana, laura, haircut, NINE, NINE.plusMinutes(60),
             AppointmentStatus.CONFIRMED, NINE.minusDays(1));
-        appointment.setDeposit(10000);
+        AppointmentService.setDeposit(appointment, 10000);
         appointment.setReminderAt(NINE.minusHours(24));
 
-        Appointment moved = appointment.rescheduledTo(NINE.plusDays(1));
+        Appointment moved = AppointmentService.rescheduledTo(appointment, NINE.plusDays(1));
 
         assertThat(moved.getId()).isEqualTo(7);
         assertThat(moved.getStart()).isEqualTo(NINE.plusDays(1));
         assertThat(moved.getEnd()).isEqualTo(NINE.plusDays(1).plusMinutes(60));
         assertThat(moved.getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
-        assertThat(moved.getDeposit()).isEqualTo(10000);
+        assertThat(moved.getDeposit()).isEqualByComparingTo(java.math.BigDecimal.valueOf(10000));
         assertThat(moved.getReminderAt()).isNull();
         assertThat(appointment.getStart()).isEqualTo(NINE);
     }
@@ -89,9 +95,9 @@ class AppointmentTest {
     @DisplayName("a closed appointment cannot be rescheduled")
     void closedAppointmentCannotBeRescheduled() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
-        appointment.cancel();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.CANCELLED, "cancelar");
 
-        assertThatThrownBy(() -> appointment.rescheduledTo(NINE.plusDays(1)))
+        assertThatThrownBy(() -> AppointmentService.rescheduledTo(appointment, NINE.plusDays(1)))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessage("No se puede reprogramar una cita cancelada.");
     }
@@ -101,11 +107,11 @@ class AppointmentTest {
     void confirmThenComplete() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
 
-        appointment.confirm();
-        appointment.complete();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.CONFIRMED, "confirmar");
+        AppointmentService.changeStatus(appointment, AppointmentStatus.COMPLETED, "completar");
 
         assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
-        assertThat(appointment.blocksSchedule()).isFalse();
+        assertThat(AppointmentService.blocksSchedule(appointment)).isFalse();
     }
 
     @Test
@@ -113,29 +119,29 @@ class AppointmentTest {
     void cancelFreesSchedule() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
 
-        appointment.cancel();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.CANCELLED, "cancelar");
 
-        assertThat(appointment.blocksSchedule()).isFalse();
+        assertThat(AppointmentService.blocksSchedule(appointment)).isFalse();
     }
 
     @Test
-    @DisplayName("markNoShow adds a no-show to the customer")
-    void markNoShowCountsForCustomer() throws BusinessRuleException {
+    @DisplayName("a state change does not implicitly modify another entity")
+    void stateChangeDoesNotModifyCustomer() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
 
-        appointment.markNoShow();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.NO_SHOW, "marcar como inasistencia");
 
         assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.NO_SHOW);
-        assertThat(ana.getNoShowCount()).isEqualTo(1);
+        assertThat(ana.getNoShowCount()).isZero();
     }
 
     @Test
     @DisplayName("confirming twice fails with a readable message")
     void confirmTwiceFails() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
-        appointment.confirm();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.CONFIRMED, "confirmar");
 
-        assertThatThrownBy(appointment::confirm)
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.CONFIRMED, "confirmar"))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessage("No se puede confirmar una cita confirmada.");
     }
@@ -144,12 +150,12 @@ class AppointmentTest {
     @DisplayName("a closed appointment cannot change again")
     void closedAppointmentCannotChange() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
-        appointment.cancel();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.CANCELLED, "cancelar");
 
-        assertThatThrownBy(appointment::confirm).isInstanceOf(BusinessRuleException.class);
-        assertThatThrownBy(appointment::complete).isInstanceOf(BusinessRuleException.class);
-        assertThatThrownBy(appointment::cancel).isInstanceOf(BusinessRuleException.class);
-        assertThatThrownBy(appointment::markNoShow).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.CONFIRMED, "confirmar")).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.COMPLETED, "completar")).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.CANCELLED, "cancelar")).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.NO_SHOW, "marcar como inasistencia")).isInstanceOf(BusinessRuleException.class);
         assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
     }
 
@@ -157,9 +163,9 @@ class AppointmentTest {
     @DisplayName("a rejected no-show does not add to the customer")
     void rejectedNoShowDoesNotCount() throws BusinessRuleException {
         Appointment appointment = bookAt(NINE);
-        appointment.complete();
+        AppointmentService.changeStatus(appointment, AppointmentStatus.COMPLETED, "completar");
 
-        assertThatThrownBy(appointment::markNoShow).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.changeStatus(appointment, AppointmentStatus.NO_SHOW, "marcar como inasistencia")).isInstanceOf(BusinessRuleException.class);
         assertThat(ana.getNoShowCount()).isZero();
     }
 
@@ -168,7 +174,7 @@ class AppointmentTest {
     void negativeDepositFails() {
         Appointment appointment = bookAt(NINE);
 
-        assertThatThrownBy(() -> appointment.setDeposit(-1)).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.setDeposit(appointment, -1)).isInstanceOf(BusinessRuleException.class);
         assertThat(appointment.getDeposit()).isZero();
     }
 
@@ -177,8 +183,8 @@ class AppointmentTest {
     void nonFiniteDepositFails() {
         Appointment appointment = bookAt(NINE);
 
-        assertThatThrownBy(() -> appointment.setDeposit(Double.NaN)).isInstanceOf(BusinessRuleException.class);
-        assertThatThrownBy(() -> appointment.setDeposit(Double.POSITIVE_INFINITY))
+        assertThatThrownBy(() -> AppointmentService.setDeposit(appointment, Double.NaN)).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> AppointmentService.setDeposit(appointment, Double.POSITIVE_INFINITY))
             .isInstanceOf(BusinessRuleException.class);
     }
 
@@ -187,7 +193,7 @@ class AppointmentTest {
     void endMustBeAfterStart() {
         Treatment instant = new Treatment(2, "Sin duración", "", 1000, 0);
 
-        assertThatThrownBy(() -> new Appointment(0, ana, laura, instant, NINE))
+        assertThatThrownBy(() -> AppointmentService.newAppointment(0, ana, laura, instant, NINE))
             .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> Appointment.restore(1, ana, laura, haircut, NINE, NINE.minusMinutes(30),
             AppointmentStatus.PENDING, NINE)).isInstanceOf(IllegalArgumentException.class);
@@ -196,7 +202,7 @@ class AppointmentTest {
     @Test
     @DisplayName("a missing treatment is reported by name")
     void missingTreatmentIsNamed() {
-        assertThatThrownBy(() -> new Appointment(0, ana, laura, null, NINE))
+        assertThatThrownBy(() -> AppointmentService.newAppointment(0, ana, laura, null, NINE))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("treatment");
     }

@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import java.math.BigDecimal;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.util.Validator;
 
@@ -13,7 +14,10 @@ import com.maisonglow.util.Validator;
  * @param price        the sale price, greater than zero
  * @param minimumStock the stock level that triggers a low-stock alert, zero or more
  */
-public record ProductData(String name, int categoryId, double price, int minimumStock) {
+public record ProductData(String name, int categoryId, BigDecimal price, int minimumStock) {
+    public ProductData(String name, int categoryId, double price, int minimumStock) {
+        this(name, categoryId, BigDecimal.valueOf(price), minimumStock);
+    }
 
     /**
      * Checks that the name is present, the price is positive and the minimum stock is not negative.

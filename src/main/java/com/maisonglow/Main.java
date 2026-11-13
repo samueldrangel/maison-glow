@@ -1,5 +1,6 @@
 package com.maisonglow;
 
+import java.math.BigDecimal;
 import com.maisonglow.dao.AppointmentDao;
 import com.maisonglow.dao.AppointmentDaoText;
 import com.maisonglow.dao.CategoryDao;
@@ -243,7 +244,7 @@ public final class Main {
         title("2. Agendamiento con reglas y control de cruces");
         LocalDateTime start = LocalDate.now(clock).plusDays(1).atTime(10, 0);
         Professional lauraWithTreatments = professionals.findById(laura.getId());
-        double deposit = new DepositRule(settings).requiredDeposit(new Appointment(0, ana, lauraWithTreatments,
+        BigDecimal deposit = new DepositRule(settings).requiredDeposit(AppointmentService.newAppointment(0, ana, lauraWithTreatments,
             haircut, start));
         Appointment booked = appointments.book(ana, lauraWithTreatments, haircut, start, deposit);
         System.out.println("Cita agendada para " + ana.getName() + " el " + booked.getStart()
@@ -255,15 +256,15 @@ public final class Main {
 
         title("3. Venta mixta con descuento de stock y factura simulada");
         Sale sale = new Sale(ana);
-        sale.addLine(products.findById(shampoo.getId()), 3);
-        sale.addLine(haircut, 1);
-        sale.linkAppointment(booked);
+        SaleService.addLine(sale, products.findById(shampoo.getId()), 3);
+        SaleService.addLine(sale, haircut, 1);
+        SaleService.linkAppointment(sale, booked);
         Sale registered = sales.register(sale);
         new SimulatedEmailNotifier(new InvoiceFormatter(settings.businessName()), System.out)
             .sendInvoice(ana, registered);
         attempt("Venta con más unidades que el stock", () -> {
             Sale tooBig = new Sale(luis);
-            tooBig.addLine(products.findById(shampoo.getId()), 10);
+            SaleService.addLine(tooBig, products.findById(shampoo.getId()), 10);
             sales.register(tooBig);
         });
 
@@ -290,7 +291,7 @@ public final class Main {
         return data.resolve(name);
     }
 
-    private static String money(double amount) {
+    private static String money(BigDecimal amount) {
         return String.format(COLOMBIA, "$ %,.0f", amount);
     }
 

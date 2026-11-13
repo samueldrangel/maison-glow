@@ -7,6 +7,8 @@ import com.maisonglow.model.Professional;
 import com.maisonglow.model.Sale;
 import com.maisonglow.model.SaleLine;
 import com.maisonglow.model.Treatment;
+import java.math.BigDecimal;
+import com.maisonglow.service.SaleService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,7 +29,7 @@ final class ConsoleFormat {
     private ConsoleFormat() {
     }
 
-    static String money(double amount) {
+    static String money(BigDecimal amount) {
         return String.format(COLOMBIA, "$ %,.0f", amount);
     }
 
@@ -71,12 +73,12 @@ final class ConsoleFormat {
 
     static String sale(Sale sale) {
         return "[" + sale.getId() + "] " + dateTime(sale.getSoldAt()) + SEPARATOR + sale.getCustomer().getName()
-            + SEPARATOR + "total " + money(sale.calculateTotal());
+            + SEPARATOR + "total " + money(sale.getTotal());
     }
 
     static String saleLine(SaleLine line) {
         return line.getQuantity() + " x " + line.getItem().getName() + " a " + money(line.getUnitPrice())
-            + " = " + money(line.calculateSubtotal());
+            + " = " + money(SaleService.calculateSubtotal(line));
     }
 
     static void printAll(ConsoleIo console, String emptyMessage, List<String> lines) {

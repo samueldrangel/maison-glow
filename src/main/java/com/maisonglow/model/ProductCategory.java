@@ -1,6 +1,5 @@
 package com.maisonglow.model;
 
-import java.util.Objects;
 
 /**
  * Groups products by type, such as hair care or makeup, to organize the
@@ -66,12 +65,12 @@ public class ProductCategory {
         if (!(other instanceof ProductCategory category)) {
             return false;
         }
-        return id == category.id;
+        return id > 0 && id == category.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return ProductCategory.class.hashCode();
     }
 
     @Override

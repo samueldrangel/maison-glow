@@ -12,7 +12,7 @@ Aunque la Entrega 1 no usa base de datos ([ADR-0012](0012-persistencia-en-archiv
 2. **Ítems vendibles en `sale_line`:** dos columnas (`product_id`, `treatment_id`) con `CHECK` de exclusión mutua, en lugar de una tabla por tipo o un par `(tipo, id)` sin clave foránea. Es la forma relacional de la interfaz `Sellable`: conserva integridad referencial y permite `JOIN` directos para las estadísticas.
 3. **Stock solo por movimientos:** `product.stock` se modifica únicamente insertando en `stock_movement`; un trigger lo aplica y `CHECK (stock >= 0)` aborta la venta si no alcanza. Da trazabilidad y hace "todo o nada" la venta dentro de una transacción.
 4. **Anti-cruce de citas en la BD:** trigger por profesional sobre citas `PENDING`/`CONFIRMED`. Es una **segunda barrera**; la regla principal vive en `AppointmentService` (RF-11/12), que da el mensaje al usuario.
-5. **`end_at` almacenado:** es derivado (inicio + duración), pero se guarda para poder comprobar cruces con una consulta simple. El modelo lo calcula con `Treatment.calculateEnd()`.
+5. **`end_at` almacenado:** es derivado (inicio + duración), pero se guarda para poder comprobar cruces con una consulta simple. Lo calcula `AppointmentService.calculateEnd()` y la entidad conserva el resultado.
 6. **Precio congelado:** `sale_line.unit_price` copia el precio al vender; cambiar el catálogo no altera ventas pasadas.
 7. **Fechas y horas como texto ISO-8601:** SQLite no tiene tipo fecha y el formato ISO se ordena y compara correctamente como texto, y coincide con `java.time`.
 8. **Reglas configurables en `app_setting`** (clave/valor) en lugar de columnas o código fijo (RF-26).

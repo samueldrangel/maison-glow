@@ -76,7 +76,7 @@ public class TreatmentService {
      */
     public void activate(int id) throws BusinessRuleException, DataAccessException {
         Treatment treatment = findById(id);
-        treatment.activate();
+        treatment.setActive(true);
         treatmentDao.update(treatment);
     }
 
@@ -89,7 +89,7 @@ public class TreatmentService {
      */
     public void deactivate(int id) throws BusinessRuleException, DataAccessException {
         Treatment treatment = findById(id);
-        treatment.deactivate();
+        treatment.setActive(false);
         treatmentDao.update(treatment);
     }
 

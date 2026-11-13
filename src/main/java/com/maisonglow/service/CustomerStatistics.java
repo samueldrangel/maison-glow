@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import java.math.BigDecimal;
 /**
  * Summary of a customer's activity (RF-18).
  *
@@ -9,6 +10,10 @@ package com.maisonglow.service;
  * @param completedAppointments appointments that took place
  * @param noShows               appointments the customer missed
  */
-public record CustomerStatistics(int purchases, double totalSpent, int appointments,
+public record CustomerStatistics(int purchases, BigDecimal totalSpent, int appointments,
                                  int completedAppointments, int noShows) {
+    public CustomerStatistics { totalSpent = totalSpent.setScale(2, java.math.RoundingMode.HALF_UP); }
+    public CustomerStatistics(int purchases, double totalSpent, int appointments, int completedAppointments, int noShows) {
+        this(purchases, BigDecimal.valueOf(totalSpent), appointments, completedAppointments, noShows);
+    }
 }

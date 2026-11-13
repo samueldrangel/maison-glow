@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import java.math.BigDecimal;
 import com.maisonglow.dao.SaleDao;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
@@ -60,7 +61,8 @@ public class PromotionService {
     }
 
     private static PromotionSuggestion suggest(Product product, double discount) {
-        double promotionalPrice = product.getPrice() * (FULL_PERCENTAGE - discount) / FULL_PERCENTAGE;
+        BigDecimal promotionalPrice = product.getPrice().multiply(BigDecimal.valueOf(FULL_PERCENTAGE).subtract(BigDecimal.valueOf(discount)))
+            .divide(BigDecimal.valueOf(FULL_PERCENTAGE), 2, java.math.RoundingMode.HALF_UP);
         return new PromotionSuggestion(product.getName(), product.getPrice(), discount, promotionalPrice);
     }
 

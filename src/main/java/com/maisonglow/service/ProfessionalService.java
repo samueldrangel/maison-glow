@@ -117,10 +117,10 @@ public class ProfessionalService {
         if (!treatment.isActive()) {
             throw new BusinessRuleException("El tratamiento " + treatment.getName() + " no está activo.");
         }
-        if (professional.offers(treatment)) {
+        if (ProfessionalService.offers(professional, treatment)) {
             throw new BusinessRuleException(professional.getName() + " ya ofrece " + treatment.getName() + ".");
         }
-        professional.addTreatment(treatment);
+        ProfessionalService.addTreatment(professional, treatment);
         professionalDao.update(professional);
     }
 
@@ -136,10 +136,10 @@ public class ProfessionalService {
         throws BusinessRuleException, DataAccessException {
         Professional professional = findById(professionalId);
         Treatment treatment = findTreatment(treatmentId);
-        if (!professional.offers(treatment)) {
+        if (!ProfessionalService.offers(professional, treatment)) {
             throw new BusinessRuleException(professional.getName() + " no ofrece " + treatment.getName() + ".");
         }
-        professional.removeTreatment(treatment);
+        ProfessionalService.removeTreatment(professional, treatment);
         professionalDao.update(professional);
     }
 
@@ -186,7 +186,7 @@ public class ProfessionalService {
      */
     public void deactivate(int id) throws BusinessRuleException, DataAccessException {
         Professional professional = findById(id);
-        professional.deactivate();
+        professional.setActive(false);
         professionalDao.update(professional);
     }
 
@@ -199,12 +199,28 @@ public class ProfessionalService {
      */
     public void activate(int id) throws BusinessRuleException, DataAccessException {
         Professional professional = findById(id);
-        professional.activate();
+        professional.setActive(true);
         professionalDao.update(professional);
     }
 
     private Treatment findTreatment(int treatmentId) throws BusinessRuleException, DataAccessException {
         return treatmentDao.findById(treatmentId)
             .orElseThrow(() -> new BusinessRuleException("No existe el tratamiento con id " + treatmentId + "."));
+    }
+    public static boolean offers(Professional professional, Treatment treatment) {
+        return professional.getTreatments().contains(treatment);
+    }
+
+    public static void addTreatment(Professional professional, Treatment treatment) {
+        if (!offers(professional, treatment)) {
+            java.util.List<Treatment> treatments = new java.util.ArrayList<>(professional.getTreatments());
+            treatments.add(java.util.Objects.requireNonNull(treatment, "treatment"));
+            professional.setTreatments(treatments);
+        }
+    }
+
+    public static void removeTreatment(Professional professional, Treatment treatment) {
+        java.util.List<Treatment> treatments = new java.util.ArrayList<>(professional.getTreatments());
+        treatments.remove(treatment); professional.setTreatments(treatments);
     }
 }

@@ -72,7 +72,7 @@ class TreatmentServiceTest {
         service.update(manicure.getId(), new TreatmentData("Manicure", "Con esmaltado", 28000, 45));
 
         Treatment updated = service.findById(manicure.getId());
-        assertThat(updated.getPrice()).isEqualTo(28000);
+        assertThat(updated.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(28000));
         assertThat(updated.getDescription()).isEqualTo("Con esmaltado");
         assertThatThrownBy(() -> service.update(manicure.getId(), new TreatmentData("Pedicure", "", 1000, 10)))
             .isInstanceOf(BusinessRuleException.class);

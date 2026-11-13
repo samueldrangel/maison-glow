@@ -47,20 +47,22 @@ class SaleServiceTest {
     private Treatment facial;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         service = new SaleService(saleDao, productDao);
         customer = new Customer(1, "100200300", "Ana Pérez", "3001234567", "ana@correo.com");
         shampoo = new Product(1, "Shampoo", HAIR, 28000, 10, 3);
         mask = new Product(2, "Mascarilla", HAIR, 35000, 4, 2);
         facial = new Treatment(1, "Limpieza facial", "Limpieza profunda", 80000, 60);
+        lenient().when(productDao.findById(1)).thenReturn(java.util.Optional.of(shampoo));
+        lenient().when(productDao.findById(2)).thenReturn(java.util.Optional.of(mask));
     }
 
     @Test
     @DisplayName("register deducts the stock of every product and stores the sale")
     void registerDeductsStockAndStores() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 3);
-        sale.addLine(mask, 4);
+        SaleService.addLine(sale, shampoo, 3);
+        SaleService.addLine(sale, mask, 4);
         when(saleDao.create(sale)).thenReturn(sale);
 
         Sale stored = service.register(sale);
@@ -77,8 +79,8 @@ class SaleServiceTest {
     @DisplayName("register leaves the stock of a treatment line alone and does not save it as a product")
     void registerSellsTreatmentWithoutStock() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(facial, 1);
-        sale.addLine(shampoo, 2);
+        SaleService.addLine(sale, facial, 1);
+        SaleService.addLine(sale, shampoo, 2);
         when(saleDao.create(sale)).thenReturn(sale);
 
         service.register(sale);
@@ -92,8 +94,8 @@ class SaleServiceTest {
     @DisplayName("register fails and deducts nothing when one line exceeds the stock")
     void registerRejectsInsufficientStock() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 3);
-        sale.addLine(mask, 5);
+        SaleService.addLine(sale, shampoo, 3);
+        SaleService.addLine(sale, mask, 5);
 
         assertThatThrownBy(() -> service.register(sale))
             .isInstanceOf(BusinessRuleException.class)
@@ -101,7 +103,7 @@ class SaleServiceTest {
 
         assertThat(shampoo.getStock()).isEqualTo(10);
         assertThat(mask.getStock()).isEqualTo(4);
-        verifyNoInteractions(productDao);
+        verify(productDao, never()).update(any(Product.class));
         verify(saleDao, never()).create(any(Sale.class));
     }
 
@@ -127,7 +129,7 @@ class SaleServiceTest {
     @DisplayName("register rejects a sale that was already registered")
     void registerRejectsRegisteredSale() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 1);
+        SaleService.addLine(sale, shampoo, 1);
         sale.setId(7);
 
         assertThatThrownBy(() -> service.register(sale)).isInstanceOf(BusinessRuleException.class);
@@ -140,8 +142,8 @@ class SaleServiceTest {
     @DisplayName("register gives the stock back when the sale cannot be stored")
     void registerRestoresStockWhenStoringFails() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 3);
-        sale.addLine(mask, 2);
+        SaleService.addLine(sale, shampoo, 3);
+        SaleService.addLine(sale, mask, 2);
         when(saleDao.create(sale)).thenThrow(new DataAccessException("disco lleno"));
 
         assertThatThrownBy(() -> service.register(sale))
@@ -156,8 +158,8 @@ class SaleServiceTest {
     @DisplayName("register gives the stock back when a product cannot be stored")
     void registerRestoresStockWhenProductUpdateFails() throws Exception {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 3);
-        sale.addLine(mask, 2);
+        SaleService.addLine(sale, shampoo, 3);
+        SaleService.addLine(sale, mask, 2);
         lenient().doThrow(new DataAccessException("sin permiso")).when(productDao).update(mask);
 
         assertThatThrownBy(() -> service.register(sale)).isInstanceOf(DataAccessException.class);
