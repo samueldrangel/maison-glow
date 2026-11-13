@@ -306,42 +306,6 @@
     -fx-text-fill: -mg-text-muted;
 }
 
-/* ---- Dialogos de AlertPresenter ---- */
-.dialog-pane.view-root {
-    -fx-background-color: -mg-cream;
-}
-
-.dialog-pane.view-root > .header-panel {
-    -fx-background-color: -mg-rose;
-    -fx-padding: 14 18 14 18;
-}
-
-.dialog-pane.view-root > .header-panel .label {
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-}
-
-.dialog-pane.view-root > .content.label {
-    -fx-text-fill: -mg-text;
-    -fx-padding: 16 18 8 18;
-}
-
-.dialog-pane.view-root .button {
-    -fx-background-color: -mg-rose;
-    -fx-background-radius: 10;
-    -fx-text-fill: white;
-    -fx-padding: 7 18 7 18;
-    -fx-cursor: hand;
-}
-
-.dialog-pane.view-root .button:cancel {
-    -fx-background-color: transparent;
-    -fx-border-color: -mg-rose;
-    -fx-border-radius: 10;
-    -fx-text-fill: -mg-rose-dark;
-}
-
 /* ---- Botones: pildora con brillo suave. Rosa = accion normal, dorado = accion principal de la pantalla,
         contorno = secundaria. Se elevan al pasar el cursor (Animations.lift). ---- */
 .button-primary, .button-gold, .button-secondary {
@@ -562,4 +526,73 @@
 
 .table-view .placeholder .label {
     -fx-text-fill: -mg-text-muted;
+}
+
+/* ---- Iconos de linea (Icons.java): toman el color del contexto ---- */
+.line-icon {
+    -fx-fill: transparent;
+    -fx-stroke: -mg-rose-dark;
+    -fx-stroke-width: 1.8;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+/* ---- Dialogos de AlertPresenter: medallon con el icono de su tipo, titulo en serif y filete dorado ---- */
+.dialog-pane.view-root {
+    -fx-background-color: -mg-surface;
+    -fx-border-color: -mg-gold transparent transparent transparent;
+    -fx-border-width: 3 0 0 0;
+}
+
+.dialog-pane.view-root > .content {
+    -fx-padding: 28 32 12 32;
+}
+
+.dialog-pane.view-root > .button-bar > .container {
+    -fx-padding: 8 28 24 28;
+    -fx-spacing: 10;
+}
+
+.dialog-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 21px;
+    -fx-text-fill: -mg-text;
+}
+
+.dialog-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: -mg-text;
+    -fx-line-spacing: 2;
+}
+
+.dialog-medallion {
+    -fx-min-width: 58;
+    -fx-pref-width: 58;
+    -fx-max-width: 58;
+    -fx-min-height: 58;
+    -fx-pref-height: 58;
+    -fx-max-height: 58;
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 29;
+    -fx-border-color: -mg-rose-soft;
+    -fx-border-radius: 29;
+    -fx-border-width: 1.5;
+}
+
+.tone-warning, .tone-question {
+    -fx-background-color: -mg-gold-soft;
+    -fx-border-color: -mg-gold;
+}
+
+.tone-warning .line-icon, .tone-question .line-icon {
+    -fx-stroke: -mg-gold-dark;
+}
+
+.tone-error {
+    -fx-background-color: -mg-warning-bg;
+    -fx-border-color: #e6a8a2;
+}
+
+.tone-error .line-icon {
+    -fx-stroke: -mg-warning;
 }
