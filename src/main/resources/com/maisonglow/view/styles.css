@@ -306,29 +306,6 @@
     -fx-text-fill: -mg-text-muted;
 }
 
-/* ---- Piezas que reutilizaran I-14 en adelante ---- */
-.card {
-    -fx-background-color: -mg-surface;
-    -fx-background-radius: 16;
-    -fx-border-color: -mg-border;
-    -fx-border-radius: 16;
-    -fx-padding: 16;
-}
-
-.chip-success {
-    -fx-background-color: -mg-success-bg;
-    -fx-text-fill: -mg-success;
-    -fx-background-radius: 12;
-    -fx-padding: 2 10 2 10;
-}
-
-.chip-warning {
-    -fx-background-color: -mg-warning-bg;
-    -fx-text-fill: -mg-warning;
-    -fx-background-radius: 12;
-    -fx-padding: 2 10 2 10;
-}
-
 .table-view {
     -fx-background-color: -mg-surface;
     -fx-background-radius: 12;
@@ -378,24 +355,6 @@
     -fx-border-color: -mg-rose;
     -fx-border-radius: 10;
     -fx-text-fill: -mg-rose-dark;
-}
-
-/* ---- Pantallas de lista + formulario (plantilla templates/ListFormTemplate.fxml) ---- */
-.form-card {
-    -fx-padding: 20;
-}
-
-.form-title {
-    -fx-font-family: Georgia, "Times New Roman", serif;
-    -fx-font-size: 22px;
-    -fx-text-fill: -mg-text;
-    -fx-padding: 0 0 6 0;
-}
-
-.form-label {
-    -fx-font-size: 13px;
-    -fx-text-fill: -mg-text;
-    -fx-padding: 6 0 0 0;
 }
 
 /* ---- Tablas (todas las listas): cabecera clara, filas con linea fina ---- */
@@ -533,4 +492,77 @@
     -fx-padding: 11 18 11 18;
     -fx-background-radius: 22;
     -fx-border-radius: 22;
+}
+
+/* ---- Tarjetas y chips de estado ---- */
+.card {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 22;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 22;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.14), 24, 0.05, 0, 8);
+}
+
+.form-card {
+    -fx-padding: 22;
+}
+
+.form-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 24px;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 0 0 8 0;
+}
+
+.form-label {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text-muted;
+    -fx-padding: 8 0 0 2;
+}
+
+/* Un chip lleva un punto de estado como grafico: <graphic><Circle radius="3.5" styleClass="chip-dot"/></graphic> */
+.chip-success, .chip-warning, .chip-neutral, .chip-gold {
+    -fx-background-radius: 14;
+    -fx-padding: 3 12 3 10;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-graphic-text-gap: 7;
+}
+
+.chip-success {
+    -fx-background-color: -mg-success-bg;
+    -fx-text-fill: -mg-success;
+}
+
+.chip-success .chip-dot {
+    -fx-fill: -mg-success;
+}
+
+.chip-warning {
+    -fx-background-color: -mg-warning-bg;
+    -fx-text-fill: -mg-warning;
+}
+
+.chip-warning .chip-dot {
+    -fx-fill: -mg-warning;
+}
+
+.chip-neutral {
+    -fx-background-color: #efe9e6;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.chip-neutral .chip-dot {
+    -fx-fill: -mg-text-muted;
+}
+
+.chip-gold {
+    -fx-background-color: -mg-gold-soft;
+    -fx-text-fill: -mg-gold-dark;
+}
+
+.chip-gold .chip-dot {
+    -fx-fill: -mg-gold;
 }
