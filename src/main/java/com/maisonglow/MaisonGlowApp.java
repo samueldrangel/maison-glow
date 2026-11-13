@@ -1,30 +1,34 @@
 package com.maisonglow;
 
+import com.maisonglow.view.ViewLoader;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.layout.StackPane;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
 /**
  * JavaFX entry point of Maison Glow. It builds the {@link AppContext} once and
- * keeps it for the views; the main window and the navigation arrive in I-13.
- * Start it with {@code mvn javafx:run}; the console demo keeps running with
- * {@code mvn exec:java}.
+ * opens the main window; every other screen is shown by the
+ * {@link com.maisonglow.view.Navigator}. Start it with {@code mvn javafx:run};
+ * the console demo keeps running with {@code mvn exec:java}.
  */
 public final class MaisonGlowApp extends Application {
 
     private static final String TITLE = "Maison Glow";
-    private static final double WIDTH = 1100;
-    private static final double HEIGHT = 700;
+    private static final String ICON = "/com/maisonglow/view/images/app-icon.png";
+    private static final String MAIN_VIEW = "/com/maisonglow/view/MainView.fxml";
+    private static final double MIN_WIDTH = 960;
+    private static final double MIN_HEIGHT = 600;
 
     private AppContext context;
 
     /**
-     * Opens the empty window over the session data folder.
+     * Opens the main window over the session data folder.
      *
      * @param stage primary stage provided by JavaFX
      */
@@ -37,8 +41,12 @@ public final class MaisonGlowApp extends Application {
             Platform.exit();
             return;
         }
+        Parent root = ViewLoader.load(MaisonGlowApp.class.getResource(MAIN_VIEW), context);
         stage.setTitle(TITLE);
-        stage.setScene(new Scene(new StackPane(), WIDTH, HEIGHT));
+        stage.getIcons().add(new Image(MaisonGlowApp.class.getResource(ICON).toExternalForm()));
+        stage.setMinWidth(MIN_WIDTH);
+        stage.setMinHeight(MIN_HEIGHT);
+        stage.setScene(new Scene(root));
         stage.show();
     }
 

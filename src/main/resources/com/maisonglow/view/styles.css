@@ -1,0 +1,365 @@
+/* Maison Glow - paleta tomada de docs/fase2/mockups (rosa palo, dorado, crema).
+   Los colores se definen UNA sola vez aqui; las vistas usan estas variables. */
+
+/* La paleta vive en la raiz de CADA vista (.main-root, .view-root) y tambien en
+   .root. Scene Builder mete la vista dentro de su propio contenedor, asi que
+   .root solo no basta para que alli se vean los colores. */
+.root, .main-root, .view-root {
+    -mg-rose: #b08187;
+    -mg-rose-dark: #96666d;
+    -mg-rose-soft: #ebb6bc;
+    -mg-cream: #faf5f1;
+    -mg-surface: #fefefc;
+    -mg-active: #f7efed;
+    -mg-gold: #c99269;
+    -mg-text: #2b2327;
+    -mg-text-muted: #8a7a7e;
+    -mg-success-bg: #e0efe8;
+    -mg-success: #3f8f6b;
+    -mg-warning-bg: #ffe4e8;
+    -mg-warning: #b3473f;
+    -mg-border: #eadfdc;
+
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: -mg-cream;
+    -fx-text-fill: -mg-text;
+}
+
+/* ---- Barra lateral (mockups M1, M2, M3, M8, M9) ----
+   Estado base: contraida (solo iconos, 76 px). Se expande sola con el cursor
+   (:hover) y flota sobre el contenido. Para verla expandida en Scene Builder
+   anade la clase "expanded" al VBox de la barra; Ctrl+P tambien responde al cursor. */
+.sidebar {
+    -fx-background-color: -mg-rose;
+    -fx-padding: 20 10 16 10;
+    -fx-spacing: 6;
+}
+
+/* Los anchos los fija el CSS solo mientras la barra tiene la clase "css-motion" (Scene Builder y Ctrl+P).
+   La aplicacion quita esa clase y mueve el ancho desde codigo, sin reprocesar estilos en cada fotograma. */
+.sidebar.css-motion {
+    -fx-min-width: 76;
+    -fx-pref-width: 76;
+    -fx-max-width: 76;
+}
+
+/* Logo de la marca: completo al expandir, isotipo al contraer. */
+.logo-slot {
+    -fx-alignment: center;
+    -fx-min-width: 0;
+}
+
+.profile {
+    -fx-spacing: 0;
+    -fx-alignment: center;
+    -fx-padding: 6 5 8 5;
+}
+
+.avatar {
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-max-width: 46;
+    -fx-max-height: 46;
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 23;
+}
+
+.avatar-initials {
+    -fx-text-fill: -mg-rose-dark;
+    -fx-font-size: 15px;
+}
+
+.profile-text {
+    -fx-spacing: 1;
+}
+
+.profile-name {
+    -fx-text-overrun: clip;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.profile-role {
+    -fx-text-overrun: clip;
+    -fx-text-fill: #f3dfe1;
+    -fx-font-size: 12px;
+}
+
+.sidebar-separator .line {
+    -fx-border-color: #c9a1a6;
+    -fx-border-width: 1 0 0 0;
+}
+
+.nav-list {
+    -fx-spacing: 2;
+    -fx-padding: 8 0 0 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-content-display: graphic-only;
+    -fx-alignment: center;
+    -fx-graphic-text-gap: 14;
+    -fx-text-overrun: clip;
+    -fx-padding: 9 0 9 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 20;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Opcion activa: fondo crema y barra dorada a la izquierda. */
+.nav-button:selected {
+    -fx-background-color: -mg-active;
+    -fx-text-fill: -mg-rose-dark;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent transparent transparent -mg-gold;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 20;
+}
+
+/* "Citas" agrupa a Agenda y Profesionales: es una cabecera, no una pagina. */
+.nav-group {
+    -fx-opacity: 1;
+}
+
+.nav-sub {
+    -fx-padding: 6 0 6 0;
+    -fx-font-size: 13px;
+}
+
+.nav-dot {
+    -fx-fill: white;
+}
+
+.nav-button:selected .nav-dot {
+    -fx-fill: -mg-gold;
+}
+
+/* Grupos desplegables: Citas con Agenda y Profesionales. La clase "open" la pone
+   el controlador segun la pantalla actual; en Scene Builder queda abierto. */
+.nav-group-box {
+    -fx-background-radius: 20;
+    -fx-spacing: 2;
+}
+
+.nav-group-box.open {
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+}
+
+.nav-sub-list {
+    -fx-spacing: 2;
+}
+
+/* Caja fija para que el texto de todas las opciones empiece en la misma columna. */
+.nav-icon-box {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+}
+
+.nav-icon {
+    -fx-fill: transparent;
+    -fx-stroke: white;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.nav-button:selected .nav-icon {
+    -fx-stroke: -mg-rose-dark;
+}
+
+.nav-icon-gold {
+    -fx-fill: -mg-gold;
+    -fx-stroke: -mg-gold;
+}
+
+.nav-button:selected .nav-icon-gold {
+    -fx-stroke: -mg-gold;
+}
+
+.nav-badge {
+    -fx-background-color: -mg-rose-soft;
+    -fx-background-radius: 11;
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-alignment: center;
+    visibility: hidden;
+}
+
+/* Textos que solo se ven con la barra expandida. */
+.collapsible {
+    visibility: hidden;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+/* ---- Barra expandida: cursor encima (:hover) o clase "expanded" ---- */
+.sidebar:hover, .sidebar.expanded {
+    -fx-effect: dropshadow(gaussian, rgba(43, 35, 39, 0.25), 16, 0, 4, 0);
+}
+
+.sidebar.css-motion:hover, .sidebar.css-motion.expanded {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+}
+
+/* Logos: solo con "css-motion" alterna el CSS; en la aplicacion los anima SidebarLogo. */
+.sidebar.css-motion .logo-full {
+    visibility: hidden;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+.sidebar.css-motion:hover .logo-full, .sidebar.css-motion.expanded .logo-full {
+    visibility: visible;
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+    -fx-max-width: infinity;
+    -fx-min-height: -1;
+    -fx-pref-height: -1;
+    -fx-max-height: infinity;
+}
+
+.sidebar.css-motion:hover .logo-mark, .sidebar.css-motion.expanded .logo-mark {
+    visibility: hidden;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+.sidebar:hover .profile, .sidebar.expanded .profile {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-padding: 6 5 8 5;
+}
+
+.sidebar:hover .collapsible, .sidebar.expanded .collapsible {
+    visibility: visible;
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+    -fx-max-width: infinity;
+    -fx-min-height: -1;
+    -fx-pref-height: -1;
+    -fx-max-height: infinity;
+}
+
+.sidebar:hover .nav-button, .sidebar.expanded .nav-button {
+    -fx-content-display: left;
+    -fx-alignment: center-left;
+    -fx-padding: 9 18 9 14;
+}
+
+.sidebar:hover .nav-sub, .sidebar.expanded .nav-sub {
+    -fx-padding: 6 18 6 48;
+}
+
+.sidebar:hover .nav-badge, .sidebar.expanded .nav-badge {
+    visibility: visible;
+}
+
+/* ---- Area central y textos comunes ---- */
+.content-area {
+    -fx-background-color: -mg-cream;
+    -fx-padding: 24;
+}
+
+.view-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 30px;
+    -fx-text-fill: -mg-text;
+}
+
+.placeholder-notice {
+    -fx-font-size: 14px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+/* ---- Piezas que reutilizaran I-14 en adelante ---- */
+.card {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 16;
+    -fx-padding: 16;
+}
+
+.button-primary {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.button-primary:hover {
+    -fx-background-color: -mg-rose-dark;
+}
+
+.text-field, .combo-box, .date-picker {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -mg-border;
+    -fx-background-color: -mg-surface;
+}
+
+.field-error {
+    -fx-border-color: -mg-warning;
+}
+
+.chip-success {
+    -fx-background-color: -mg-success-bg;
+    -fx-text-fill: -mg-success;
+    -fx-background-radius: 12;
+    -fx-padding: 2 10 2 10;
+}
+
+.chip-warning {
+    -fx-background-color: -mg-warning-bg;
+    -fx-text-fill: -mg-warning;
+    -fx-background-radius: 12;
+    -fx-padding: 2 10 2 10;
+}
+
+.table-view {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 12;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -mg-surface;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -mg-active;
+}
