@@ -51,7 +51,7 @@ public class ProductDaoText extends TextFileDao<Product> implements ProductDao {
         fields[ID] = String.valueOf(product.getId());
         fields[NAME] = product.getName();
         fields[CATEGORY_ID] = String.valueOf(product.getCategory().getId());
-        fields[PRICE] = String.valueOf(product.getPrice());
+        fields[PRICE] = product.getPrice().toPlainString();
         fields[STOCK] = String.valueOf(product.getStock());
         fields[MINIMUM_STOCK] = String.valueOf(product.getMinimumStock());
         fields[ACTIVE] = product.isActive() ? ACTIVE_FLAG : INACTIVE_FLAG;
@@ -64,10 +64,10 @@ public class ProductDaoText extends TextFileDao<Product> implements ProductDao {
             throw new DataAccessException("Se esperaban " + FIELD_COUNT + " campos y hay " + fields.length + ".");
         }
         Product product = new Product(Integer.parseInt(fields[ID]), fields[NAME], findCategory(fields[CATEGORY_ID]),
-            Double.parseDouble(fields[PRICE]), Integer.parseInt(fields[STOCK]),
+            new java.math.BigDecimal(fields[PRICE]), Integer.parseInt(fields[STOCK]),
             Integer.parseInt(fields[MINIMUM_STOCK]));
         if (INACTIVE_FLAG.equals(fields[ACTIVE])) {
-            product.deactivate();
+            product.setActive(false);
         }
         return product;
     }

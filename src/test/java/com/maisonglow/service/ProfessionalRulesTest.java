@@ -1,4 +1,8 @@
-package com.maisonglow.model;
+package com.maisonglow.service;
+
+import com.maisonglow.model.Customer;
+import com.maisonglow.model.Professional;
+import com.maisonglow.model.Treatment;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Professional tests")
-class ProfessionalTest {
+class ProfessionalRulesTest {
 
     private static final LocalDateTime DAY = LocalDateTime.of(2026, 10, 20, 0, 0);
 
@@ -36,14 +40,14 @@ class ProfessionalTest {
     @Test
     @DisplayName("worksDuring accepts a slot inside the working hours")
     void worksDuringInside() {
-        assertThat(laura().worksDuring(DAY.withHour(10), DAY.withHour(11))).isTrue();
+        assertThat(AppointmentService.worksDuring(laura(), DAY.withHour(10), DAY.withHour(11))).isTrue();
     }
 
     @Test
     @DisplayName("worksDuring accepts a slot exactly on the limits")
     void worksDuringOnTheEdges() {
-        assertThat(laura().worksDuring(DAY.withHour(8), DAY.withHour(9))).isTrue();
-        assertThat(laura().worksDuring(DAY.withHour(16), DAY.withHour(17))).isTrue();
+        assertThat(AppointmentService.worksDuring(laura(), DAY.withHour(8), DAY.withHour(9))).isTrue();
+        assertThat(AppointmentService.worksDuring(laura(), DAY.withHour(16), DAY.withHour(17))).isTrue();
     }
 
     @Test
@@ -51,10 +55,10 @@ class ProfessionalTest {
     void worksDuringOutside() {
         Professional professional = laura();
 
-        assertThat(professional.worksDuring(DAY.withHour(7), DAY.withHour(8).plusMinutes(30))).isFalse();
-        assertThat(professional.worksDuring(DAY.withHour(16).plusMinutes(30), DAY.withHour(17).plusMinutes(15)))
+        assertThat(AppointmentService.worksDuring(professional, DAY.withHour(7), DAY.withHour(8).plusMinutes(30))).isFalse();
+        assertThat(AppointmentService.worksDuring(professional, DAY.withHour(16).plusMinutes(30), DAY.withHour(17).plusMinutes(15)))
             .isFalse();
-        assertThat(professional.worksDuring(DAY.withHour(18), DAY.withHour(19))).isFalse();
+        assertThat(AppointmentService.worksDuring(professional, DAY.withHour(18), DAY.withHour(19))).isFalse();
     }
 
     @Test
@@ -62,8 +66,8 @@ class ProfessionalTest {
     void worksDuringRejectsInvalidSlots() {
         Professional professional = laura();
 
-        assertThat(professional.worksDuring(DAY.withHour(10), DAY.plusDays(1).withHour(10))).isFalse();
-        assertThat(professional.worksDuring(DAY.withHour(11), DAY.withHour(10))).isFalse();
+        assertThat(AppointmentService.worksDuring(professional, DAY.withHour(10), DAY.plusDays(1).withHour(10))).isFalse();
+        assertThat(AppointmentService.worksDuring(professional, DAY.withHour(11), DAY.withHour(10))).isFalse();
     }
 
     @Test
@@ -71,22 +75,22 @@ class ProfessionalTest {
     void addTreatmentWithoutDuplicates() {
         Professional professional = laura();
 
-        professional.addTreatment(haircut());
-        professional.addTreatment(haircut());
+        ProfessionalService.addTreatment(professional, haircut());
+        ProfessionalService.addTreatment(professional, haircut());
 
         assertThat(professional.getTreatments()).hasSize(1);
-        assertThat(professional.offers(haircut())).isTrue();
+        assertThat(ProfessionalService.offers(professional, haircut())).isTrue();
     }
 
     @Test
     @DisplayName("removeTreatment stops offering the treatment")
     void removeTreatment() {
         Professional professional = laura();
-        professional.addTreatment(haircut());
+        ProfessionalService.addTreatment(professional, haircut());
 
-        professional.removeTreatment(haircut());
+        ProfessionalService.removeTreatment(professional, haircut());
 
-        assertThat(professional.offers(haircut())).isFalse();
+        assertThat(ProfessionalService.offers(professional, haircut())).isFalse();
     }
 
     @Test
@@ -101,10 +105,10 @@ class ProfessionalTest {
     void deactivateAndActivate() {
         Professional professional = laura();
 
-        professional.deactivate();
+        professional.setActive(false);
         assertThat(professional.isActive()).isFalse();
 
-        professional.activate();
+        professional.setActive(true);
         assertThat(professional.isActive()).isTrue();
     }
 

@@ -132,7 +132,28 @@ public final class ConsoleIo {
         while (true) {
             String answer = readLine(prompt).replace(',', '.');
             try {
-                return Double.parseDouble(answer);
+                double value = Double.parseDouble(answer);
+                if (!Double.isFinite(value)) throw new NumberFormatException("Non-finite input");
+                return value;
+            } catch (NumberFormatException e) {
+                output.println("Ingrese un número válido, por ejemplo 28000 o 12.5.");
+            }
+        }
+    }
+
+    /**
+     * Reads an exact decimal amount, accepting a comma as the decimal separator.
+     * Invalid and non-finite values are rejected before reaching the services.
+     *
+     * @param prompt what is asked
+     * @return the exact decimal entered
+     * @throws ConsoleClosedException if input ends
+     */
+    public java.math.BigDecimal readDecimal(String prompt) {
+        while (true) {
+            String answer = readLine(prompt).replace(',', '.');
+            try {
+                return new java.math.BigDecimal(answer);
             } catch (NumberFormatException e) {
                 output.println("Ingrese un número válido, por ejemplo 28000 o 12.5.");
             }

@@ -185,7 +185,7 @@ public class SettingsService {
         } catch (NumberFormatException e) {
             throw new ValidationException("El parámetro " + key + " debe ser un número.", e);
         }
-        if (number < 0 || number > MAX_PERCENTAGE) {
+        if (!Double.isFinite(number) || number < 0 || number > MAX_PERCENTAGE) {
             throw new ValidationException("El parámetro " + key + " debe estar entre 0 y 100.");
         }
         return number;

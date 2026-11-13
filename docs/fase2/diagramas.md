@@ -1,5 +1,7 @@
 # Diagramas finales · Maison Glow (Entrega 1)
 
+> **Instantánea previa a la refactorización del modelo.** Las operaciones de negocio y los tipos monetarios de estos diagramas fueron sustituidos por la distribución del [ADR-0014](../adr/0014-modelos-de-datos-y-reglas-en-servicios.md). Los diagramas conservan la implementación anterior como referencia histórica.
+
 > Diagramas de paquetes y de clases **generados a partir del código real** en `src/main/java/com/maisonglow` (tarea I-06).
 > Los diagramas de diseño previos, con nombres en español, están en [`diseno-clases.md`](diseno-clases.md); aquí se usan los nombres del código (inglés).
 > Los diagramas son Mermaid y se ven directamente en GitHub.

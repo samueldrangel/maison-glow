@@ -1,5 +1,7 @@
 package com.maisonglow.service.rule;
 
+import java.math.BigDecimal;
+
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
@@ -33,8 +35,8 @@ public class DepositRule implements AppointmentRule {
     @Override
     public void apply(Appointment appointment)
         throws BusinessRuleException, ValidationException, DataAccessException {
-        double required = requiredDeposit(appointment);
-        if (appointment.getDeposit() < required) {
+        BigDecimal required = requiredDeposit(appointment);
+        if (appointment.getDeposit().compareTo(required) < 0) {
             throw new BusinessRuleException(String.format(COLOMBIA,
                 "La cita requiere un anticipo mínimo de $ %,.0f y se registraron $ %,.0f.",
                 required, appointment.getDeposit()));
@@ -49,9 +51,10 @@ public class DepositRule implements AppointmentRule {
      * @throws ValidationException if a setting has an invalid value
      * @throws DataAccessException if the settings cannot be read
      */
-    public double requiredDeposit(Appointment appointment) throws ValidationException, DataAccessException {
+    public BigDecimal requiredDeposit(Appointment appointment) throws ValidationException, DataAccessException {
         double percentage = isPenalized(appointment) ? FULL_PERCENTAGE : settings.depositPercentage();
-        return appointment.getTreatment().getPrice() * percentage / FULL_PERCENTAGE;
+        return appointment.getTreatment().getPrice().multiply(BigDecimal.valueOf(percentage))
+            .divide(BigDecimal.valueOf(FULL_PERCENTAGE), 2, java.math.RoundingMode.HALF_UP);
     }
 
     @Override

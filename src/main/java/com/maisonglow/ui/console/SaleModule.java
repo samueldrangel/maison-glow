@@ -92,12 +92,12 @@ public final class SaleModule extends MenuModule {
             if (type == PRODUCT) {
                 products.listActive().forEach(product -> console().println("  " + ConsoleFormat.product(product)));
                 int id = console().readInt("Id del producto");
-                sale.addLine(products.findById(id), console().readInt("Cantidad"));
+                SaleService.addLine(sale, products.findById(id), console().readInt("Cantidad"));
             } else {
                 treatments.listActive().forEach(treatment ->
                     console().println("  " + ConsoleFormat.treatment(treatment)));
                 int id = console().readInt("Id del tratamiento");
-                sale.addLine(treatments.findById(id), console().readInt("Cantidad"));
+                SaleService.addLine(sale, treatments.findById(id), console().readInt("Cantidad"));
             }
             showCart(sale);
         } catch (BusinessRuleException e) {
@@ -108,7 +108,7 @@ public final class SaleModule extends MenuModule {
     private void showCart(Sale sale) {
         console().println("Carrito:");
         sale.getLines().forEach(line -> console().println("  " + ConsoleFormat.saleLine(line)));
-        console().println("  Total: " + ConsoleFormat.money(sale.calculateTotal()));
+        console().println("  Total: " + ConsoleFormat.money(sale.getTotal()));
     }
 
     private void listByCustomer() throws ValidationException, DataAccessException {

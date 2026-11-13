@@ -99,7 +99,7 @@ class ProductServiceTest {
 
         service.update(1, new ProductData("Shampoo", 1, 30000, 5));
 
-        assertThat(product.getPrice()).isEqualTo(30000);
+        assertThat(product.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(30000));
         assertThat(product.getMinimumStock()).isEqualTo(5);
         verify(productDao).update(product);
     }
@@ -144,7 +144,7 @@ class ProductServiceTest {
     void listLowStock() throws Exception {
         Product low = new Product(2, "Gel", HAIR, 15000, 1, 2);
         Product inactiveLow = new Product(3, "Laca", HAIR, 18000, 0, 2);
-        inactiveLow.deactivate();
+        inactiveLow.setActive(false);
         when(productDao.findAll()).thenReturn(List.of(shampoo(), low, inactiveLow));
 
         assertThat(service.listLowStock()).containsExactly(low);

@@ -1,4 +1,8 @@
-package com.maisonglow.model;
+package com.maisonglow.service;
+
+import com.maisonglow.model.Product;
+import com.maisonglow.model.ProductCategory;
+import com.maisonglow.model.Sellable;
 
 import com.maisonglow.exception.BusinessRuleException;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Product tests")
-class ProductTest {
+class ProductInventoryRulesTest {
 
     private static final ProductCategory HAIR = new ProductCategory(1, "Cabello");
 
@@ -25,7 +29,7 @@ class ProductTest {
         assertThat(product.isActive()).isTrue();
         assertThat(product.getCategory()).isEqualTo(HAIR);
         assertThat(sellable.getName()).isEqualTo("Shampoo hidratante");
-        assertThat(sellable.getPrice()).isEqualTo(28000);
+        assertThat(sellable.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(28000));
     }
 
     @Test
@@ -33,7 +37,7 @@ class ProductTest {
     void deductExactStock() throws BusinessRuleException {
         Product product = shampoo();
 
-        product.deductStock(10);
+        ProductService.deductStock(product, 10);
 
         assertThat(product.getStock()).isZero();
     }
@@ -43,7 +47,7 @@ class ProductTest {
     void deductTooMuchStock() {
         Product product = shampoo();
 
-        assertThatThrownBy(() -> product.deductStock(11))
+        assertThatThrownBy(() -> ProductService.deductStock(product, 11))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessageContaining("Stock insuficiente");
         assertThat(product.getStock()).isEqualTo(10);
@@ -52,8 +56,8 @@ class ProductTest {
     @Test
     @DisplayName("hasStock compares the requested units with the stock")
     void hasStock() {
-        assertThat(shampoo().hasStock(10)).isTrue();
-        assertThat(shampoo().hasStock(11)).isFalse();
+        assertThat(ProductService.hasStock(shampoo(), 10)).isTrue();
+        assertThat(ProductService.hasStock(shampoo(), 11)).isFalse();
     }
 
     @Test
@@ -61,7 +65,7 @@ class ProductTest {
     void addStock() throws BusinessRuleException {
         Product product = shampoo();
 
-        product.addStock(5);
+        ProductService.addStock(product, 5);
 
         assertThat(product.getStock()).isEqualTo(15);
     }
@@ -71,10 +75,10 @@ class ProductTest {
     void deductNonPositiveQuantity() {
         Product product = shampoo();
 
-        assertThatThrownBy(() -> product.deductStock(-3))
+        assertThatThrownBy(() -> ProductService.deductStock(product, -3))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessageContaining("mayor que cero");
-        assertThatThrownBy(() -> product.deductStock(0))
+        assertThatThrownBy(() -> ProductService.deductStock(product, 0))
             .isInstanceOf(BusinessRuleException.class);
         assertThat(product.getStock()).isEqualTo(10);
     }
@@ -84,10 +88,10 @@ class ProductTest {
     void addNonPositiveQuantity() {
         Product product = shampoo();
 
-        assertThatThrownBy(() -> product.addStock(-10))
+        assertThatThrownBy(() -> ProductService.addStock(product, -10))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessageContaining("mayor que cero");
-        assertThatThrownBy(() -> product.addStock(0))
+        assertThatThrownBy(() -> ProductService.addStock(product, 0))
             .isInstanceOf(BusinessRuleException.class);
         assertThat(product.getStock()).isEqualTo(10);
     }
@@ -96,13 +100,13 @@ class ProductTest {
     @DisplayName("isBelowMinimum is true at and under the threshold")
     void belowMinimumThreshold() throws BusinessRuleException {
         Product product = shampoo();
-        assertThat(product.isBelowMinimum()).isFalse();
+        assertThat(ProductService.isBelowMinimum(product)).isFalse();
 
-        product.deductStock(7);
-        assertThat(product.isBelowMinimum()).isTrue();
+        ProductService.deductStock(product, 7);
+        assertThat(ProductService.isBelowMinimum(product)).isTrue();
 
-        product.deductStock(1);
-        assertThat(product.isBelowMinimum()).isTrue();
+        ProductService.deductStock(product, 1);
+        assertThat(ProductService.isBelowMinimum(product)).isTrue();
     }
 
     @Test
@@ -110,10 +114,10 @@ class ProductTest {
     void deactivateAndActivate() {
         Product product = shampoo();
 
-        product.deactivate();
+        product.setActive(false);
         assertThat(product.isActive()).isFalse();
 
-        product.activate();
+        product.setActive(true);
         assertThat(product.isActive()).isTrue();
     }
 

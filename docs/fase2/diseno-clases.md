@@ -1,5 +1,7 @@
 # Fase 2 — Diseño de clases y arquitectura · Maison Glow
 
+> **Diseño inicial conservado como referencia histórica.** La distribución de comportamiento de este documento fue sustituida el 2026-11-11 por el [ADR-0014](../adr/0014-modelos-de-datos-y-reglas-en-servicios.md). Para la implementación y la sustentación actuales: modelos de datos, reglas en servicios e importes `BigDecimal`. Los diagramas y firmas originales de abajo no son el contrato vigente.
+
 > Documento base de la **Entrega 1**. Sigue el orden de la rúbrica de la Fase 2 y deja listo lo que la Fase 3 implementa
 > (clases básicas, constructores, getters/setters, herencia, polimorfismo, interfaces, colecciones).
 > Contexto y decisiones: [`../../PLANIFICACION.md`](../../PLANIFICACION.md) · [`../adr/`](../adr/README.md)

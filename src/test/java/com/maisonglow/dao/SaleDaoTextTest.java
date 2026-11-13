@@ -1,5 +1,7 @@
 package com.maisonglow.dao;
 
+import com.maisonglow.service.AppointmentService;
+import com.maisonglow.service.SaleService;
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Appointment;
@@ -37,7 +39,7 @@ class SaleDaoTextTest {
     private final Treatment haircut = new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
     private final Professional laura = new Professional(1, "2002", "Laura Gómez", "3157778888",
         "laura@correo.com", "Peluquería", LocalTime.of(8, 0), LocalTime.of(17, 0));
-    private final Appointment anaHaircut = new Appointment(1, ana, laura, haircut, LocalDateTime.of(2026, 10, 20, 9, 0));
+    private final Appointment anaHaircut = AppointmentService.newAppointment(1, ana, laura, haircut, LocalDateTime.of(2026, 10, 20, 9, 0));
 
     @TempDir
     Path folder;
@@ -65,13 +67,13 @@ class SaleDaoTextTest {
 
     private Sale mixedSale(Customer customer) throws BusinessRuleException {
         Sale sale = new Sale(customer);
-        sale.addLine(shampoo, 2);
-        sale.addLine(haircut, 1);
+        SaleService.addLine(sale, shampoo, 2);
+        SaleService.addLine(sale, haircut, 1);
         return sale;
     }
 
     private Sale storedSale(Customer customer, LocalDateTime soldAt) throws Exception {
-        return dao.create(Sale.restore(0, customer, soldAt, List.of(SaleLine.restore(shampoo, 1, 28000))));
+        return dao.create(SaleService.restoreSale(0, customer, soldAt, List.of(SaleLine.restore(shampoo, 1, 28000))));
     }
 
     @Test
@@ -87,8 +89,8 @@ class SaleDaoTextTest {
         assertThat(loaded.getSoldAt()).isEqualTo(sale.getSoldAt());
         assertThat(loaded.getLines()).extracting(SaleLine::getItem).containsExactly(shampoo, haircut);
         assertThat(loaded.getLines()).extracting(SaleLine::getQuantity).containsExactly(2, 1);
-        assertThat(loaded.getLines()).extracting(SaleLine::getUnitPrice).containsExactly(28000.0, 35000.0);
-        assertThat(loaded.calculateTotal()).isEqualTo(2 * 28000 + 35000);
+        assertThat(loaded.getLines()).extracting(SaleLine::getUnitPrice).containsExactly(java.math.BigDecimal.valueOf(28000.0), java.math.BigDecimal.valueOf(35000.0));
+        assertThat(SaleService.calculateTotal(loaded)).isEqualByComparingTo(java.math.BigDecimal.valueOf(2 * 28000 + 35000));
         assertThat(loaded.getAppointment()).isEmpty();
     }
 
@@ -96,8 +98,8 @@ class SaleDaoTextTest {
     @DisplayName("the link to the appointment survives a reload")
     void appointmentLinkRoundTrip() throws Exception {
         Sale sale = new Sale(ana);
-        sale.addLine(haircut, 1);
-        sale.linkAppointment(anaHaircut);
+        SaleService.addLine(sale, haircut, 1);
+        SaleService.linkAppointment(sale, anaHaircut);
         dao.create(sale);
 
         assertThat(openDao().findById(sale.getId()).orElseThrow().getAppointment()).contains(anaHaircut);
@@ -107,7 +109,7 @@ class SaleDaoTextTest {
     @DisplayName("both files follow the column order of the sale and sale_line tables")
     void filesFollowSchemaColumns() throws Exception {
         Sale sale = mixedSale(ana);
-        sale.linkAppointment(anaHaircut);
+        SaleService.linkAppointment(sale, anaHaircut);
         dao.create(sale);
 
         assertThat(Files.readAllLines(salesFile).get(1))
@@ -147,7 +149,8 @@ class SaleDaoTextTest {
     @DisplayName("update replaces the stored lines of the sale")
     void updateReplacesLines() throws Exception {
         Sale sale = dao.create(mixedSale(ana));
-        sale.addLine(shampoo, 1);
+        sale.getLines().get(0).setQuantity(3);
+        sale.setTotal(SaleService.calculateTotal(sale));
 
         dao.update(sale);
 
@@ -173,8 +176,8 @@ class SaleDaoTextTest {
     @DisplayName("if the lines cannot be saved, the sale is not stored either")
     void failedLinesUndoTheSale() throws Exception {
         Sale sale = new Sale(ana);
-        sale.addLine(shampoo, 1);
-        sale.addLine(new GiftCard(), 1);
+        SaleService.addLine(sale, shampoo, 1);
+        sale.setLines(List.of(sale.getLines().get(0), new SaleLine(new GiftCard(), 1, java.math.BigDecimal.valueOf(50000))));
 
         assertThatThrownBy(() -> dao.create(sale)).isInstanceOf(DataAccessException.class);
 
@@ -228,8 +231,8 @@ class SaleDaoTextTest {
         }
 
         @Override
-        public double getPrice() {
-            return 50000;
+        public java.math.BigDecimal getPrice() {
+            return java.math.BigDecimal.valueOf(50000);
         }
     }
 }

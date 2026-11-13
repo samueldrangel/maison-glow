@@ -1,5 +1,6 @@
 package com.maisonglow.service;
 
+import java.math.BigDecimal;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.util.Validator;
 
@@ -12,7 +13,10 @@ import com.maisonglow.util.Validator;
  * @param price           the price, greater than zero
  * @param durationMinutes the duration, greater than zero
  */
-public record TreatmentData(String name, String description, double price, int durationMinutes) {
+public record TreatmentData(String name, String description, BigDecimal price, int durationMinutes) {
+    public TreatmentData(String name, String description, double price, int durationMinutes) {
+        this(name, description, BigDecimal.valueOf(price), durationMinutes);
+    }
 
     /**
      * Checks that the name is present and that price and duration are positive.

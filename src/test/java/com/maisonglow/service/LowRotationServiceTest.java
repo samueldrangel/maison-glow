@@ -61,7 +61,7 @@ class LowRotationServiceTest {
     }
 
     private Sale sale(int id, Sellable item, int quantity) throws Exception {
-        return Sale.restore(id, ana, LocalDateTime.of(2026, 10, 20, 10, 0),
+        return SaleService.restoreSale(id, ana, LocalDateTime.of(2026, 10, 20, 10, 0),
             List.of(SaleLine.restore(item, quantity, item.getPrice())));
     }
 
@@ -92,7 +92,7 @@ class LowRotationServiceTest {
     @Test
     @DisplayName("inactive products and treatments are left out")
     void skipsInactiveAndTreatments() throws Exception {
-        oil.deactivate();
+        oil.setActive(false);
         Treatment haircut = new Treatment(1, "Corte de cabello", "Corte y secado", 35000, 45);
         when(saleDao.findBetween(WINDOW_START, TODAY)).thenReturn(List.of(sale(1, haircut, 1)));
 

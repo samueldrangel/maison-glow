@@ -25,9 +25,9 @@ import java.util.TreeMap;
  * new one, as with {@code AUTOINCREMENT} in {@code sql/schema.sql}.</p>
  *
  * <p>Create only one instance per file, at application start-up: each
- * instance keeps its own copy of the data. The entities returned are the
- * stored ones, so callers should change them only to pass them to
- * {@link #update(Object)}.</p>
+ * instance keeps serialized snapshots, never caller-owned entities. Reads
+ * rebuild detached objects, so editing one cannot change stored data until
+ * {@link #update(Object)} succeeds.</p>
  *
  * @param <T> the type of entity stored in the file
  */
@@ -38,7 +38,7 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
     private static final String NEXT_ID_HEADER = "#nextId=";
 
     private final TextFileStore store;
-    private final NavigableMap<Integer, T> entities = new TreeMap<>();
+    private final NavigableMap<Integer, String[]> entities = new TreeMap<>();
     private int nextId = FIRST_ID;
     private boolean loaded;
 
@@ -116,41 +116,47 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         requireUnsaved(entity);
         int id = nextId;
         setId(entity, id);
-        entities.put(id, entity);
-        nextId++;
-        saveOrUndo(() -> {
-            entities.remove(id);
-            setId(entity, UNSAVED_ID);
-            nextId = id;
-        });
+        try {
+            entities.put(id, toFields(entity).clone());
+            nextId++;
+            save();
+        } catch (DataAccessException | RuntimeException e) {
+            entities.remove(id); setId(entity, UNSAVED_ID); nextId = id;
+            if (e instanceof DataAccessException dataError) throw dataError;
+            throw new DataAccessException("No se pudo convertir el registro.", e);
+        }
         return entity;
     }
 
     @Override
     public Optional<T> findById(int id) throws DataAccessException {
         ensureLoaded();
-        return Optional.ofNullable(entities.get(id));
+        String[] fields = entities.get(id);
+        return fields == null ? Optional.empty() : Optional.of(fromFields(fields.clone()));
     }
 
     @Override
     public List<T> findAll() throws DataAccessException {
         ensureLoaded();
-        return new ArrayList<>(entities.values());
+        List<T> result = new ArrayList<>();
+        for (String[] fields : entities.values()) result.add(fromFields(fields.clone()));
+        return result;
     }
 
     @Override
     public void update(T entity) throws DataAccessException {
         ensureLoaded();
         int id = getId(entity);
-        T previous = requireExisting(id);
-        entities.put(id, entity);
+        String[] previous = requireExisting(id);
+        try { entities.put(id, toFields(entity).clone()); }
+        catch (RuntimeException e) { throw new DataAccessException("No se pudo convertir el registro.", e); }
         saveOrUndo(() -> entities.put(id, previous));
     }
 
     @Override
     public void delete(int id) throws DataAccessException {
         ensureLoaded();
-        T removed = requireExisting(id);
+        String[] removed = requireExisting(id);
         entities.remove(id);
         saveOrUndo(() -> entities.put(id, removed));
     }
@@ -162,8 +168,8 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         }
     }
 
-    private T requireExisting(int id) throws DataAccessException {
-        T entity = entities.get(id);
+    private String[] requireExisting(int id) throws DataAccessException {
+        String[] entity = entities.get(id);
         if (entity == null) {
             throw new DataAccessException("No existe un registro con id " + id + " en " + store.getFile());
         }
@@ -196,7 +202,7 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
         if (id < FIRST_ID || entities.containsKey(id)) {
             throw invalidLine(lineNumber, "el id " + id + " está repetido o no es válido", null);
         }
-        entities.put(id, entity);
+        entities.put(id, TextLineCodec.decode(line));
         nextId = Math.max(nextId, id + 1);
     }
 
@@ -236,8 +242,8 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
     private void save() throws DataAccessException {
         List<String> lines = new ArrayList<>(entities.size() + 1);
         lines.add(NEXT_ID_HEADER + nextId);
-        for (T entity : entities.values()) {
-            lines.add(TextLineCodec.encode(toFields(entity)));
+        for (String[] fields : entities.values()) {
+            lines.add(TextLineCodec.encode(fields));
         }
         store.writeLines(lines);
     }

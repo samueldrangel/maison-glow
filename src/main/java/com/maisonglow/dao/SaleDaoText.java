@@ -1,6 +1,5 @@
 package com.maisonglow.dao;
 
-import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Appointment;
 import com.maisonglow.model.Customer;
@@ -21,8 +20,7 @@ import java.util.function.Predicate;
  * second file with the columns of {@code sale_line}. A sale is always saved,
  * loaded and removed together with its lines.
  *
- * <p>The total is written to match the schema and calculated again from the
- * lines when loading. There are no transactions between the two files: if
+ * <p>The historical total calculated by SaleService is stored and loaded as data. There are no transactions between the two files: if
  * the lines of a new sale cannot be saved, the sale is removed again.</p>
  */
 public class SaleDaoText extends TextFileDao<Sale> implements SaleDao {
@@ -122,7 +120,7 @@ public class SaleDaoText extends TextFileDao<Sale> implements SaleDao {
         fields[APPOINTMENT_ID] = sale.getAppointment().map(appointment -> String.valueOf(appointment.getId()))
             .orElse(NO_VALUE);
         fields[SOLD_AT] = sale.getSoldAt().toString();
-        fields[TOTAL] = String.valueOf(sale.calculateTotal());
+        fields[TOTAL] = sale.getTotal().toPlainString();
         return fields;
     }
 
@@ -135,7 +133,7 @@ public class SaleDaoText extends TextFileDao<Sale> implements SaleDao {
         Sale sale = Sale.restore(id,
             findRelated(customers, fields[CUSTOMER_ID], "cliente"),
             LocalDateTime.parse(fields[SOLD_AT]),
-            lines.findLinesOf(id));
+            lines.findLinesOf(id), new java.math.BigDecimal(fields[TOTAL]));
         restoreAppointment(sale, fields[APPOINTMENT_ID]);
         return sale;
     }
@@ -144,11 +142,9 @@ public class SaleDaoText extends TextFileDao<Sale> implements SaleDao {
         if (appointmentId.isEmpty()) {
             return;
         }
-        try {
-            sale.linkAppointment(findRelated(appointments, appointmentId, "cita"));
-        } catch (BusinessRuleException e) {
-            throw new DataAccessException("La cita guardada de la venta no es válida: " + e.getMessage(), e);
-        }
+        Appointment appointment = findRelated(appointments, appointmentId, "cita");
+        if (!appointment.getCustomer().equals(sale.getCustomer())) throw new DataAccessException("La cita guardada pertenece a otro cliente.");
+        sale.setAppointment(appointment);
     }
 
     @Override

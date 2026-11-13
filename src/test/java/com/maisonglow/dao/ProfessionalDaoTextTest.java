@@ -1,5 +1,6 @@
 package com.maisonglow.dao;
 
+import com.maisonglow.service.ProfessionalService;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Treatment;
@@ -46,9 +47,9 @@ class ProfessionalDaoTextTest {
     @DisplayName("all the fields and the treatments survive a reload")
     void createAndReload() throws Exception {
         Professional laura = laura();
-        laura.addTreatment(haircut);
-        laura.addTreatment(dye);
-        laura.deactivate();
+        ProfessionalService.addTreatment(laura, haircut);
+        ProfessionalService.addTreatment(laura, dye);
+        laura.setActive(false);
         newDao().create(laura);
 
         Professional reloaded = newDao().findById(laura.getId()).orElseThrow();
@@ -66,10 +67,10 @@ class ProfessionalDaoTextTest {
     void updateLinks() throws Exception {
         ProfessionalDao dao = newDao();
         Professional laura = laura();
-        laura.addTreatment(haircut);
-        laura.addTreatment(dye);
+        ProfessionalService.addTreatment(laura, haircut);
+        ProfessionalService.addTreatment(laura, dye);
         dao.create(laura);
-        laura.removeTreatment(dye);
+        ProfessionalService.removeTreatment(laura, dye);
         dao.update(laura);
 
         assertThat(Files.readAllLines(folder.resolve("professional_treatments.txt"))).containsExactly("1|1");
@@ -81,7 +82,7 @@ class ProfessionalDaoTextTest {
     void deleteRemovesLinks() throws Exception {
         ProfessionalDao dao = newDao();
         Professional laura = laura();
-        laura.addTreatment(haircut);
+        ProfessionalService.addTreatment(laura, haircut);
         dao.create(laura);
 
         dao.delete(laura.getId());
@@ -95,7 +96,7 @@ class ProfessionalDaoTextTest {
     void queries() throws Exception {
         ProfessionalDao dao = newDao();
         Professional laura = laura();
-        laura.addTreatment(haircut);
+        ProfessionalService.addTreatment(laura, haircut);
         dao.create(laura);
         dao.create(new Professional(0, "52111222", "Sofía Pérez", "3159990000", "sofia@correo.com",
             "Uñas", LocalTime.of(9, 0), LocalTime.of(18, 0)));

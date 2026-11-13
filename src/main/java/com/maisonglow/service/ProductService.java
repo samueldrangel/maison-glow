@@ -93,12 +93,14 @@ public class ProductService {
             throw new ValidationException("El ajuste de stock no puede ser cero.");
         }
         Product product = findById(id);
+        int previousStock = product.getStock();
         if (delta > 0) {
-            product.addStock(delta);
+            ProductService.addStock(product, delta);
         } else {
-            product.deductStock(-delta);
+            ProductService.deductStock(product, -delta);
         }
-        productDao.update(product);
+        try { productDao.update(product); }
+        catch (DataAccessException e) { product.setStock(previousStock); throw e; }
         return product;
     }
 
@@ -111,7 +113,7 @@ public class ProductService {
     public List<Product> listLowStock() throws DataAccessException {
         return productDao.findAll().stream()
             .filter(Product::isActive)
-            .filter(Product::isBelowMinimum)
+            .filter(ProductService::isBelowMinimum)
             .toList();
     }
 
@@ -157,7 +159,7 @@ public class ProductService {
      */
     public void deactivate(int id) throws BusinessRuleException, DataAccessException {
         Product product = findById(id);
-        product.deactivate();
+        product.setActive(false);
         productDao.update(product);
     }
 
@@ -170,7 +172,7 @@ public class ProductService {
      */
     public void activate(int id) throws BusinessRuleException, DataAccessException {
         Product product = findById(id);
-        product.activate();
+        product.setActive(true);
         productDao.update(product);
     }
 
@@ -196,5 +198,29 @@ public class ProductService {
     private ProductCategory findCategory(int categoryId) throws BusinessRuleException, DataAccessException {
         return categoryDao.findById(categoryId)
             .orElseThrow(() -> new BusinessRuleException("No existe la categoría con id " + categoryId + "."));
+    }
+    public static boolean hasStock(Product product, int quantity) {
+        return quantity > 0 && product.getStock() >= quantity;
+    }
+
+    public static void deductStock(Product product, int quantity) throws BusinessRuleException {
+        requirePositiveQuantity(quantity);
+        if (!hasStock(product, quantity)) throw new BusinessRuleException("Stock insuficiente de " + product.getName()
+            + ": hay " + product.getStock() + " y se pidieron " + quantity + ".");
+        product.setStock(product.getStock() - quantity);
+    }
+
+    public static void addStock(Product product, int quantity) throws BusinessRuleException {
+        requirePositiveQuantity(quantity);
+        try { product.setStock(Math.addExact(product.getStock(), quantity)); }
+        catch (ArithmeticException e) { throw new BusinessRuleException("El stock excede el máximo permitido."); }
+    }
+
+    private static void requirePositiveQuantity(int quantity) throws BusinessRuleException {
+        if (quantity <= 0) throw new BusinessRuleException("La cantidad debe ser mayor que cero.");
+    }
+
+    public static boolean isBelowMinimum(Product product) {
+        return product.getStock() <= product.getMinimumStock();
     }
 }

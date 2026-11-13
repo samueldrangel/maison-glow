@@ -30,8 +30,8 @@ class SimulatedEmailNotifierTest {
 
     private Sale manicureSale(int id) throws Exception {
         Sale sale = new Sale(ana);
+        SaleService.addLine(sale, new Treatment(1, "Manicure", "Limado y esmalte", 25000, 40), 1);
         sale.setId(id);
-        sale.addLine(new Treatment(1, "Manicure", "Limado y esmalte", 25000, 40), 1);
         return sale;
     }
 

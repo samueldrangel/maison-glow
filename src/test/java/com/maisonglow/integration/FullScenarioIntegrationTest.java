@@ -161,9 +161,9 @@ class FullScenarioIntegrationTest {
             .hasMessageContaining("ya tiene una cita");
 
         Sale sale = new Sale(ana);
-        sale.addLine(products.findById(shampoo.getId()), 3);
-        sale.addLine(haircut, 1);
-        sale.linkAppointment(booked);
+        SaleService.addLine(sale, products.findById(shampoo.getId()), 3);
+        SaleService.addLine(sale, haircut, 1);
+        SaleService.linkAppointment(sale, booked);
         Sale registered = sales.register(sale);
 
         SimulatedEmailNotifier email = new SimulatedEmailNotifier(new InvoiceFormatter(settings.businessName()),
@@ -193,8 +193,8 @@ class FullScenarioIntegrationTest {
         Product gel = products.register(new ProductData("Gel", 1, 15000, 1), 10);
 
         Sale sale = new Sale(ana);
-        sale.addLine(products.findById(gel.getId()), 4);
-        sale.addLine(products.findById(shampoo.getId()), 3);
+        SaleService.addLine(sale, products.findById(gel.getId()), 4);
+        SaleService.addLine(sale, products.findById(shampoo.getId()), 3);
 
         assertThatThrownBy(() -> sales.register(sale))
             .isInstanceOf(BusinessRuleException.class)
@@ -249,7 +249,7 @@ class FullScenarioIntegrationTest {
         Product shampoo = products.register(new ProductData("Shampoo", 1, 28000, 1), 20);
         products.register(new ProductData("Laca", 1, 18000, 1), 20);
         Sale sale = new Sale(ana);
-        sale.addLine(products.findById(shampoo.getId()), 2);
+        SaleService.addLine(sale, products.findById(shampoo.getId()), 2);
         sales.register(sale);
 
         wire();

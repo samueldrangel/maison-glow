@@ -1,6 +1,5 @@
 package com.maisonglow.model;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,8 +7,7 @@ import java.util.List;
 
 /**
  * Represents a specialist of the business, with the treatments they provide and
- * their working hours. Knows whether they can attend an appointment in a
- * given time slot.
+ * their working hours. Scheduling rules are implemented by services.
  */
 public class Professional extends Person {
 
@@ -17,7 +15,10 @@ public class Professional extends Person {
     private LocalTime workStart;
     private LocalTime workEnd;
     private boolean active;
-    private final List<Treatment> treatments;
+    private List<Treatment> treatments;
+
+    public void setTreatments(List<Treatment> treatments) { this.treatments = new ArrayList<>(treatments); }
+    public void setActive(boolean active) { this.active = active; }
 
     /**
      * Creates an active professional who does not offer any treatment yet.
@@ -39,53 +40,6 @@ public class Professional extends Person {
         this.workEnd = workEnd;
         this.active = true;
         this.treatments = new ArrayList<>();
-    }
-
-    /**
-     * Adds a treatment to the ones this professional provides. Adding a treatment
-     * that is already listed has no effect.
-     *
-     * @param treatment the treatment to add
-     */
-    public void addTreatment(Treatment treatment) {
-        if (!treatments.contains(treatment)) {
-            treatments.add(treatment);
-        }
-    }
-
-    /**
-     * Removes a treatment from the ones this professional provides.
-     *
-     * @param treatment the treatment to remove
-     */
-    public void removeTreatment(Treatment treatment) {
-        treatments.remove(treatment);
-    }
-
-    /**
-     * Indicates whether this professional provides the given treatment.
-     *
-     * @param treatment the treatment to check
-     * @return {@code true} if the treatment is in the professional's list
-     */
-    public boolean offers(Treatment treatment) {
-        return treatments.contains(treatment);
-    }
-
-    /**
-     * Indicates whether a time slot falls entirely within the working hours
-     * of a single day.
-     *
-     * @param start the start of the slot
-     * @param end   the end of the slot
-     * @return {@code true} if the slot starts and ends on the same day, inside
-     *         the working hours; the limits themselves are included
-     */
-    public boolean worksDuring(LocalDateTime start, LocalDateTime end) {
-        return start.toLocalDate().equals(end.toLocalDate())
-            && start.isBefore(end)
-            && !start.toLocalTime().isBefore(workStart)
-            && !end.toLocalTime().isAfter(workEnd);
     }
 
     /**
@@ -151,20 +105,6 @@ public class Professional extends Person {
      */
     public boolean isActive() {
         return active;
-    }
-
-    /**
-     * Allows the professional to receive appointments again.
-     */
-    public void activate() {
-        active = true;
-    }
-
-    /**
-     * Stops the professional from receiving new appointments.
-     */
-    public void deactivate() {
-        active = false;
     }
 
     @Override

@@ -12,6 +12,8 @@ public class Customer extends Person {
     private final LocalDate registeredAt;
     private int noShowCount;
 
+    public void setNoShowCount(int noShowCount) { this.noShowCount = noShowCount; }
+
     /**
      * Creates a customer registered today, with no missed appointments.
      *
@@ -41,13 +43,6 @@ public class Customer extends Person {
         super(id, document, name, phone, email);
         this.registeredAt = registeredAt;
         this.noShowCount = noShowCount;
-    }
-
-    /**
-     * Records that the customer missed an appointment.
-     */
-    public void registerNoShow() {
-        noShowCount++;
     }
 
     /**

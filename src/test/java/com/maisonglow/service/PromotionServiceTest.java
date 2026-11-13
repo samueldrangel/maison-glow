@@ -53,7 +53,7 @@ class PromotionServiceTest {
     }
 
     private Sale saleOf(Product product) throws Exception {
-        return Sale.restore(1, ana, LocalDateTime.of(2026, 9, 1, 10, 0),
+        return SaleService.restoreSale(1, ana, LocalDateTime.of(2026, 9, 1, 10, 0),
             List.of(SaleLine.restore(product, 1, product.getPrice())));
     }
 
@@ -81,7 +81,7 @@ class PromotionServiceTest {
     @DisplayName("buying a treatment does not hide a product with the same id")
     void treatmentsDoNotCount() throws Exception {
         Treatment sameId = new Treatment(4, "Masaje", "Relajante", 60000, 60);
-        when(saleDao.findByCustomer(1)).thenReturn(List.of(Sale.restore(1, ana, LocalDateTime.of(2026, 9, 1, 10, 0),
+        when(saleDao.findByCustomer(1)).thenReturn(List.of(SaleService.restoreSale(1, ana, LocalDateTime.of(2026, 9, 1, 10, 0),
             List.of(SaleLine.restore(sameId, 1, 60000)))));
 
         assertThat(service.suggestPromotions(1, TODAY)).hasSize(2);

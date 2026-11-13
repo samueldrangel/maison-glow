@@ -47,8 +47,8 @@ class AppointmentServiceTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
-        laura.addTreatment(haircut);
-        sofia.addTreatment(haircut);
+        ProfessionalService.addTreatment(laura, haircut);
+        ProfessionalService.addTreatment(sofia, haircut);
         appointmentDao = new InMemoryAppointmentDao();
         customerDao = mock(CrudDao.class);
         service = new AppointmentService(appointmentDao, customerDao, List.of());
@@ -65,7 +65,7 @@ class AppointmentServiceTest {
 
         assertThat(booked.getId()).isPositive();
         assertThat(booked.getStatus()).isEqualTo(AppointmentStatus.PENDING);
-        assertThat(booked.getDeposit()).isEqualTo(10000);
+        assertThat(booked.getDeposit()).isEqualByComparingTo(java.math.BigDecimal.valueOf(10000));
         assertThat(appointmentDao.findById(booked.getId())).contains(booked);
     }
 
@@ -114,10 +114,10 @@ class AppointmentServiceTest {
     @Test
     @DisplayName("an inactive professional or treatment is rejected")
     void inactiveProfessionalOrTreatment() {
-        sofia.deactivate();
+        sofia.setActive(false);
         Treatment dye = new Treatment(2, "Tinte", "Color completo", 90000, 120);
-        laura.addTreatment(dye);
-        dye.deactivate();
+        ProfessionalService.addTreatment(laura, dye);
+        dye.setActive(false);
 
         assertThatThrownBy(() -> service.book(ana, sofia, haircut, NINE, 0))
             .isInstanceOf(BusinessRuleException.class)
@@ -294,7 +294,7 @@ class AppointmentServiceTest {
         assertThat(service.checkAvailability(laura, NINE.plusMinutes(30), NINE.plusMinutes(60))).isFalse();
         assertThat(service.checkAvailability(laura, NINE.plusMinutes(45), NINE.plusMinutes(90))).isTrue();
         assertThat(service.checkAvailability(laura, NINE.withHour(17), NINE.withHour(18))).isFalse();
-        laura.deactivate();
+        laura.setActive(false);
         assertThat(service.checkAvailability(laura, NINE.plusHours(3), NINE.plusHours(4))).isFalse();
     }
 

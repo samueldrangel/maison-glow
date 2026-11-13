@@ -64,7 +64,7 @@ public final class AppointmentModule extends MenuModule {
         Professional professional = professionals.findById(console().readInt("Id del profesional"));
         Treatment treatment = treatments.findById(console().readInt("Id del tratamiento"));
         LocalDateTime start = console().readDateTime("Fecha y hora de inicio");
-        double deposit = console().readDouble("Anticipo pagado (con 0 el sistema indica el mínimo exigido)");
+        java.math.BigDecimal deposit = console().readDecimal("Anticipo pagado (con 0 el sistema indica el mínimo exigido)");
         Appointment appointment = appointments.book(customer, professional, treatment, start, deposit);
         console().println("Cita agendada: " + ConsoleFormat.appointment(appointment));
         console().println("Recordatorio programado para " + ConsoleFormat.dateTime(appointment.getReminderAt()));
@@ -79,7 +79,7 @@ public final class AppointmentModule extends MenuModule {
         Professional professional = professionals.findById(console().readInt("Id del profesional"));
         Treatment treatment = treatments.findById(console().readInt("Id del tratamiento"));
         LocalDateTime start = console().readDateTime("Fecha y hora de inicio");
-        boolean free = appointments.checkAvailability(professional, start, treatment.calculateEnd(start));
+        boolean free = appointments.checkAvailability(professional, start, AppointmentService.calculateEnd(treatment, start));
         console().println(free ? "El profesional está disponible en ese horario."
             : "El profesional NO está disponible en ese horario.");
     }

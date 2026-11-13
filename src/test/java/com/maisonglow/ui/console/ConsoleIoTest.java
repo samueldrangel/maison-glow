@@ -30,6 +30,14 @@ class ConsoleIoTest {
     }
 
     @Test
+    @DisplayName("decimal input preserves exact money and rejects non-finite values")
+    void readDecimalPreservesMoney() {
+        ConsoleIo console = consoleWith("NaN", "Infinity", "9007199254740993,01");
+        assertThat(console.readDecimal("Precio")).isEqualByComparingTo("9007199254740993.01");
+        assertThat(output()).contains("Ingrese un número válido");
+    }
+
+    @Test
     @DisplayName("readLine trims the answer and keeps accents")
     void readLineTrimsTheAnswer() {
         ConsoleIo console = consoleWith("  Ana Pérez  ");

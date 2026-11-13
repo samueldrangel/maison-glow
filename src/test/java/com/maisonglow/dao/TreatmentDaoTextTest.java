@@ -24,13 +24,13 @@ class TreatmentDaoTextTest {
         Path file = folder.resolve("treatments.txt");
         TreatmentDao dao = new TreatmentDaoText(file);
         Treatment created = dao.create(new Treatment(0, "Keratina", "Alisado | brillo", 120000, 120));
-        created.deactivate();
+        created.setActive(false);
         dao.update(created);
 
         Treatment reloaded = new TreatmentDaoText(file).findById(created.getId()).orElseThrow();
 
         assertThat(reloaded.getDescription()).isEqualTo("Alisado | brillo");
-        assertThat(reloaded.getPrice()).isEqualTo(120000);
+        assertThat(reloaded.getPrice()).isEqualByComparingTo(java.math.BigDecimal.valueOf(120000));
         assertThat(reloaded.getDurationMinutes()).isEqualTo(120);
         assertThat(reloaded.isActive()).isFalse();
     }

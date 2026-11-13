@@ -44,7 +44,7 @@ public class TreatmentDaoText extends TextFileDao<Treatment> implements Treatmen
         fields[ID] = String.valueOf(treatment.getId());
         fields[NAME] = treatment.getName();
         fields[DESCRIPTION] = treatment.getDescription();
-        fields[PRICE] = String.valueOf(treatment.getPrice());
+        fields[PRICE] = treatment.getPrice().toPlainString();
         fields[DURATION_MINUTES] = String.valueOf(treatment.getDurationMinutes());
         fields[ACTIVE] = treatment.isActive() ? ACTIVE_FLAG : INACTIVE_FLAG;
         return fields;
@@ -56,9 +56,9 @@ public class TreatmentDaoText extends TextFileDao<Treatment> implements Treatmen
             throw new DataAccessException("Se esperaban " + FIELD_COUNT + " campos y hay " + fields.length + ".");
         }
         Treatment treatment = new Treatment(Integer.parseInt(fields[ID]), fields[NAME], fields[DESCRIPTION],
-            Double.parseDouble(fields[PRICE]), Integer.parseInt(fields[DURATION_MINUTES]));
+            new java.math.BigDecimal(fields[PRICE]), Integer.parseInt(fields[DURATION_MINUTES]));
         if (INACTIVE_FLAG.equals(fields[ACTIVE])) {
-            treatment.deactivate();
+            treatment.setActive(false);
         }
         return treatment;
     }
