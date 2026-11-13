@@ -19,6 +19,9 @@
     -mg-warning-bg: #ffe4e8;
     -mg-warning: #b3473f;
     -mg-border: #eadfdc;
+    -mg-gold-soft: #f6ead9;
+    -mg-gold-dark: #a8774f;
+    -mg-ink: #3a2b30;
 
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
@@ -312,35 +315,6 @@
     -fx-padding: 16;
 }
 
-.button-primary {
-    -fx-background-color: -mg-rose;
-    -fx-background-radius: 10;
-    -fx-text-fill: white;
-    -fx-padding: 8 20 8 20;
-    -fx-cursor: hand;
-}
-
-.button-primary:hover {
-    -fx-background-color: -mg-rose-dark;
-}
-
-.text-field, .combo-box, .date-picker {
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: -mg-border;
-    -fx-background-color: -mg-surface;
-}
-
-.field-error {
-    -fx-border-color: -mg-warning;
-}
-
-/* Texto de error bajo un campo (lo escribe FieldValidator). */
-.field-error-message {
-    -fx-text-fill: -mg-warning;
-    -fx-font-size: 12px;
-}
-
 .chip-success {
     -fx-background-color: -mg-success-bg;
     -fx-text-fill: -mg-success;
@@ -424,24 +398,6 @@
     -fx-padding: 6 0 0 0;
 }
 
-.search-field {
-    -fx-padding: 10 14 10 14;
-}
-
-.button-secondary {
-    -fx-background-color: transparent;
-    -fx-background-radius: 10;
-    -fx-border-color: -mg-rose;
-    -fx-border-radius: 10;
-    -fx-text-fill: -mg-rose-dark;
-    -fx-padding: 8 20 8 20;
-    -fx-cursor: hand;
-}
-
-.button-secondary:hover {
-    -fx-background-color: -mg-active;
-}
-
 /* ---- Tablas (todas las listas): cabecera clara, filas con linea fina ---- */
 .table-view .column-header, .table-view .filler {
     -fx-background-color: -mg-surface;
@@ -480,4 +436,101 @@
 
 .table-view .placeholder .label {
     -fx-text-fill: -mg-text-muted;
+}
+
+/* ---- Botones: pildora con brillo suave. Rosa = accion normal, dorado = accion principal de la pantalla,
+        contorno = secundaria. Se elevan al pasar el cursor (Animations.lift). ---- */
+.button-primary, .button-gold, .button-secondary {
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-padding: 9 26 9 26;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button-primary {
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 14%), -mg-rose);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(176, 129, 135, 0.40), 12, 0.05, 0, 4);
+}
+
+.button-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 24%), derive(-mg-rose, 6%));
+    -fx-effect: dropshadow(gaussian, rgba(176, 129, 135, 0.50), 18, 0.1, 0, 7);
+}
+
+.button-gold {
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 22%), -mg-gold);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.42), 12, 0.05, 0, 4);
+}
+
+.button-gold:hover {
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 32%), derive(-mg-gold, 8%));
+    -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.55), 18, 0.1, 0, 7);
+}
+
+.button-primary:pressed, .button-gold:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.30), 5, 0.05, 0, 1);
+}
+
+.button-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: -mg-rose;
+    -fx-border-width: 1.2;
+    -fx-text-fill: -mg-rose-dark;
+}
+
+.button-secondary:hover {
+    -fx-background-color: -mg-active;
+}
+
+.button-primary:disabled, .button-gold:disabled, .button-secondary:disabled {
+    -fx-opacity: 0.5;
+    -fx-effect: none;
+}
+
+/* ---- Campos: foco con aro dorado; error con brillo rojo y un icono junto al mensaje ---- */
+.text-field, .password-field, .combo-box, .date-picker {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 14;
+    -fx-padding: 10 14 10 14;
+    -fx-prompt-text-fill: derive(-mg-text-muted, 35%);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box, .date-picker {
+    -fx-padding: 3 6 3 6;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+    -fx-border-color: -mg-gold;
+    -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.35), 10, 0.15, 0, 0);
+}
+
+.field-error, .field-error:focused {
+    -fx-border-color: -mg-warning;
+    -fx-effect: dropshadow(gaussian, rgba(179, 71, 63, 0.30), 10, 0.15, 0, 0);
+}
+
+/* Texto de error bajo un campo (lo escribe FieldValidator). */
+.field-error-message {
+    -fx-text-fill: -mg-warning;
+    -fx-font-size: 12px;
+    -fx-graphic-text-gap: 6;
+}
+
+.field-error-message .line-icon {
+    -fx-stroke: -mg-warning;
+}
+
+.search-field {
+    -fx-padding: 11 18 11 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
 }
