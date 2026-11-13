@@ -56,6 +56,8 @@ class ListFormTemplateTest {
         assertThat(root.lookup("#nameField")).isInstanceOf(TextField.class);
         assertThat(root.lookup("#categoryBox")).isInstanceOf(ComboBox.class);
         assertThat(root.lookup("#saveButton").getStyleClass()).contains("button-primary");
+        assertThat(root.lookup("#newButton").getStyleClass()).as("the main action is gold").contains("button-gold");
+        assertThat(((javafx.scene.control.Button) root.lookup("#newButton")).getGraphic().getStyleClass()).as("with the star").contains("sparkle");
         assertThat(root.lookup("#cancelButton").getStyleClass()).contains("button-secondary");
     }
 
