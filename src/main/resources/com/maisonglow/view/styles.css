@@ -335,6 +335,12 @@
     -fx-border-color: -mg-warning;
 }
 
+/* Texto de error bajo un campo (lo escribe FieldValidator). */
+.field-error-message {
+    -fx-text-fill: -mg-warning;
+    -fx-font-size: 12px;
+}
+
 .chip-success {
     -fx-background-color: -mg-success-bg;
     -fx-text-fill: -mg-success;
