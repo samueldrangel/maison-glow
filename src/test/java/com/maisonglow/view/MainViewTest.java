@@ -20,6 +20,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -148,6 +150,38 @@ class MainViewTest {
 
         assertThat(justAfterEntering).as("it starts from the collapsed width").isLessThan(240);
         assertThat(finalWidth).isEqualTo(240);
+    }
+
+    @Test
+    @DisplayName("the logo grows step by step with the bar instead of changing size at once")
+    void logoGrowsWithTheBar() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        Region sidebar = (Region) root.lookup(".sidebar");
+        Region slot = (Region) root.lookup(".logo-slot");
+
+        double collapsed = onFxThread(() -> {
+            setHover(sidebar, true);
+            return heightOf(slot, root);
+        });
+        List<Double> heights = new ArrayList<>();
+        for (int sample = 0; sample < 40; sample++) {
+            heights.add(onFxThread(() -> heightOf(slot, root)));
+            Thread.sleep(10);
+        }
+        double expanded = heights.get(heights.size() - 1);
+
+        assertThat(expanded).as("the full logo takes more room than the isotipo").isGreaterThan(collapsed + 40);
+        assertThat(heights).as("some size between the two, not a jump").anyMatch(h -> h > collapsed + 5 && h < expanded - 5);
+        for (int i = 1; i < heights.size(); i++) {
+            assertThat(heights.get(i)).as("it never shrinks while opening").isGreaterThanOrEqualTo(heights.get(i - 1) - 1);
+        }
+    }
+
+    private static double heightOf(Region region, Parent root) {
+        root.applyCss();
+        root.layout();
+        return region.getHeight();
     }
 
     @Test
