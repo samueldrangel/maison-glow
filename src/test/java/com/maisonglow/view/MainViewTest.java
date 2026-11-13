@@ -97,15 +97,17 @@ class MainViewTest {
 
         double collapsed = onFxThread(() -> widthOf(sidebar, root));
         double contentLeft = onFxThread(() -> content.getBoundsInParent().getMinX());
-        double hovered = onFxThread(() -> {
+        onFxThread(() -> {
             setHover(sidebar, true);
-            return widthOf(sidebar, root);
+            return null;
         });
+        double hovered = await(() -> widthOf(sidebar, root), width -> width == 240);
         double contentLeftWhileHovered = onFxThread(() -> content.getBoundsInParent().getMinX());
-        double left = onFxThread(() -> {
+        onFxThread(() -> {
             setHover(sidebar, false);
-            return widthOf(sidebar, root);
+            return null;
         });
+        double left = await(() -> widthOf(sidebar, root), width -> width == 76);
 
         assertThat(collapsed).isEqualTo(76);
         assertThat(hovered).isEqualTo(240);

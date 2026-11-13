@@ -98,6 +98,7 @@
     -fx-content-display: graphic-only;
     -fx-alignment: center;
     -fx-graphic-text-gap: 14;
+    -fx-text-overrun: clip;
     -fx-padding: 9 0 9 0;
     -fx-cursor: hand;
 }

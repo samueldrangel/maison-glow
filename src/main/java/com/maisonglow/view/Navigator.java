@@ -43,6 +43,7 @@ public final class Navigator {
         URL fxml = Navigator.class.getResource(view.resource());
         Node screen = fxml == null ? underConstruction(view) : ViewLoader.load(fxml, context);
         content.getChildren().setAll(screen);
+        Animations.enter(screen);
         current = view;
     }
 

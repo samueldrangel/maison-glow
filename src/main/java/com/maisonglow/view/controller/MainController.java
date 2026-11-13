@@ -3,18 +3,26 @@ package com.maisonglow.view.controller;
 import com.maisonglow.AppContext;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
+import com.maisonglow.view.Animations;
 import com.maisonglow.view.NavGroup;
 import com.maisonglow.view.Navigator;
 import com.maisonglow.view.View;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -27,8 +35,14 @@ import java.util.Objects;
  */
 public final class MainController {
 
+    /** Widths of the side menu; they match {@code .sidebar} in styles.css. */
+    private static final double COLLAPSED_WIDTH = 76;
+    private static final double EXPANDED_WIDTH = 240;
+    private static final Duration SIDEBAR_MOTION = Duration.millis(180);
+
     private final AppContext context;
     private final List<NavGroup> groups = new ArrayList<>();
+    private Timeline sidebarMotion;
 
     @FXML
     private StackPane content;
@@ -66,6 +80,7 @@ public final class MainController {
             }
         });
         setUpGroups();
+        setUpMotion();
         refreshBadges();
         navigator.show(View.HOME);
     }
@@ -77,10 +92,43 @@ public final class MainController {
         showCurrentGroup(false);
     }
 
+    /** A sidebar that slides open and icons that react to the cursor. */
+    private void setUpMotion() {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(sidebar.widthProperty());
+        clip.heightProperty().bind(sidebar.heightProperty());
+        sidebar.setClip(clip);
+        sidebar.hoverProperty().addListener((observable, was, hovered) -> moveSidebar(hovered));
+
+        sidebar.lookupAll(".nav-button").stream().filter(Labeled.class::isInstance)
+            .forEach(button -> Animations.nudgeOnHover((Labeled) button));
+    }
+
     /** Opens the group that holds the current screen and closes the others. */
     private void showCurrentGroup(boolean animate) {
         Toggle selected = navigation.getSelectedToggle();
         groups.forEach(group -> group.setOpen(group.contains(selected), animate));
+    }
+
+    /** Grows or shrinks the sidebar; the "expanded" look stays until it has finished shrinking. */
+    private void moveSidebar(boolean expand) {
+        if (sidebarMotion != null) {
+            sidebarMotion.stop();
+        }
+        if (expand && !sidebar.getStyleClass().contains("expanded")) {
+            sidebar.getStyleClass().add("expanded");
+        }
+        double width = expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+        sidebarMotion = new Timeline(new KeyFrame(SIDEBAR_MOTION,
+            new KeyValue(sidebar.minWidthProperty(), width, Interpolator.EASE_BOTH),
+            new KeyValue(sidebar.prefWidthProperty(), width, Interpolator.EASE_BOTH),
+            new KeyValue(sidebar.maxWidthProperty(), width, Interpolator.EASE_BOTH)));
+        sidebarMotion.setOnFinished(event -> {
+            if (!expand) {
+                sidebar.getStyleClass().remove("expanded");
+            }
+        });
+        sidebarMotion.play();
     }
 
     @FXML
@@ -118,6 +166,9 @@ public final class MainController {
         badge.setText(String.valueOf(value));
         badge.setVisible(value > 0);
         badge.setManaged(value > 0);
+        if (value > 0) {
+            Animations.pop(badge);
+        }
     }
 
     @FunctionalInterface
