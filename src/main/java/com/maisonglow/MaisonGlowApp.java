@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 public final class MaisonGlowApp extends Application {
 
     private static final String TITLE = "Maison Glow";
+    private static final String ICON = "/com/maisonglow/view/images/app-icon.png";
     private static final String MAIN_VIEW = "/com/maisonglow/view/MainView.fxml";
     private static final double MIN_WIDTH = 960;
     private static final double MIN_HEIGHT = 600;
@@ -41,6 +43,7 @@ public final class MaisonGlowApp extends Application {
         }
         Parent root = ViewLoader.load(MaisonGlowApp.class.getResource(MAIN_VIEW), context);
         stage.setTitle(TITLE);
+        stage.getIcons().add(new Image(MaisonGlowApp.class.getResource(ICON).toExternalForm()));
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
         stage.setScene(new Scene(root));
