@@ -1,10 +1,17 @@
 package com.maisonglow.view;
 
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
 import java.util.Objects;
@@ -79,14 +86,41 @@ public final class AlertPresenter {
     Alert build(AlertType type, String title, String text, ButtonType... buttons) {
         Alert alert = new Alert(type, Objects.requireNonNull(text, "text"), buttons);
         alert.setTitle(APP_TITLE);
-        alert.setHeaderText(title);
-        alert.getDialogPane().getStylesheets().add(AlertPresenter.class.getResource(STYLES).toExternalForm());
-        alert.getDialogPane().getStyleClass().add("view-root");
+        alert.setHeaderText(null);
+        alert.setGraphic(null);
+        DialogPane pane = alert.getDialogPane();
+        pane.setContent(layout(type, title, text));
+        pane.getStylesheets().add(AlertPresenter.class.getResource(STYLES).toExternalForm());
+        pane.getStyleClass().add("view-root");
+        for (ButtonType choice : buttons) {
+            Node button = pane.lookupButton(choice);
+            button.getStyleClass().add(choice.getButtonData().isCancelButton() ? "button-secondary" : "button-primary");
+            if (button instanceof ButtonBase base) {
+                Animations.lift(base);
+            }
+        }
         Window window = owner.get();
         if (window != null) {
             alert.initOwner(window);
         }
         return alert;
+    }
+
+    /** The medallion with the icon of the kind of dialog, and next to it the title and the explanation. */
+    private static HBox layout(AlertType type, String heading, String text) {
+        Label title = new Label(heading);
+        title.getStyleClass().add("dialog-title");
+        title.setWrapText(true);
+        Label body = new Label(text);
+        body.getStyleClass().add("dialog-text");
+        body.setWrapText(true);
+        VBox words = new VBox(6, title, body);
+        HBox.setHgrow(words, Priority.ALWAYS);
+        HBox layout = new HBox(20, Icons.medallion(type), words);
+        layout.getStyleClass().add("dialog-layout");
+        layout.setAlignment(Pos.TOP_LEFT);
+        layout.setPrefWidth(430);
+        return layout;
     }
 
     private static Window windowOf(Node anchor) {
