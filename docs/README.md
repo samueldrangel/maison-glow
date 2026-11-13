@@ -14,6 +14,7 @@ Arquitectura vigente tras la sustentación: [modelos de datos y reglas en servic
 | [`version-control.md`](version-control.md) | Commits y Pull Requests por integrante, ramas y cómo regenerar los datos |
 | [`fase3/asistente-simulado.md`](fase3/asistente-simulado.md) | S-12: herramientas del asistente, confirmación, ejemplos y pruebas |
 | [`fase3/probador-simulado.md`](fase3/probador-simulado.md) | S-13: probador virtual simulado, transformaciones y contrato |
+| [`fase3/configuracion-ia.md`](fase3/configuracion-ia.md) | S-14: configuración y selección del módulo de IA |
 | `fase4/` | MER, diccionario de datos, documentación técnica final, reporte de Git |
 
 Plan general: [`../PLANIFICACION.md`](../PLANIFICACION.md)
