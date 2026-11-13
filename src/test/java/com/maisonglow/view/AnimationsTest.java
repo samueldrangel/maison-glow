@@ -69,6 +69,25 @@ class AnimationsTest {
     }
 
     @Test
+    @DisplayName("the star of a gold button twinkles while the cursor is over the button")
+    void theStarTwinkles() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        Button button = FxTest.onFxThread(() -> {
+            Button created = new Button("Nuevo");
+            created.setGraphic(Icons.sparkle());
+            Animations.lift(created);
+            return created;
+        });
+
+        FxTest.onFxThread(() -> {
+            setHover(button, true);
+            return null;
+        });
+
+        assertThat(eventually(() -> button.getGraphic().getRotate(), angle -> angle >= 90)).isEqualTo(90);
+    }
+
+    @Test
     @DisplayName("installing the motion twice does not stack it")
     void installingTwiceIsHarmless() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");

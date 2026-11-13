@@ -3,6 +3,7 @@ package com.maisonglow.view;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
+import javafx.animation.RotateTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
@@ -26,6 +27,7 @@ public final class Animations {
     private static final double RISE = 10;
     private static final double NUDGE = 3;
     private static final double LIFT = 2;
+    private static final Duration TWINKLE = Duration.millis(420);
     private static final String LIFTED = "maisonglow.lifted";
 
     private Animations() {
@@ -105,6 +107,32 @@ public final class Animations {
             sink.setToX(pressed ? 0.97 : 1);
             sink.setToY(pressed ? 0.97 : 1);
             sink.playFromStart();
+        });
+        twinkleOnHover(button);
+    }
+
+    /** The star of the brand, when a button has it as its graphic, spins and swells once while the cursor is over it. */
+    private static void twinkleOnHover(ButtonBase button) {
+        Node star = button.getGraphic();
+        if (star == null || !star.getStyleClass().contains("sparkle")) {
+            return;
+        }
+        RotateTransition spin = new RotateTransition(TWINKLE, star);
+        spin.setInterpolator(Interpolator.EASE_BOTH);
+        ScaleTransition swell = new ScaleTransition(Duration.millis(210), star);
+        swell.setToX(1.3);
+        swell.setToY(1.3);
+        swell.setCycleCount(2);
+        swell.setAutoReverse(true);
+        button.hoverProperty().addListener((observable, was, hovered) -> {
+            if (hovered) {
+                spin.stop();
+                swell.stop();
+                star.setRotate(0);
+                spin.setToAngle(90);
+                spin.playFromStart();
+                swell.playFromStart();
+            }
         });
     }
 
