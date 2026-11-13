@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.MainController"
+            styleClass="main-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="700">
+    <fx:define>
+        <ToggleGroup fx:id="navigation"/>
+    </fx:define>
+    <left>
+        <VBox styleClass="sidebar" prefWidth="230" minWidth="230">
+            <Label text="MG" styleClass="brand-mark"/>
+            <Label text="MAISON GLOW" styleClass="brand-name"/>
+            <Label text="Belleza que te hace brillar" styleClass="brand-tagline"/>
+            <Separator styleClass="sidebar-separator"/>
+
+            <VBox styleClass="nav-list">
+                <ToggleButton text="Inicio" toggleGroup="$navigation" selected="true" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="HOME"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Clientes" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="CUSTOMERS"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Profesionales" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="PROFESSIONALS"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Citas" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="APPOINTMENTS"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Ventas" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="SALES"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Productos" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="PRODUCTS"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Estadísticas" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <userData><String fx:value="STATISTICS"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Asistente IA" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button, nav-button-accent" maxWidth="Infinity">
+                    <userData><String fx:value="ASSISTANT"/></userData>
+                </ToggleButton>
+                <ToggleButton text="Probador virtual" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button, nav-button-accent" maxWidth="Infinity">
+                    <userData><String fx:value="TRY_ON"/></userData>
+                </ToggleButton>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+            <Separator styleClass="sidebar-separator"/>
+            <ToggleButton text="Configuración" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                <userData><String fx:value="SETTINGS"/></userData>
+            </ToggleButton>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="content" styleClass="content-area"/>
+    </center>
+</BorderPane>
