@@ -102,6 +102,7 @@ public final class FieldValidator {
         Entry(Node control, Labeled message, String... words) {
             this.control = Objects.requireNonNull(control, "control");
             this.message = Objects.requireNonNull(message, "message");
+            message.setWrapText(true);
             for (String word : words) {
                 keywords.add(normalize(word));
             }
@@ -116,6 +117,7 @@ public final class FieldValidator {
                 control.getStyleClass().add(ERROR_STYLE);
             }
             message.setText(text);
+            message.setGraphic(Icons.small(Icons.Kind.ALERT_CIRCLE, 15));
             message.setVisible(true);
             message.setManaged(true);
             Animations.shake(control);
@@ -124,6 +126,7 @@ public final class FieldValidator {
         void clear() {
             control.getStyleClass().remove(ERROR_STYLE);
             message.setText("");
+            message.setGraphic(null);
             message.setVisible(false);
             message.setManaged(false);
         }
