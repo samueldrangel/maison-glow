@@ -306,21 +306,6 @@
     -fx-text-fill: -mg-text-muted;
 }
 
-.table-view {
-    -fx-background-color: -mg-surface;
-    -fx-background-radius: 12;
-    -fx-border-color: -mg-border;
-    -fx-border-radius: 12;
-}
-
-.table-view .column-header-background {
-    -fx-background-color: -mg-surface;
-}
-
-.table-row-cell:selected {
-    -fx-background-color: -mg-active;
-}
-
 /* ---- Dialogos de AlertPresenter ---- */
 .dialog-pane.view-root {
     -fx-background-color: -mg-cream;
@@ -355,46 +340,6 @@
     -fx-border-color: -mg-rose;
     -fx-border-radius: 10;
     -fx-text-fill: -mg-rose-dark;
-}
-
-/* ---- Tablas (todas las listas): cabecera clara, filas con linea fina ---- */
-.table-view .column-header, .table-view .filler {
-    -fx-background-color: -mg-surface;
-    -fx-border-color: transparent transparent -mg-border transparent;
-    -fx-size: 42;
-}
-
-.table-view .column-header .label {
-    -fx-padding: 0 0 0 12;
-    -fx-text-fill: -mg-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-alignment: center-left;
-}
-
-.table-row-cell {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent transparent -mg-border transparent;
-    -fx-cell-size: 46;
-}
-
-.table-row-cell:hover {
-    -fx-background-color: -mg-cream;
-}
-
-.table-cell {
-    -fx-padding: 0 12 0 12;
-    -fx-alignment: center-left;
-    -fx-border-color: transparent;
-    -fx-text-fill: -mg-text;
-}
-
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: -mg-rose-dark;
-}
-
-.table-view .placeholder .label {
-    -fx-text-fill: -mg-text-muted;
 }
 
 /* ---- Botones: pildora con brillo suave. Rosa = accion normal, dorado = accion principal de la pantalla,
@@ -565,4 +510,56 @@
 
 .chip-gold .chip-dot {
     -fx-fill: -mg-gold;
+}
+
+/* ---- Tablas (todas las listas): cabecera clara, filas con linea fina y barra dorada en la seleccionada ---- */
+.table-view {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 18;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: -mg-surface;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-size: 42;
+}
+
+.table-view .column-header .label {
+    -fx-padding: 0 0 0 12;
+    -fx-text-fill: -mg-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-cell-size: 46;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -mg-cream;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -mg-gold, -mg-active;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+
+.table-cell {
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent;
+    -fx-text-fill: -mg-text;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -mg-rose-dark;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -mg-text-muted;
 }
