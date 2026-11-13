@@ -22,101 +22,103 @@
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.maisonglow.view.controller.MainController"
             styleClass="main-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="720">
-    <left>
-        <VBox styleClass="sidebar" prefWidth="240" minWidth="240">
-            <!-- Logo: cuando este listo, asigna la imagen al ImageView (propiedad Image). -->
-            <StackPane styleClass="logo-slot">
-                <ImageView fx:id="logo" fitWidth="150" fitHeight="80" pickOnBounds="true" preserveRatio="true"/>
-            </StackPane>
-            <Label text="MAISON GLOW" styleClass="brand-name"/>
-
-            <HBox styleClass="profile">
-                <StackPane styleClass="avatar">
-                    <Label text="AD" styleClass="avatar-initials"/>
-                </StackPane>
-                <VBox styleClass="profile-text">
-                    <Label fx:id="userName" text="Administración" styleClass="profile-name"/>
-                    <Label fx:id="userRole" text="Panel del negocio" styleClass="profile-role"/>
-                </VBox>
-            </HBox>
-            <Separator styleClass="sidebar-separator"/>
-
-            <VBox styleClass="nav-list">
-                <ToggleButton text="Inicio" selected="true" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                    <toggleGroup><ToggleGroup fx:id="navigation"/></toggleGroup>
-                    <userData><String fx:value="HOME"/></userData>
-                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></StackPane></graphic>
-                </ToggleButton>
-                <ToggleButton text="Clientes" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="CUSTOMERS"/></userData>
-                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></StackPane></graphic>
-                </ToggleButton>
-
-                <!-- Citas es un grupo (M3): no navega, sus subopciones si. -->
-                <StackPane>
-                    <Button text="Citas" styleClass="nav-button, nav-group" maxWidth="Infinity" mouseTransparent="true">
-                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18"/></StackPane></graphic>
-                    </Button>
-                    <Label fx:id="appointmentsBadge" text="3" styleClass="nav-badge" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
-                        <StackPane.margin><Insets right="14"/></StackPane.margin>
-                    </Label>
-                </StackPane>
-                <ToggleButton text="Agenda" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="APPOINTMENTS"/></userData>
-                    <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
-                </ToggleButton>
-                <ToggleButton text="Profesionales" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="PROFESSIONALS"/></userData>
-                    <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
-                </ToggleButton>
-
-                <ToggleButton text="Ventas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="SALES"/></userData>
-                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></StackPane></graphic>
-                </ToggleButton>
-                <StackPane>
-                    <ToggleButton text="Productos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                        <userData><String fx:value="PRODUCTS"/></userData>
-                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M16.5 9.4l-9-5.19 M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/></StackPane></graphic>
-                    </ToggleButton>
-                    <Label fx:id="productsBadge" text="2" styleClass="nav-badge" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
-                        <StackPane.margin><Insets right="14"/></StackPane.margin>
-                    </Label>
-                </StackPane>
-                <ToggleButton text="Estadísticas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="STATISTICS"/></userData>
-                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M18 20V10 M12 20V4 M6 20v-6"/></StackPane></graphic>
-                </ToggleButton>
-                <ToggleButton text="Asistente IA" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
-                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                    <userData><String fx:value="ASSISTANT"/></userData>
-                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></StackPane></graphic>
-                </ToggleButton>
-            </VBox>
-
-            <Region VBox.vgrow="ALWAYS"/>
-            <Separator styleClass="sidebar-separator"/>
-            <ToggleButton text="Configuración" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
-                <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                <userData><String fx:value="SETTINGS"/></userData>
-                <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M4 21v-7 M4 10V3 M12 21v-9 M12 8V3 M20 21v-5 M20 12V3 M1 14h6 M9 8h6 M17 16h6"/></StackPane></graphic>
-            </ToggleButton>
-            <Button text="Salir" onAction="#onExit" styleClass="nav-button" maxWidth="Infinity">
-                <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9"/></StackPane></graphic>
-            </Button>
-        </VBox>
-    </left>
     <center>
-        <StackPane fx:id="content" styleClass="content-area">
-            <VBox alignment="CENTER" spacing="8">
-                <Label text="Inicio" styleClass="view-title"/>
-                <Label text="En construcción" styleClass="placeholder-notice"/>
+        <!-- La barra flota sobre el contenido: al expandirse no lo empuja. 76 = ancho contraido (styles.css). -->
+        <StackPane alignment="TOP_LEFT">
+            <StackPane fx:id="content" styleClass="content-area">
+                <StackPane.margin><Insets left="76"/></StackPane.margin>
+                <VBox alignment="CENTER" spacing="8">
+                    <Label text="Inicio" styleClass="view-title"/>
+                    <Label text="En construcción" styleClass="placeholder-notice"/>
+                </VBox>
+            </StackPane>
+            <VBox styleClass="sidebar">
+                <!-- Logo: cuando este listo, asigna la imagen al ImageView (propiedad Image). -->
+                <StackPane styleClass="logo-slot">
+                    <ImageView fx:id="logo" fitWidth="150" fitHeight="80" pickOnBounds="true" preserveRatio="true"/>
+                </StackPane>
+                <Label text="MAISON GLOW" styleClass="brand-name, collapsible"/>
+
+                <HBox styleClass="profile">
+                    <StackPane styleClass="avatar">
+                        <Label text="AD" styleClass="avatar-initials"/>
+                    </StackPane>
+                    <VBox styleClass="profile-text, collapsible">
+                        <Label fx:id="userName" text="Administración" styleClass="profile-name"/>
+                        <Label fx:id="userRole" text="Panel del negocio" styleClass="profile-role"/>
+                    </VBox>
+                </HBox>
+                <Separator styleClass="sidebar-separator"/>
+
+                <VBox styleClass="nav-list">
+                    <ToggleButton text="Inicio" selected="true" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><ToggleGroup fx:id="navigation"/></toggleGroup>
+                        <userData><String fx:value="HOME"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></StackPane></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Clientes" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="CUSTOMERS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></StackPane></graphic>
+                    </ToggleButton>
+
+                    <!-- Citas es un grupo (M3): no navega, sus subopciones si. -->
+                    <StackPane>
+                        <Button text="Citas" styleClass="nav-button, nav-group" maxWidth="Infinity" mouseTransparent="true">
+                            <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18"/></StackPane></graphic>
+                        </Button>
+                        <Label fx:id="appointmentsBadge" text="3" styleClass="nav-badge" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
+                            <StackPane.margin><Insets right="14"/></StackPane.margin>
+                        </Label>
+                    </StackPane>
+                    <ToggleButton text="Agenda" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="APPOINTMENTS"/></userData>
+                        <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Profesionales" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="PROFESSIONALS"/></userData>
+                        <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
+                    </ToggleButton>
+
+                    <ToggleButton text="Ventas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="SALES"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></StackPane></graphic>
+                    </ToggleButton>
+                    <StackPane>
+                        <ToggleButton text="Productos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                            <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                            <userData><String fx:value="PRODUCTS"/></userData>
+                            <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M16.5 9.4l-9-5.19 M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/></StackPane></graphic>
+                        </ToggleButton>
+                        <Label fx:id="productsBadge" text="2" styleClass="nav-badge" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
+                            <StackPane.margin><Insets right="14"/></StackPane.margin>
+                        </Label>
+                    </StackPane>
+                    <ToggleButton text="Estadísticas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="STATISTICS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M18 20V10 M12 20V4 M6 20v-6"/></StackPane></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Asistente IA" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="ASSISTANT"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></StackPane></graphic>
+                    </ToggleButton>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+                <Separator styleClass="sidebar-separator"/>
+                <ToggleButton text="Configuración" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                    <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                    <userData><String fx:value="SETTINGS"/></userData>
+                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M4 21v-7 M4 10V3 M12 21v-9 M12 8V3 M20 21v-5 M20 12V3 M1 14h6 M9 8h6 M17 16h6"/></StackPane></graphic>
+                </ToggleButton>
+                <Button text="Salir" onAction="#onExit" styleClass="nav-button" maxWidth="Infinity">
+                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9"/></StackPane></graphic>
+                </Button>
             </VBox>
         </StackPane>
     </center>
