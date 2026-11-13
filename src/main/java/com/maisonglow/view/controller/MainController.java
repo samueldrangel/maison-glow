@@ -11,6 +11,7 @@ import com.maisonglow.view.View;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
@@ -31,7 +32,6 @@ import javafx.util.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -43,12 +43,18 @@ public final class MainController {
     /** Widths of the side menu; they match {@code .sidebar} in styles.css. */
     private static final double COLLAPSED_WIDTH = 76;
     private static final double EXPANDED_WIDTH = 240;
-    private static final Duration SIDEBAR_MOTION = Duration.millis(180);
+    private static final Duration EXPAND_MOTION = Duration.millis(280);
+    private static final Duration COLLAPSE_MOTION = Duration.millis(240);
+    /** The bar waits a moment before closing, so leaving the edge for an instant does not make it blink. */
+    private static final Duration COLLAPSE_DELAY = Duration.millis(140);
+    private static final Interpolator EXPAND_CURVE = Interpolator.SPLINE(0.33, 1, 0.68, 1);
+    private static final Interpolator COLLAPSE_CURVE = Interpolator.SPLINE(0.65, 0, 0.35, 1);
 
     private final AppContext context;
     private final List<NavGroup> groups = new ArrayList<>();
     private final DoubleProperty sidebarWidth = new SimpleDoubleProperty(COLLAPSED_WIDTH);
     private Timeline sidebarMotion;
+    private PauseTransition collapseDelay;
     private SidebarLogo logo;
 
     @FXML
@@ -106,8 +112,11 @@ public final class MainController {
         clip.heightProperty().bind(sidebar.heightProperty());
         sidebar.setClip(clip);
         logo = new SidebarLogo((Region) sidebar.lookup(".logo-slot"));
+        // The CSS widths are for Scene Builder; from here on the width is moved from code.
+        sidebar.getStyleClass().remove("css-motion");
+        applyWidth(COLLAPSED_WIDTH);
         sidebarWidth.addListener((observable, was, width) -> applyWidth(width.doubleValue()));
-        sidebar.hoverProperty().addListener((observable, was, hovered) -> moveSidebar(hovered));
+        sidebar.hoverProperty().addListener((observable, was, hovered) -> onSidebarHover(hovered));
 
         sidebar.lookupAll(".nav-button").stream().filter(Labeled.class::isInstance)
             .forEach(button -> Animations.nudgeOnHover((Labeled) button));
@@ -119,6 +128,20 @@ public final class MainController {
         groups.forEach(group -> group.setOpen(group.contains(selected), animate));
     }
 
+    /** Opens at once when the cursor arrives; closes after a short delay when it leaves. */
+    private void onSidebarHover(boolean hovered) {
+        if (collapseDelay != null) {
+            collapseDelay.stop();
+        }
+        if (hovered) {
+            moveSidebar(true);
+            return;
+        }
+        collapseDelay = new PauseTransition(COLLAPSE_DELAY);
+        collapseDelay.setOnFinished(event -> moveSidebar(false));
+        collapseDelay.play();
+    }
+
     /** Grows or shrinks the sidebar; the "expanded" look stays until it has finished shrinking. */
     private void moveSidebar(boolean expand) {
         if (sidebarMotion != null) {
@@ -128,14 +151,9 @@ public final class MainController {
             sidebar.getStyleClass().add("expanded");
         }
         sidebarWidth.set(sidebar.getWidth());
-        // Set it now: the property may not change (same value), and the :hover rule would jump first.
-        applyWidth(sidebarWidth.get());
-        sidebarMotion = new Timeline(new KeyFrame(SIDEBAR_MOTION,
-            new KeyValue(sidebarWidth, expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH, Interpolator.EASE_BOTH)));
+        sidebarMotion = new Timeline(new KeyFrame(expand ? EXPAND_MOTION : COLLAPSE_MOTION,
+            new KeyValue(sidebarWidth, expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH, expand ? EXPAND_CURVE : COLLAPSE_CURVE)));
         sidebarMotion.setOnFinished(event -> {
-            // The CSS already describes the final state, so it takes over again.
-            sidebar.setStyle("");
-            logo.reset();
             if (!expand) {
                 sidebar.getStyleClass().remove("expanded");
             }
@@ -145,16 +163,10 @@ public final class MainController {
 
     /** Sets the width of the bar and draws the logo for that width. */
     private void applyWidth(double width) {
-        sidebar.setStyle(widthStyle(width));
+        sidebar.setMinWidth(width);
+        sidebar.setPrefWidth(width);
+        sidebar.setMaxWidth(width);
         logo.update((width - COLLAPSED_WIDTH) / (EXPANDED_WIDTH - COLLAPSED_WIDTH));
-    }
-
-    /**
-     * The width goes in an inline style because that is the only thing that wins over styles.css (a
-     * value set from code would lose against the {@code :hover} rule and the bar would flicker).
-     */
-    private static String widthStyle(double width) {
-        return String.format(Locale.ROOT, "-fx-min-width: %1$.1f; -fx-pref-width: %1$.1f; -fx-max-width: %1$.1f;", width);
     }
 
     @FXML

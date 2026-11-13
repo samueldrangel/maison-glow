@@ -1,11 +1,10 @@
 package com.maisonglow.view;
 
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
-import javafx.geometry.Insets;
 
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -13,9 +12,10 @@ import java.util.Objects;
  * while the full logo grows from the isotipo's size, and the space they take
  * follows the width of the bar, so nothing below the logo jumps.
  *
- * <p>It writes inline styles because those are the only values that win over
- * styles.css, where the collapsed and expanded states are described (that is
- * also what Scene Builder shows). {@link #reset()} hands control back to the CSS.
+ * <p>It sets plain node properties (opacity, scale, height) on every frame, which is
+ * cheap because it does not touch the CSS. For that, the rules that hide one of the
+ * two logos in styles.css only apply while the bar has the class {@code css-motion}
+ * (what Scene Builder shows); the controller removes it when the application starts.
  */
 public final class SidebarLogo {
 
@@ -54,38 +54,27 @@ public final class SidebarLogo {
         double fullHeight = fullImage.getLayoutBounds().getHeight();
         double startScale = markImage.getFitWidth() / fullImage.getFitWidth();
 
-        double fullOpacity = smooth((p - FULL_VISIBLE_FROM) / (1 - FULL_VISIBLE_FROM));
-        double fullScale = startScale + (1 - startScale) * ease(p);
-        double markOpacity = 1 - smooth(p / MARK_GONE_AT);
+        double fullScale = startScale + (1 - startScale) * smooth(p);
         double markScale = 1 + 0.25 * smooth(p / MARK_GONE_AT);
 
         Insets padding = slot.getPadding();
-        double height = markHeight + (fullHeight - markHeight) * ease(p) + padding.getTop() + padding.getBottom();
-        slot.setStyle(String.format(Locale.ROOT, "-fx-min-height: %1$.1f; -fx-pref-height: %1$.1f; -fx-max-height: %1$.1f;", height));
-        full.setStyle(shown(fullOpacity, fullScale));
-        mark.setStyle(shown(markOpacity, markScale));
-    }
+        double height = markHeight + (fullHeight - markHeight) * smooth(p) + padding.getTop() + padding.getBottom();
+        slot.setMinHeight(height);
+        slot.setPrefHeight(height);
+        slot.setMaxHeight(height);
 
-    /** Gives the logo back to styles.css, which already describes the final state. */
-    public void reset() {
-        slot.setStyle("");
-        full.setStyle("");
-        mark.setStyle("");
-    }
-
-    /** Both logos take their natural size, whatever the collapsed/expanded rules say. */
-    private static String shown(double opacity, double scale) {
-        return String.format(Locale.ROOT, "visibility: visible; -fx-opacity: %.3f; -fx-scale-x: %.3f; -fx-scale-y: %.3f;"
-            + " -fx-min-width: -1; -fx-pref-width: -1; -fx-max-width: infinity;"
-            + " -fx-min-height: -1; -fx-pref-height: -1; -fx-max-height: infinity;", opacity, scale, scale);
+        full.setVisible(true);
+        full.setOpacity(smooth((p - FULL_VISIBLE_FROM) / (1 - FULL_VISIBLE_FROM)));
+        full.setScaleX(fullScale);
+        full.setScaleY(fullScale);
+        mark.setVisible(true);
+        mark.setOpacity(1 - smooth(p / MARK_GONE_AT));
+        mark.setScaleX(markScale);
+        mark.setScaleY(markScale);
     }
 
     private static double smooth(double t) {
         double x = Math.max(0, Math.min(1, t));
         return x * x * (3 - 2 * x);
-    }
-
-    private static double ease(double t) {
-        return smooth(t);
     }
 }

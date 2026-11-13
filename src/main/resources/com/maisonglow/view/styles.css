@@ -34,6 +34,11 @@
     -fx-background-color: -mg-rose;
     -fx-padding: 20 10 16 10;
     -fx-spacing: 6;
+}
+
+/* Los anchos los fija el CSS solo mientras la barra tiene la clase "css-motion" (Scene Builder y Ctrl+P).
+   La aplicacion quita esa clase y mueve el ancho desde codigo, sin reprocesar estilos en cada fotograma. */
+.sidebar.css-motion {
     -fx-min-width: 76;
     -fx-pref-width: 76;
     -fx-max-width: 76;
@@ -42,7 +47,7 @@
 /* Logo de la marca: completo al expandir, isotipo al contraer. */
 .logo-slot {
     -fx-alignment: center;
-    -fx-padding: 4 0 10 0;
+    -fx-min-width: 0;
 }
 
 .profile {
@@ -211,15 +216,37 @@
 
 /* ---- Barra expandida: cursor encima (:hover) o clase "expanded" ---- */
 .sidebar:hover, .sidebar.expanded {
-    -fx-padding: 20 16 16 16;
-    -fx-min-width: 240;
-    -fx-pref-width: 240;
-    -fx-max-width: 240;
     -fx-effect: dropshadow(gaussian, rgba(43, 35, 39, 0.25), 16, 0, 4, 0);
 }
 
-/* El isotipo solo se ve con la barra contraida. */
-.sidebar:hover .only-collapsed, .sidebar.expanded .only-collapsed {
+.sidebar.css-motion:hover, .sidebar.css-motion.expanded {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+}
+
+/* Logos: solo con "css-motion" alterna el CSS; en la aplicacion los anima SidebarLogo. */
+.sidebar.css-motion .logo-full {
+    visibility: hidden;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+.sidebar.css-motion:hover .logo-full, .sidebar.css-motion.expanded .logo-full {
+    visibility: visible;
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+    -fx-max-width: infinity;
+    -fx-min-height: -1;
+    -fx-pref-height: -1;
+    -fx-max-height: infinity;
+}
+
+.sidebar.css-motion:hover .logo-mark, .sidebar.css-motion.expanded .logo-mark {
     visibility: hidden;
     -fx-min-width: 0;
     -fx-pref-width: 0;

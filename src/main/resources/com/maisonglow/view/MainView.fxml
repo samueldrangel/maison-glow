@@ -33,15 +33,16 @@
                     <Label text="En construcción" styleClass="placeholder-notice"/>
                 </VBox>
             </StackPane>
-            <VBox fx:id="sidebar" styleClass="sidebar">
+            <VBox fx:id="sidebar" styleClass="sidebar, css-motion">
                 <!-- Logo completo con la barra expandida; isotipo con la barra contraida. -->
                 <StackPane styleClass="logo-slot">
-                    <StackPane styleClass="logo-full, collapsible">
+                    <padding><Insets top="4" bottom="10"/></padding>
+                    <StackPane styleClass="logo-full">
                         <ImageView fx:id="logoFull" fitWidth="160" preserveRatio="true" smooth="true">
                             <image><Image url="@images/logo-claro.png"/></image>
                         </ImageView>
                     </StackPane>
-                    <StackPane styleClass="logo-mark, only-collapsed">
+                    <StackPane styleClass="logo-mark">
                         <ImageView fx:id="logoMark" fitWidth="46" preserveRatio="true" smooth="true">
                             <image><Image url="@images/isotipo-claro.png"/></image>
                         </ImageView>
