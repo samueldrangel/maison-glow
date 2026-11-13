@@ -363,3 +363,39 @@
 .table-row-cell:selected {
     -fx-background-color: -mg-active;
 }
+
+/* ---- Dialogos de AlertPresenter ---- */
+.dialog-pane.view-root {
+    -fx-background-color: -mg-cream;
+}
+
+.dialog-pane.view-root > .header-panel {
+    -fx-background-color: -mg-rose;
+    -fx-padding: 14 18 14 18;
+}
+
+.dialog-pane.view-root > .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane.view-root > .content.label {
+    -fx-text-fill: -mg-text;
+    -fx-padding: 16 18 8 18;
+}
+
+.dialog-pane.view-root .button {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-padding: 7 18 7 18;
+    -fx-cursor: hand;
+}
+
+.dialog-pane.view-root .button:cancel {
+    -fx-background-color: transparent;
+    -fx-border-color: -mg-rose;
+    -fx-border-radius: 10;
+    -fx-text-fill: -mg-rose-dark;
+}
