@@ -134,6 +134,33 @@
     -fx-fill: -mg-gold;
 }
 
+/* Grupos desplegables: Citas con Agenda y Profesionales. La clase "open" la pone
+   el controlador segun la pantalla actual; en Scene Builder queda abierto. */
+.nav-group-box {
+    -fx-background-radius: 20;
+    -fx-spacing: 2;
+}
+
+.nav-group-box.open {
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+}
+
+.nav-sub-list {
+    -fx-spacing: 2;
+}
+
+.nav-chevron {
+    -fx-fill: transparent;
+    -fx-stroke: white;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.nav-group-box.open .nav-chevron-box {
+    -fx-rotate: 180;
+}
+
 /* Caja fija para que el texto de todas las opciones empiece en la misma columna. */
 .nav-icon-box {
     -fx-min-width: 24;

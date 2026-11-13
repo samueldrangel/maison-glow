@@ -33,11 +33,11 @@
                     <Label text="En construcción" styleClass="placeholder-notice"/>
                 </VBox>
             </StackPane>
-            <VBox styleClass="sidebar">
+            <VBox fx:id="sidebar" styleClass="sidebar">
                 <!-- Logo completo con la barra expandida; isotipo con la barra contraida. -->
                 <StackPane styleClass="logo-slot">
                     <StackPane styleClass="logo-full, collapsible">
-                        <ImageView fx:id="logoFull" fitWidth="190" preserveRatio="true" smooth="true">
+                        <ImageView fx:id="logoFull" fitWidth="160" preserveRatio="true" smooth="true">
                             <image><Image url="@images/logo-claro.png"/></image>
                         </ImageView>
                     </StackPane>
@@ -71,25 +71,32 @@
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></StackPane></graphic>
                     </ToggleButton>
 
-                    <!-- Citas es un grupo (M3): no navega, sus subopciones si. -->
-                    <StackPane>
-                        <Button text="Citas" styleClass="nav-button, nav-group" maxWidth="Infinity" mouseTransparent="true">
-                            <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18"/></StackPane></graphic>
-                        </Button>
-                        <Label fx:id="appointmentsBadge" text="3" styleClass="nav-badge" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
-                            <StackPane.margin><Insets right="14"/></StackPane.margin>
-                        </Label>
-                    </StackPane>
-                    <ToggleButton text="Agenda" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
-                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                        <userData><String fx:value="APPOINTMENTS"/></userData>
-                        <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
-                    </ToggleButton>
-                    <ToggleButton text="Profesionales" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
-                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
-                        <userData><String fx:value="PROFESSIONALS"/></userData>
-                        <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
-                    </ToggleButton>
+                    <!-- Grupo desplegable (M3): sus subopciones solo se ven mientras estas en el grupo.
+                         Para otro apartado con mas opciones copia este VBox "nav-group-box". -->
+                    <VBox styleClass="nav-group-box, open">
+                        <StackPane>
+                            <Button text="Citas" onAction="#onOpenGroup" styleClass="nav-button, nav-group" maxWidth="Infinity">
+                                <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18"/></StackPane></graphic>
+                            </Button>
+                            <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="collapsible" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
+                                <StackPane.margin><Insets right="14"/></StackPane.margin>
+                                <Label fx:id="appointmentsBadge" text="3" styleClass="nav-badge"/>
+                                <StackPane styleClass="nav-chevron-box"><SVGPath styleClass="nav-chevron" content="M6 9l6 6 6-6"/></StackPane>
+                            </HBox>
+                        </StackPane>
+                        <VBox styleClass="nav-sub-list">
+                            <ToggleButton text="Agenda" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
+                                <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                                <userData><String fx:value="APPOINTMENTS"/></userData>
+                                <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
+                            </ToggleButton>
+                            <ToggleButton text="Profesionales" onAction="#onNavigate" styleClass="nav-button, nav-sub" maxWidth="Infinity">
+                                <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                                <userData><String fx:value="PROFESSIONALS"/></userData>
+                                <graphic><Circle radius="3" styleClass="nav-dot"/></graphic>
+                            </ToggleButton>
+                        </VBox>
+                    </VBox>
 
                     <ToggleButton text="Ventas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                         <toggleGroup><fx:reference source="navigation"/></toggleGroup>
