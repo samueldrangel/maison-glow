@@ -6,6 +6,7 @@ import com.maisonglow.exception.ValidationException;
 import com.maisonglow.view.Animations;
 import com.maisonglow.view.NavGroup;
 import com.maisonglow.view.Navigator;
+import com.maisonglow.view.SidebarLogo;
 import com.maisonglow.view.View;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -21,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -47,6 +49,7 @@ public final class MainController {
     private final List<NavGroup> groups = new ArrayList<>();
     private final DoubleProperty sidebarWidth = new SimpleDoubleProperty(COLLAPSED_WIDTH);
     private Timeline sidebarMotion;
+    private SidebarLogo logo;
 
     @FXML
     private StackPane content;
@@ -102,7 +105,8 @@ public final class MainController {
         clip.widthProperty().bind(sidebar.widthProperty());
         clip.heightProperty().bind(sidebar.heightProperty());
         sidebar.setClip(clip);
-        sidebarWidth.addListener((observable, was, width) -> sidebar.setStyle(widthStyle(width.doubleValue())));
+        logo = new SidebarLogo((Region) sidebar.lookup(".logo-slot"));
+        sidebarWidth.addListener((observable, was, width) -> applyWidth(width.doubleValue()));
         sidebar.hoverProperty().addListener((observable, was, hovered) -> moveSidebar(hovered));
 
         sidebar.lookupAll(".nav-button").stream().filter(Labeled.class::isInstance)
@@ -125,17 +129,24 @@ public final class MainController {
         }
         sidebarWidth.set(sidebar.getWidth());
         // Set it now: the property may not change (same value), and the :hover rule would jump first.
-        sidebar.setStyle(widthStyle(sidebarWidth.get()));
+        applyWidth(sidebarWidth.get());
         sidebarMotion = new Timeline(new KeyFrame(SIDEBAR_MOTION,
             new KeyValue(sidebarWidth, expand ? EXPANDED_WIDTH : COLLAPSED_WIDTH, Interpolator.EASE_BOTH)));
         sidebarMotion.setOnFinished(event -> {
             // The CSS already describes the final state, so it takes over again.
             sidebar.setStyle("");
+            logo.reset();
             if (!expand) {
                 sidebar.getStyleClass().remove("expanded");
             }
         });
         sidebarMotion.play();
+    }
+
+    /** Sets the width of the bar and draws the logo for that width. */
+    private void applyWidth(double width) {
+        sidebar.setStyle(widthStyle(width));
+        logo.update((width - COLLAPSED_WIDTH) / (EXPANDED_WIDTH - COLLAPSED_WIDTH));
     }
 
     /**

@@ -70,12 +70,14 @@
 }
 
 .profile-name {
+    -fx-text-overrun: clip;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
 .profile-role {
+    -fx-text-overrun: clip;
     -fx-text-fill: #f3dfe1;
     -fx-font-size: 12px;
 }
