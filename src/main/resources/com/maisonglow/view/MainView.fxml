@@ -18,9 +18,21 @@
     </fx:define>
     <left>
         <VBox styleClass="sidebar" prefWidth="230" minWidth="230">
-            <Label text="MG" styleClass="brand-mark"/>
+            <!-- Logo: cuando este listo, asigna la imagen al ImageView (propiedad Image). -->
+            <StackPane styleClass="logo-slot">
+                <ImageView fx:id="logo" fitWidth="150" fitHeight="80" pickOnBounds="true" preserveRatio="true"/>
+            </StackPane>
             <Label text="MAISON GLOW" styleClass="brand-name"/>
-            <Label text="Belleza que te hace brillar" styleClass="brand-tagline"/>
+
+            <HBox styleClass="profile">
+                <StackPane styleClass="avatar">
+                    <Label text="AD" styleClass="avatar-initials"/>
+                </StackPane>
+                <VBox styleClass="profile-text">
+                    <Label fx:id="userName" text="Administración" styleClass="profile-name"/>
+                    <Label fx:id="userRole" text="Panel del negocio" styleClass="profile-role"/>
+                </VBox>
+            </HBox>
             <Separator styleClass="sidebar-separator"/>
 
             <VBox styleClass="nav-list">
@@ -45,11 +57,8 @@
                 <ToggleButton text="Estadísticas" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                     <userData><String fx:value="STATISTICS"/></userData>
                 </ToggleButton>
-                <ToggleButton text="Asistente IA" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button, nav-button-accent" maxWidth="Infinity">
+                <ToggleButton text="Asistente IA" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                     <userData><String fx:value="ASSISTANT"/></userData>
-                </ToggleButton>
-                <ToggleButton text="Probador virtual" toggleGroup="$navigation" onAction="#onNavigate" styleClass="nav-button, nav-button-accent" maxWidth="Infinity">
-                    <userData><String fx:value="TRY_ON"/></userData>
                 </ToggleButton>
             </VBox>
 
