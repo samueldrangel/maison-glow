@@ -306,41 +306,52 @@
     -fx-text-fill: -mg-text-muted;
 }
 
-/* ---- Botones: pildora con brillo suave. Rosa = accion normal, dorado = accion principal de la pantalla,
-        contorno = secundaria. Se elevan al pasar el cursor (Animations.lift). ---- */
+/* ---- Botones: forma de petalo (esquinas opuestas redondeadas, como las hojas de los mockups), filete
+        interior tipo foil y texto en serif, como los titulos. Rosa = accion normal; dorado = accion principal
+        de la pantalla, con la estrella de la marca; contorno = secundaria. Se elevan al pasar el cursor. ---- */
 .button-primary, .button-gold, .button-secondary {
-    -fx-background-radius: 22;
-    -fx-border-radius: 22;
-    -fx-padding: 9 26 9 26;
-    -fx-font-size: 14px;
+    -fx-background-radius: 24 6 24 6;
+    -fx-padding: 10 30 10 30;
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 15px;
+    -fx-graphic-text-gap: 10;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
-.button-primary {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 14%), -mg-rose);
+.button-primary, .button-gold {
     -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(176, 129, 135, 0.40), 12, 0.05, 0, 4);
+    -fx-border-color: rgba(255, 255, 255, 0.55);
+    -fx-border-width: 1;
+    -fx-border-insets: 3;
+    -fx-border-radius: 21 3 21 3;
+}
+
+.button-primary {
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 12%), derive(-mg-rose, -4%));
+    -fx-effect: dropshadow(gaussian, rgba(150, 102, 109, 0.45), 14, 0.05, 0, 5);
 }
 
 .button-primary:hover {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 24%), derive(-mg-rose, 6%));
-    -fx-effect: dropshadow(gaussian, rgba(176, 129, 135, 0.50), 18, 0.1, 0, 7);
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 24%), derive(-mg-rose, 4%));
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-effect: dropshadow(gaussian, rgba(150, 102, 109, 0.55), 20, 0.1, 0, 8);
 }
 
 .button-gold {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 22%), -mg-gold);
-    -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.42), 12, 0.05, 0, 4);
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 24%), derive(-mg-gold, -4%));
+    -fx-effect: dropshadow(gaussian, rgba(168, 119, 79, 0.45), 14, 0.05, 0, 5);
 }
 
 .button-gold:hover {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 32%), derive(-mg-gold, 8%));
-    -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.55), 18, 0.1, 0, 7);
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 34%), derive(-mg-gold, 6%));
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-effect: dropshadow(gaussian, rgba(168, 119, 79, 0.58), 20, 0.1, 0, 8);
 }
 
 .button-primary:pressed, .button-gold:pressed {
+    -fx-border-color: rgba(255, 255, 255, 0.3);
     -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.30), 5, 0.05, 0, 1);
 }
 
@@ -348,11 +359,24 @@
     -fx-background-color: transparent;
     -fx-border-color: -mg-rose;
     -fx-border-width: 1.2;
+    -fx-border-radius: 24 6 24 6;
     -fx-text-fill: -mg-rose-dark;
 }
 
 .button-secondary:hover {
     -fx-background-color: -mg-active;
+}
+
+/* La estrella de la marca (Icons.sparkle): blanca sobre rosa o dorado, dorada sobre el contorno. */
+.sparkle .line-icon {
+    -fx-fill: white;
+    -fx-stroke: white;
+    -fx-stroke-width: 1;
+}
+
+.button-secondary .sparkle .line-icon {
+    -fx-fill: -mg-gold;
+    -fx-stroke: -mg-gold;
 }
 
 .button-primary:disabled, .button-gold:disabled, .button-secondary:disabled {
@@ -433,7 +457,7 @@
 
 /* Un chip lleva un punto de estado como grafico: <graphic><Circle radius="3.5" styleClass="chip-dot"/></graphic> */
 .chip-success, .chip-warning, .chip-neutral, .chip-gold {
-    -fx-background-radius: 14;
+    -fx-background-radius: 13 3 13 3;
     -fx-padding: 3 12 3 10;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
