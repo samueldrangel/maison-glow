@@ -109,3 +109,62 @@
 }
 
 /* ---- Piezas que reutilizaran I-14 en adelante ---- */
+.card {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 16;
+    -fx-padding: 16;
+}
+
+.button-primary {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.button-primary:hover {
+    -fx-background-color: -mg-rose-dark;
+}
+
+.text-field, .combo-box, .date-picker {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -mg-border;
+    -fx-background-color: -mg-surface;
+}
+
+.field-error {
+    -fx-border-color: -mg-warning;
+}
+
+.chip-success {
+    -fx-background-color: -mg-success-bg;
+    -fx-text-fill: -mg-success;
+    -fx-background-radius: 12;
+    -fx-padding: 2 10 2 10;
+}
+
+.chip-warning {
+    -fx-background-color: -mg-warning-bg;
+    -fx-text-fill: -mg-warning;
+    -fx-background-radius: 12;
+    -fx-padding: 2 10 2 10;
+}
+
+.table-view {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 12;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -mg-surface;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -mg-active;
+}
