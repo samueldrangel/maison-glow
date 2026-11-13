@@ -13,6 +13,7 @@ Arquitectura vigente tras la sustentación: [modelos de datos y reglas en servic
 | [`fase2/`](fase2/diseno-clases.md) | Diseño de clases: paquetes, clases, relaciones, mockups, GRASP/SOLID (`diseno-clases.md`) |
 | [`version-control.md`](version-control.md) | Commits y Pull Requests por integrante, ramas y cómo regenerar los datos |
 | [`fase3/asistente-simulado.md`](fase3/asistente-simulado.md) | S-12: herramientas del asistente, confirmación, ejemplos y pruebas |
+| [`fase3/probador-simulado.md`](fase3/probador-simulado.md) | S-13: probador virtual simulado, transformaciones y contrato |
 | `fase4/` | MER, diccionario de datos, documentación técnica final, reporte de Git |
 
 Plan general: [`../PLANIFICACION.md`](../PLANIFICACION.md)
