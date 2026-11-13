@@ -3,6 +3,7 @@ package com.maisonglow.view;
 import com.maisonglow.AppContext;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -43,6 +44,9 @@ public final class Navigator {
         URL fxml = Navigator.class.getResource(view.resource());
         Node screen = fxml == null ? underConstruction(view) : ViewLoader.load(fxml, context);
         content.getChildren().setAll(screen);
+        if (screen instanceof Parent parent) {
+            Animations.installButtonMotion(parent);
+        }
         Animations.enter(screen);
         current = view;
     }
