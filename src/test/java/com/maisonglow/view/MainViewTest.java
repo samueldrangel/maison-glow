@@ -2,6 +2,7 @@ package com.maisonglow.view;
 
 import com.maisonglow.AppContext;
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +73,57 @@ class MainViewTest {
         });
 
         assertThat(sidebar.getBackground().getFills().get(0).getFill()).isEqualTo(Color.web("#b08187"));
+    }
+
+    @Test
+    @DisplayName("starts collapsed and expands while the cursor is over the sidebar")
+    void expandsWithTheCursor() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        AppContext.seed(data);
+        AppContext context = new AppContext(data);
+        Parent root = onFxThread(() -> {
+            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"),
+                context);
+            new Scene(loaded, 1100, 720);
+            return loaded;
+        });
+        Region sidebar = (Region) root.lookup(".sidebar");
+        StackPane content = (StackPane) root.lookup(".content-area");
+
+        double collapsed = onFxThread(() -> widthOf(sidebar, root));
+        double contentLeft = onFxThread(() -> content.getBoundsInParent().getMinX());
+        double hovered = onFxThread(() -> {
+            setHover(sidebar, true);
+            return widthOf(sidebar, root);
+        });
+        double contentLeftWhileHovered = onFxThread(() -> content.getBoundsInParent().getMinX());
+        double left = onFxThread(() -> {
+            setHover(sidebar, false);
+            return widthOf(sidebar, root);
+        });
+
+        assertThat(collapsed).isEqualTo(76);
+        assertThat(hovered).isEqualTo(240);
+        assertThat(left).isEqualTo(76);
+        assertThat(contentLeftWhileHovered).as("the sidebar floats, it does not push the content")
+            .isEqualTo(contentLeft);
+    }
+
+    private static double widthOf(Region sidebar, Parent root) {
+        root.applyCss();
+        root.layout();
+        return sidebar.getWidth();
+    }
+
+    /** JavaFX only sets :hover from real mouse events, so the test sets it the same way the scene does. */
+    private static void setHover(Node node, boolean hover) {
+        try {
+            Method setter = Node.class.getDeclaredMethod("setHover", boolean.class);
+            setter.setAccessible(true);
+            setter.invoke(node, hover);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            assumeTrue(false, "cannot simulate the cursor: " + e);
+        }
     }
 
     @Test
