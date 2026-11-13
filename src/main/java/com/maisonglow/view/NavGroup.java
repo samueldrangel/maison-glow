@@ -31,7 +31,6 @@ public final class NavGroup {
 
     private final VBox box;
     private final VBox list;
-    private final Node chevron;
     private Timeline running;
     private boolean open = true;
 
@@ -43,7 +42,6 @@ public final class NavGroup {
     public NavGroup(VBox box) {
         this.box = Objects.requireNonNull(box, "box");
         this.list = (VBox) Objects.requireNonNull(box.lookup(".nav-sub-list"), "nav-sub-list");
-        this.chevron = box.lookup(".nav-chevron-box");
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(list.widthProperty());
         clip.heightProperty().bind(list.heightProperty());
@@ -98,27 +96,24 @@ public final class NavGroup {
         double fullHeight = list.prefHeight(-1);
         double targetHeight = open ? fullHeight : 0;
         double targetOpacity = open ? 1 : 0;
-        double targetTurn = open ? 180 : 0;
         if (!animate) {
-            finish(targetHeight, targetOpacity, targetTurn);
+            finish(targetHeight, targetOpacity);
             return;
         }
         list.setMinHeight(0);
         list.setMaxHeight(list.getHeight());
         running = new Timeline(new KeyFrame(SLIDE,
             new KeyValue(list.maxHeightProperty(), targetHeight, Interpolator.EASE_BOTH),
-            new KeyValue(list.opacityProperty(), targetOpacity, Interpolator.EASE_BOTH),
-            new KeyValue(chevron.rotateProperty(), targetTurn, Interpolator.EASE_BOTH)));
-        running.setOnFinished(event -> finish(targetHeight, targetOpacity, targetTurn));
+            new KeyValue(list.opacityProperty(), targetOpacity, Interpolator.EASE_BOTH)));
+        running.setOnFinished(event -> finish(targetHeight, targetOpacity));
         running.play();
     }
 
-    private void finish(double height, double opacity, double turn) {
+    private void finish(double height, double opacity) {
         // Open: its natural size and no shrinking; closed: no height at all.
         list.setMinHeight(open ? Region.USE_COMPUTED_SIZE : 0);
         list.setMaxHeight(open ? Region.USE_COMPUTED_SIZE : height);
         list.setOpacity(opacity);
         list.setVisible(open);
-        chevron.setRotate(turn);
     }
 }

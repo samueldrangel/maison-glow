@@ -81,7 +81,6 @@
                             <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="collapsible" mouseTransparent="true" StackPane.alignment="CENTER_RIGHT">
                                 <StackPane.margin><Insets right="14"/></StackPane.margin>
                                 <Label fx:id="appointmentsBadge" text="3" styleClass="nav-badge"/>
-                                <StackPane styleClass="nav-chevron-box"><SVGPath styleClass="nav-chevron" content="M6 9l6 6 6-6"/></StackPane>
                             </HBox>
                         </StackPane>
                         <VBox styleClass="nav-sub-list">
