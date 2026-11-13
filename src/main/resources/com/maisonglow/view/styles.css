@@ -1,0 +1,62 @@
+/* Maison Glow - paleta tomada de docs/fase2/mockups (rosa palo, dorado, crema).
+   Los colores se definen UNA sola vez aqui; las vistas usan estas variables. */
+
+/* La paleta vive en la raiz de CADA vista (.main-root, .view-root) y tambien en
+   .root. Scene Builder mete la vista dentro de su propio contenedor, asi que
+   .root solo no basta para que alli se vean los colores. */
+.root, .main-root, .view-root {
+    -mg-rose: #b08187;
+    -mg-rose-dark: #96666d;
+    -mg-rose-soft: #ebb6bc;
+    -mg-cream: #faf5f1;
+    -mg-surface: #fefefc;
+    -mg-active: #f7efed;
+    -mg-gold: #c99269;
+    -mg-text: #2b2327;
+    -mg-text-muted: #8a7a7e;
+    -mg-success-bg: #e0efe8;
+    -mg-success: #3f8f6b;
+    -mg-warning-bg: #ffe4e8;
+    -mg-warning: #b3473f;
+    -mg-border: #eadfdc;
+
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: -mg-cream;
+    -fx-text-fill: -mg-text;
+}
+
+/* ---- Barra lateral ---- */
+.sidebar {
+    -fx-background-color: -mg-rose;
+    -fx-padding: 24 16 16 16;
+    -fx-spacing: 6;
+}
+
+.brand-mark {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 44px;
+    -fx-text-fill: white;
+    -fx-max-width: infinity;
+    -fx-alignment: center;
+}
+
+.brand-name {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+    -fx-max-width: infinity;
+    -fx-alignment: center;
+}
+
+.brand-tagline {
+    -fx-font-size: 11px;
+    -fx-text-fill: #f3dfe1;
+    -fx-max-width: infinity;
+    -fx-alignment: center;
+}
+
+.sidebar-separator .line {
+    -fx-border-color: #c9a1a6;
+    -fx-border-width: 1 0 0 0;
+}
