@@ -185,6 +185,37 @@ class MainViewTest {
     }
 
     @Test
+    @DisplayName("the icons and the avatar do not move when the bar opens")
+    void iconsStayInPlace() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+        Region sidebar = (Region) root.lookup(".sidebar");
+
+        List<Double> collapsed = onFxThread(() -> iconPositions(root));
+        onFxThread(() -> {
+            setHover(sidebar, true);
+            return null;
+        });
+        await(() -> widthOf(sidebar, root), width -> width == 240);
+        List<Double> expanded = onFxThread(() -> iconPositions(root));
+
+        assertThat(expanded).containsExactlyElementsOf(collapsed);
+    }
+
+    /** Left edge, in the scene, of every menu icon and of the avatar. */
+    private static List<Double> iconPositions(Parent root) {
+        root.applyCss();
+        root.layout();
+        List<Double> positions = new ArrayList<>();
+        for (Node icon : root.lookupAll(".nav-icon-box, .avatar")) {
+            if (icon.getParent() != null && icon.isVisible()) {
+                positions.add(icon.localToScene(icon.getBoundsInLocal()).getMinX());
+            }
+        }
+        return positions;
+    }
+
+    @Test
     @DisplayName("shows the sub-entries of Citas only while one of them is the current screen")
     void opensTheGroupOfTheCurrentScreen() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");

@@ -48,7 +48,7 @@
 .profile {
     -fx-spacing: 0;
     -fx-alignment: center;
-    -fx-padding: 6 0 8 0;
+    -fx-padding: 6 5 8 5;
 }
 
 .avatar {
@@ -102,6 +102,9 @@
     -fx-graphic-text-gap: 14;
     -fx-text-overrun: clip;
     -fx-padding: 9 0 9 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 20;
     -fx-cursor: hand;
 }
 
@@ -229,7 +232,7 @@
 .sidebar:hover .profile, .sidebar.expanded .profile {
     -fx-spacing: 12;
     -fx-alignment: center-left;
-    -fx-padding: 6 4 8 4;
+    -fx-padding: 6 5 8 5;
 }
 
 .sidebar:hover .collapsible, .sidebar.expanded .collapsible {
@@ -245,11 +248,11 @@
 .sidebar:hover .nav-button, .sidebar.expanded .nav-button {
     -fx-content-display: left;
     -fx-alignment: center-left;
-    -fx-padding: 9 18 9 16;
+    -fx-padding: 9 18 9 14;
 }
 
 .sidebar:hover .nav-sub, .sidebar.expanded .nav-sub {
-    -fx-padding: 6 18 6 52;
+    -fx-padding: 6 18 6 48;
 }
 
 .sidebar:hover .nav-badge, .sidebar.expanded .nav-badge {
