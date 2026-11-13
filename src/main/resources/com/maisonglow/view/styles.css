@@ -23,6 +23,14 @@
     -mg-gold-dark: #a8774f;
     -mg-ink: #3a2b30;
 
+    /* Colores de las acciones (botones y chips dorados): cambiando estas lineas cambia toda la interfaz. */
+    -mg-action: -mg-rose;
+    -mg-action-dark: -mg-rose-dark;
+    -mg-action-glow: rgba(150, 102, 109, 0.45);
+    -mg-accent: -mg-gold;
+    -mg-accent-dark: -mg-gold-dark;
+    -mg-accent-glow: rgba(168, 119, 79, 0.45);
+
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
     -fx-background-color: -mg-cream;
@@ -329,25 +337,25 @@
 }
 
 .button-primary {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 12%), derive(-mg-rose, -4%));
-    -fx-effect: dropshadow(gaussian, rgba(150, 102, 109, 0.45), 14, 0.05, 0, 5);
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-action, 12%), derive(-mg-action, -4%));
+    -fx-effect: dropshadow(gaussian, -mg-action-glow, 14, 0.05, 0, 5);
 }
 
 .button-primary:hover {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-rose, 24%), derive(-mg-rose, 4%));
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-action, 24%), derive(-mg-action, 4%));
     -fx-border-color: rgba(255, 255, 255, 0.9);
-    -fx-effect: dropshadow(gaussian, rgba(150, 102, 109, 0.55), 20, 0.1, 0, 8);
+    -fx-effect: dropshadow(gaussian, -mg-action-glow, 20, 0.1, 0, 8);
 }
 
 .button-gold {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 24%), derive(-mg-gold, -4%));
-    -fx-effect: dropshadow(gaussian, rgba(168, 119, 79, 0.45), 14, 0.05, 0, 5);
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-accent, 24%), derive(-mg-accent, -4%));
+    -fx-effect: dropshadow(gaussian, -mg-accent-glow, 14, 0.05, 0, 5);
 }
 
 .button-gold:hover {
-    -fx-background-color: linear-gradient(to bottom, derive(-mg-gold, 34%), derive(-mg-gold, 6%));
+    -fx-background-color: linear-gradient(to bottom, derive(-mg-accent, 34%), derive(-mg-accent, 6%));
     -fx-border-color: rgba(255, 255, 255, 0.9);
-    -fx-effect: dropshadow(gaussian, rgba(168, 119, 79, 0.58), 20, 0.1, 0, 8);
+    -fx-effect: dropshadow(gaussian, -mg-accent-glow, 20, 0.1, 0, 8);
 }
 
 .button-primary:pressed, .button-gold:pressed {
@@ -357,10 +365,10 @@
 
 .button-secondary {
     -fx-background-color: transparent;
-    -fx-border-color: -mg-rose;
+    -fx-border-color: -mg-action;
     -fx-border-width: 1.2;
     -fx-border-radius: 24 6 24 6;
-    -fx-text-fill: -mg-rose-dark;
+    -fx-text-fill: -mg-action-dark;
 }
 
 .button-secondary:hover {
@@ -375,8 +383,8 @@
 }
 
 .button-secondary .sparkle .line-icon {
-    -fx-fill: -mg-gold;
-    -fx-stroke: -mg-gold;
+    -fx-fill: -mg-accent;
+    -fx-stroke: -mg-accent;
 }
 
 .button-primary:disabled, .button-gold:disabled, .button-secondary:disabled {
