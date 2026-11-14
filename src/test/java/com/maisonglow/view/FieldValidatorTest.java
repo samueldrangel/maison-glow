@@ -63,6 +63,7 @@ class FieldValidatorTest {
         assertThat(form.document.getStyleClass()).contains("field-error");
         assertThat(form.documentMessage.getText()).isEqualTo("Ya existe un cliente con el documento 1065123456.");
         assertThat(form.documentMessage.isVisible()).isTrue();
+        assertThat(form.documentMessage.getGraphic()).as("the message carries an icon").isNotNull();
         assertThat(form.email.getStyleClass()).doesNotContain("field-error");
     }
 
@@ -124,6 +125,7 @@ class FieldValidatorTest {
 
         assertThat(form.document.getStyleClass()).doesNotContain("field-error");
         assertThat(form.documentMessage.isVisible()).isFalse();
+        assertThat(form.documentMessage.getGraphic()).isNull();
     }
 
     @Test

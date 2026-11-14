@@ -4,6 +4,7 @@ import com.maisonglow.exception.ValidationException;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,11 +53,13 @@ class AlertPresenterTest {
 
         Alert alert = shown.get(0);
         assertThat(alert.getAlertType()).isEqualTo(AlertType.WARNING);
-        assertThat(alert.getHeaderText()).isEqualTo("Datos no válidos");
-        assertThat(alert.getContentText()).isEqualTo("El campo correo es obligatorio.");
+        assertThat(((Label) alert.getDialogPane().getContent().lookup(".dialog-title")).getText()).isEqualTo("Datos no válidos");
+        assertThat(((Label) alert.getDialogPane().getContent().lookup(".dialog-text")).getText()).isEqualTo("El campo correo es obligatorio.");
+        assertThat(alert.getDialogPane().getContent().lookup(".dialog-medallion").getStyleClass()).contains("tone-warning");
         assertThat(alert.getDialogPane().getStylesheets()).anyMatch(url -> url.endsWith("styles.css"));
         assertThat(alert.getDialogPane().getStyleClass()).contains("view-root");
         assertThat(alert.getButtonTypes()).extracting(ButtonType::getText).containsExactly("Entendido");
+        assertThat(alert.getDialogPane().lookupButton(alert.getButtonTypes().get(0)).getStyleClass()).contains("button-primary");
     }
 
     @Test
