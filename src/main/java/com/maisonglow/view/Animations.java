@@ -62,6 +62,22 @@ public final class Animations {
     }
 
     /**
+     * A field that is wrong: shakes sideways a few times.
+     *
+     * @param node the field
+     */
+    public static void shake(Node node) {
+        Objects.requireNonNull(node, "node");
+        TranslateTransition shake = new TranslateTransition(Duration.millis(60), node);
+        shake.setFromX(0);
+        shake.setByX(6);
+        shake.setCycleCount(6);
+        shake.setAutoReverse(true);
+        shake.setOnFinished(event -> node.setTranslateX(0));
+        shake.play();
+    }
+
+    /**
      * The icon of a button slides a little to the right while the cursor is over it.
      *
      * @param button a button whose graphic is its icon

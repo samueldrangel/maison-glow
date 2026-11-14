@@ -335,6 +335,12 @@
     -fx-border-color: -mg-warning;
 }
 
+/* Texto de error bajo un campo (lo escribe FieldValidator). */
+.field-error-message {
+    -fx-text-fill: -mg-warning;
+    -fx-font-size: 12px;
+}
+
 .chip-success {
     -fx-background-color: -mg-success-bg;
     -fx-text-fill: -mg-success;
@@ -362,4 +368,116 @@
 
 .table-row-cell:selected {
     -fx-background-color: -mg-active;
+}
+
+/* ---- Dialogos de AlertPresenter ---- */
+.dialog-pane.view-root {
+    -fx-background-color: -mg-cream;
+}
+
+.dialog-pane.view-root > .header-panel {
+    -fx-background-color: -mg-rose;
+    -fx-padding: 14 18 14 18;
+}
+
+.dialog-pane.view-root > .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane.view-root > .content.label {
+    -fx-text-fill: -mg-text;
+    -fx-padding: 16 18 8 18;
+}
+
+.dialog-pane.view-root .button {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-padding: 7 18 7 18;
+    -fx-cursor: hand;
+}
+
+.dialog-pane.view-root .button:cancel {
+    -fx-background-color: transparent;
+    -fx-border-color: -mg-rose;
+    -fx-border-radius: 10;
+    -fx-text-fill: -mg-rose-dark;
+}
+
+/* ---- Pantallas de lista + formulario (plantilla templates/ListFormTemplate.fxml) ---- */
+.form-card {
+    -fx-padding: 20;
+}
+
+.form-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 22px;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 0 0 6 0;
+}
+
+.form-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 6 0 0 0;
+}
+
+.search-field {
+    -fx-padding: 10 14 10 14;
+}
+
+.button-secondary {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: -mg-rose;
+    -fx-border-radius: 10;
+    -fx-text-fill: -mg-rose-dark;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.button-secondary:hover {
+    -fx-background-color: -mg-active;
+}
+
+/* ---- Tablas (todas las listas): cabecera clara, filas con linea fina ---- */
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: -mg-surface;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-size: 42;
+}
+
+.table-view .column-header .label {
+    -fx-padding: 0 0 0 12;
+    -fx-text-fill: -mg-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-cell-size: 46;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -mg-cream;
+}
+
+.table-cell {
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent;
+    -fx-text-fill: -mg-text;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -mg-rose-dark;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -mg-text-muted;
 }
