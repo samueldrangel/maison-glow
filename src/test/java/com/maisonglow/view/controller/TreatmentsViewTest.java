@@ -184,12 +184,13 @@ class TreatmentsViewTest {
     }
 
     @Test
-    @DisplayName("the tab opens inside Profesionales y servicios, with its own controller")
+    @DisplayName("both tabs open inside Profesionales y servicios, each with its own controller")
     void opensInsideTheView() throws Exception {
         Parent root = open("ProfessionalsView.fxml");
 
         assertThat(names(root)).hasSize(2);
-        assertThat(root.lookupAll(".tab")).hasSize(1);
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".tab-label").stream().map(node -> ((Label) node).getText()).toList()))
+            .containsExactly("Profesionales", "Tratamientos");
     }
 
     @Test
