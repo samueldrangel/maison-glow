@@ -1,6 +1,7 @@
 package com.maisonglow;
 
 import com.maisonglow.ai.AiConfig;
+import com.maisonglow.ai.AiHistory;
 import com.maisonglow.ai.AiModule;
 import com.maisonglow.ai.AiProviderFactory;
 import com.maisonglow.dao.AppointmentDao;
@@ -68,6 +69,7 @@ public final class AppContext {
     private final LowRotationService lowRotation;
     private final PromotionService promotions;
     private final AiModule ai;
+    private final AiHistory aiHistory;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -113,6 +115,7 @@ public final class AppContext {
         lowRotation = new LowRotationService(saleDao, productDao, settings);
         promotions = new PromotionService(lowRotation, saleDao, settings);
         ai = new AiProviderFactory(aiConfig).create(customers, products, appointments, professionals, treatments);
+        aiHistory = new AiHistory(data, clock);
     }
 
     /**
@@ -208,5 +211,10 @@ public final class AppContext {
     /** @return the AI module (assistant and virtual try-on), simulated unless an API is configured */
     public AiModule ai() {
         return ai;
+    }
+
+    /** @return persistent AI conversations, tool audit and virtual try-on sessions */
+    public AiHistory aiHistory() {
+        return aiHistory;
     }
 }
