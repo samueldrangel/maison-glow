@@ -1,6 +1,7 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.model.Product;
 import com.maisonglow.model.ProductCategory;
 import com.maisonglow.service.ProductData;
 import com.maisonglow.view.AlertPresenter;
@@ -112,6 +113,38 @@ class ProductsViewTest {
 
     private static boolean marked(Parent root, String id) throws Exception {
         return FxTest.onFxThread(() -> root.lookup(id).getStyleClass().contains("field-error"));
+    }
+
+    /** The small button of a row, found by what it does and to which product, for example "Editar Champú". */
+    private static Button iconButton(Parent root, String description) throws Exception {
+        return FxTest.onFxThread(() -> {
+            root.applyCss();
+            root.layout();
+            return root.lookupAll(".icon-button").stream().filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(button -> description.equals(button.getAccessibleText())).findFirst().orElseThrow();
+        });
+    }
+
+    private static void fire(Button button) throws Exception {
+        FxTest.onFxThread(() -> {
+            button.fire();
+            return null;
+        });
+    }
+
+    /** Answers "Confirmar" to every question, as a user who accepts would. */
+    private static void acceptQuestions(ViewLoader.Loaded<ProductsController> screen) {
+        screen.controller().useAlerts(new AlertPresenter(() -> null, alert ->
+            alert.getButtonTypes().stream().filter(button -> "Confirmar".equals(button.getText())).findFirst()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void pick(Parent root, String productName) throws Exception {
+        ComboBox<Product> box = (ComboBox<Product>) root.lookup("#adjustProductBox");
+        FxTest.onFxThread(() -> {
+            box.getItems().stream().filter(product -> product.getName().equals(productName)).findFirst().ifPresent(box::setValue);
+            return null;
+        });
     }
 
     /** Fills the registration form and presses Guardar. */
@@ -312,5 +345,146 @@ class ProductsViewTest {
 
         assertThat(marked(root, "#nameField")).isFalse();
         assertThat(((TextField) root.lookup("#priceField")).getText()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("edits a product: the form is filled, the stock is left alone and the table shows the change")
+    void editsAProduct() throws Exception {
+        context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
+        Parent root = open();
+
+        fire(iconButton(root, "Editar Champú Nutritivo"));
+
+        assertThat(((Label) root.lookup("#formTitle")).getText()).isEqualTo("Editar producto");
+        assertThat(((TextField) root.lookup("#nameField")).getText()).isEqualTo("Champú Nutritivo");
+        assertThat(((TextField) root.lookup("#priceField")).getText()).isEqualTo("28000");
+        assertThat(root.lookup("#initialStockBox").isVisible()).as("the stock is changed with the adjustment").isFalse();
+
+        fill(root, "#priceField", "30.000");
+        press(root, "#saveButton");
+
+        assertThat(context.products().listAll()).singleElement().satisfies(product -> {
+            assertThat(product.getPrice()).isEqualByComparingTo("30000");
+            assertThat(product.getStock()).isEqualTo(5);
+        });
+        assertThat(((Label) root.lookup("#formTitle")).getText()).isEqualTo("Registrar producto");
+    }
+
+    @Test
+    @DisplayName("a product can keep its own name but not take the name of another one")
+    void editingNames() throws Exception {
+        context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
+        context.products().register(new ProductData("Esmalte Rosa Nude", NAILS, 18000, 8), 3);
+        Parent root = open();
+        fire(iconButton(root, "Editar Esmalte Rosa Nude"));
+
+        fill(root, "#nameField", "Champú Nutritivo");
+        press(root, "#saveButton");
+        assertThat(message(root, "#nameMessage")).isEqualTo("Ya existe un producto llamado Champú Nutritivo.");
+
+        fill(root, "#nameField", "Esmalte Rosa Nude");
+        press(root, "#saveButton");
+        assertThat(marked(root, "#nameField")).isFalse();
+        assertThat(((Label) root.lookup("#formTitle")).getText()).isEqualTo("Registrar producto");
+    }
+
+    @Test
+    @DisplayName("adds and removes units and updates the warning")
+    void adjustsTheStock() throws Exception {
+        context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
+        Parent root = open();
+        assertThat(root.lookup("#lowStockBanner").isVisible()).isTrue();
+
+        pick(root, "Champú Nutritivo");
+        fill(root, "#quantityField", "10");
+        press(root, "#adjustButton");
+
+        assertThat(context.products().listAll().get(0).getStock()).isEqualTo(15);
+        assertThat(((TextField) root.lookup("#quantityField")).getText()).isEqualTo("1");
+        assertThat(root.lookup("#lowStockBanner").isVisible()).as("15 is above the minimum of 10").isFalse();
+
+        fill(root, "#quantityField", "-4");
+        press(root, "#adjustButton");
+        assertThat(context.products().listAll().get(0).getStock()).isEqualTo(11);
+    }
+
+    @Test
+    @DisplayName("shows each adjustment mistake under its own field")
+    void adjustmentErrors() throws Exception {
+        context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
+        Parent root = open();
+
+        press(root, "#adjustButton");
+        assertThat(message(root, "#adjustProductMessage")).isEqualTo("El campo producto es obligatorio.");
+
+        pick(root, "Champú Nutritivo");
+        fill(root, "#quantityField", "0");
+        press(root, "#adjustButton");
+        assertThat(message(root, "#quantityMessage")).isEqualTo("El ajuste de stock no puede ser cero.");
+
+        fill(root, "#quantityField", "mucho");
+        press(root, "#adjustButton");
+        assertThat(message(root, "#quantityMessage")).isEqualTo("El campo cantidad debe ser un número entero.");
+
+        fill(root, "#quantityField", "-99");
+        press(root, "#adjustButton");
+        assertThat(message(root, "#quantityMessage")).contains("Stock insuficiente de Champú Nutritivo");
+        assertThat(context.products().listAll().get(0).getStock()).as("nothing changed").isEqualTo(5);
+        assertThat(dialogs).isEmpty();
+    }
+
+    @Test
+    @DisplayName("the plus and minus buttons move the quantity one unit and can go below zero")
+    void stepper() throws Exception {
+        Parent root = open();
+        TextField quantity = (TextField) root.lookup("#quantityField");
+
+        press(root, "#plusButton");
+        assertThat(quantity.getText()).isEqualTo("2");
+        press(root, "#minusButton");
+        press(root, "#minusButton");
+        press(root, "#minusButton");
+
+        assertThat(quantity.getText()).isEqualTo("-1");
+    }
+
+    @Test
+    @DisplayName("choosing a row in the table picks that product to adjust")
+    void selectionPicksTheProduct() throws Exception {
+        registerSomeProducts();
+        Parent root = open();
+        @SuppressWarnings("unchecked")
+        TableView<Product> table = (TableView<Product>) root.lookup("#productsTable");
+        @SuppressWarnings("unchecked")
+        ComboBox<Product> box = (ComboBox<Product>) root.lookup("#adjustProductBox");
+
+        FxTest.onFxThread(() -> {
+            table.getSelectionModel().select(0);
+            return null;
+        });
+
+        assertThat(box.getValue().getName()).isEqualTo(table.getItems().get(0).getName());
+    }
+
+    @Test
+    @DisplayName("deactivating asks first, hides the product from the adjustment and can be undone")
+    void deactivatesAndReactivates() throws Exception {
+        context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
+        ViewLoader.Loaded<ProductsController> screen = openScreen();
+        Parent root = screen.root();
+
+        fire(iconButton(root, "Desactivar Champú Nutritivo"));
+        assertThat(context.products().listAll().get(0).isActive()).as("the question was not accepted").isTrue();
+
+        acceptQuestions(screen);
+        fire(iconButton(root, "Desactivar Champú Nutritivo"));
+        assertThat(context.products().listAll().get(0).isActive()).isFalse();
+        assertThat(names(root)).as("it stays in the list, as inactive").containsExactly("Champú Nutritivo");
+        @SuppressWarnings("unchecked")
+        ComboBox<Product> box = (ComboBox<Product>) root.lookup("#adjustProductBox");
+        assertThat(box.getItems()).as("it cannot be adjusted while inactive").isEmpty();
+
+        fire(iconButton(root, "Reactivar Champú Nutritivo"));
+        assertThat(context.products().listAll().get(0).isActive()).isTrue();
     }
 }
