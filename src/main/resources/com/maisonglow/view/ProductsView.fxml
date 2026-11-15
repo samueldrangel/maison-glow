@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Pantalla de Productos e Inventario (mockup M4): la lista con el aviso de stock bajo y los filtros.
+     Los textos de ejemplo (el aviso y las categorias) se ven aqui para disenar;
+     ProductsController los reemplaza al arrancar con los datos reales.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.ProductsController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="660">
+    <center>
+        <VBox spacing="14">
+            <BorderPane.margin><Insets right="20"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="Productos" styleClass="view-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="newButton" text="Nuevo producto" styleClass="button-gold">
+                    <graphic><StackPane styleClass="sparkle" minWidth="15" prefWidth="15" maxWidth="15" minHeight="15" prefHeight="15" maxHeight="15">
+                        <SVGPath styleClass="line-icon" scaleX="0.625" scaleY="0.625" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>
+                    </StackPane></graphic>
+                </Button>
+            </HBox>
+
+            <HBox fx:id="lowStockBanner" styleClass="banner-warning">
+                <StackPane minWidth="20" prefWidth="20" maxWidth="20" minHeight="20" prefHeight="20" maxHeight="20">
+                    <SVGPath styleClass="line-icon" scaleX="0.83" scaleY="0.83" content="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01"/>
+                </StackPane>
+                <Label fx:id="lowStockText" text="2 productos por debajo del stock mínimo" styleClass="banner-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="lowStockButton" text="Ver solo esos" styleClass="button-secondary"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <TextField fx:id="searchField" promptText="Buscar producto..." styleClass="search-field" HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="categoryChips" alignment="CENTER_RIGHT" spacing="8">
+                    <ToggleButton text="Cabello" styleClass="filter-chip"/>
+                    <ToggleButton text="Piel" styleClass="filter-chip"/>
+                    <ToggleButton text="Uñas" styleClass="filter-chip"/>
+                    <ToggleButton text="Maquillaje" styleClass="filter-chip"/>
+                </HBox>
+            </HBox>
+
+            <TableView fx:id="productsTable" styleClass="compact-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn" text="Producto" prefWidth="160"/>
+                    <TableColumn fx:id="categoryColumn" text="Categoría" prefWidth="88"/>
+                    <TableColumn fx:id="priceColumn" text="Precio" prefWidth="82"/>
+                    <TableColumn fx:id="stockColumn" text="Stock" prefWidth="52"/>
+                    <TableColumn fx:id="minimumColumn" text="Mínimo" prefWidth="62"/>
+                    <TableColumn fx:id="statusColumn" text="Estado" prefWidth="118"/>
+                    <TableColumn fx:id="actionsColumn" text="Acciones" prefWidth="72" sortable="false"/>
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                <placeholder><Label text="Aún no hay productos. Pulsa «Nuevo producto» para registrar el primero." styleClass="placeholder-notice"/></placeholder>
+            </TableView>
+        </VBox>
+    </center>
+</BorderPane>
