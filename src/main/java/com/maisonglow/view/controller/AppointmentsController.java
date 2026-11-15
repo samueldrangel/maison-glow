@@ -22,6 +22,9 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
@@ -29,9 +32,12 @@ import javafx.util.StringConverter;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -43,6 +49,12 @@ import java.util.function.Function;
 public final class AppointmentsController {
 
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter SHORT_DAY = DateTimeFormatter.ofPattern("EEE dd/MM", Locale.forLanguageTag("es-CO"));
+    /** How many days ahead, and back, "Próximas" and "Pasadas" look. */
+    private static final int WINDOW_DAYS = 60;
+
+    /** What the agenda is showing. */
+    private enum Mode { UPCOMING, TODAY, PAST, DAY }
 
     private final AppointmentService appointments;
     private final Clock clock;
@@ -50,17 +62,29 @@ public final class AppointmentsController {
     private AlertPresenter alerts;
 
     @FXML
+    private ToggleGroup modeChips;
+    @FXML
+    private ToggleButton upcomingChip;
+    @FXML
+    private ToggleButton todayChip;
+    @FXML
+    private ToggleButton pastChip;
+    @FXML
+    private ToggleButton dayChip;
+    @FXML
+    private HBox dayControls;
+    @FXML
     private Button previousButton;
     @FXML
     private DatePicker dayPicker;
     @FXML
     private Button nextButton;
     @FXML
-    private Button todayButton;
-    @FXML
     private Label dayTitle;
     @FXML
     private TableView<Appointment> appointmentsTable;
+    @FXML
+    private TableColumn<Appointment, Appointment> dateColumn;
     @FXML
     private TableColumn<Appointment, Appointment> timeColumn;
     @FXML
@@ -108,12 +132,15 @@ public final class AppointmentsController {
     private void initialize() {
         alerts = new AlertPresenter(appointmentsTable);
         setUpTable();
+        setUpModes();
         setUpDay();
         setUpActions();
         refresh();
     }
 
     private void setUpTable() {
+        dateColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
+        dateColumn.setCellFactory(showing(appointment -> SHORT_DAY.format(appointment.getStart().toLocalDate())));
         timeColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
         timeColumn.setCellFactory(showing(appointment -> DateFormats.time(appointment.getStart().toLocalTime())
             + " - " + DateFormats.time(appointment.getEnd().toLocalTime())));
@@ -126,6 +153,24 @@ public final class AppointmentsController {
         depositColumn.setCellFactory(showing(CurrencyFormatter::format));
         appointmentsTable.setRowFactory(table -> new AppointmentRow());
         appointmentsTable.setItems(shown);
+    }
+
+    private void setUpModes() {
+        upcomingChip.setUserData(Mode.UPCOMING);
+        todayChip.setUserData(Mode.TODAY);
+        pastChip.setUserData(Mode.PAST);
+        dayChip.setUserData(Mode.DAY);
+        modeChips.selectedToggleProperty().addListener((observable, before, chip) -> {
+            if (chip == null) {
+                before.setSelected(true);
+            } else {
+                refresh();
+            }
+        });
+    }
+
+    private Mode mode() {
+        return (Mode) modeChips.getSelectedToggle().getUserData();
     }
 
     private void setUpDay() {
@@ -154,7 +199,6 @@ public final class AppointmentsController {
         });
         previousButton.setOnAction(event -> dayPicker.setValue(dayPicker.getValue().minusDays(1)));
         nextButton.setOnAction(event -> dayPicker.setValue(dayPicker.getValue().plusDays(1)));
-        todayButton.setOnAction(event -> dayPicker.setValue(LocalDate.now(clock)));
     }
 
     private void setUpActions() {
@@ -202,26 +246,58 @@ public final class AppointmentsController {
             }
             alerts.toast(notice);
             refresh();
-            appointmentsTable.getItems().stream().filter(appointment -> appointment.getId() == chosen.getId())
-                .findFirst().ifPresent(appointmentsTable.getSelectionModel()::select);
         } catch (BusinessRuleException | DataAccessException e) {
             alerts.showError(e);
         }
     }
 
-    /** Reads the appointments of the chosen day again, in order of time. */
+    /**
+     * Reads the appointments of what the agenda is showing again: the ones that come next, today's, the ones that
+     * already happened (the most recent first) or those of one chosen day.
+     */
     void refresh() {
-        LocalDate day = dayPicker.getValue();
+        Mode mode = mode();
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime now = LocalDateTime.now(clock);
+        Appointment chosen = appointmentsTable.getSelectionModel().getSelectedItem();
         try {
-            shown.setAll(appointments.listByDate(day).stream().sorted(Comparator.comparing(Appointment::getStart)).toList());
+            shown.setAll(switch (mode) {
+                case UPCOMING -> appointments.listBetween(today, today.plusDays(WINDOW_DAYS)).stream()
+                    .filter(appointment -> appointment.getEnd().isAfter(now)).toList();
+                case PAST -> appointments.listBetween(today.minusDays(WINDOW_DAYS), today).stream()
+                    .filter(appointment -> !appointment.getEnd().isAfter(now))
+                    .sorted(Comparator.comparing(Appointment::getStart).reversed()).toList();
+                case TODAY -> appointments.listByDate(today);
+                case DAY -> appointments.listByDate(dayPicker.getValue());
+            });
         } catch (ValidationException | DataAccessException e) {
             alerts.showError(e);
         }
-        String title = DateFormats.longDate(day);
-        dayTitle.setText(title.substring(0, 1).toUpperCase() + title.substring(1));
-        long pending = shown.stream().filter(appointment -> AppointmentService.blocksSchedule(appointment)).count();
-        countLabel.setText(shown.size() + (shown.size() == 1 ? " cita" : " citas") + ", " + pending + " por atender");
+        if (chosen != null) {
+            shown.stream().filter(appointment -> appointment.getId() == chosen.getId()).findFirst()
+                .ifPresent(appointmentsTable.getSelectionModel()::select);
+        }
+        dateColumn.setVisible(mode == Mode.UPCOMING || mode == Mode.PAST);
+        dayControls.setVisible(mode == Mode.DAY);
+        dayControls.setManaged(mode == Mode.DAY);
+        dayTitle.setText(title(mode, today));
+        long open = shown.stream().filter(appointment -> AppointmentService.blocksSchedule(appointment)).count();
+        countLabel.setText(shown.size() + (shown.size() == 1 ? " cita" : " citas") + ", " + open
+            + (mode == Mode.PAST ? " sin cerrar" : " por atender"));
         refreshActions();
+    }
+
+    private String title(Mode mode, LocalDate today) {
+        return switch (mode) {
+            case UPCOMING -> "Próximas citas · próximos " + WINDOW_DAYS + " días";
+            case PAST -> "Citas pasadas · últimos " + WINDOW_DAYS + " días";
+            case TODAY -> capitalized(DateFormats.longDate(today));
+            case DAY -> capitalized(DateFormats.longDate(dayPicker.getValue()));
+        };
+    }
+
+    private static String capitalized(String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
 
     private static <T> Callback<TableColumn<Appointment, T>, TableCell<Appointment, T>> showing(Function<T, String> text) {
