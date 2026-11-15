@@ -25,16 +25,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.util.StringConverter;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -48,6 +51,10 @@ import java.util.function.Function;
 public final class AppointmentFormController {
 
     private static final String NOT_YET = "—";
+    /** Minutes between one start time on the list and the next. */
+    private static final int SLOT_MINUTES = 15;
+    private static final String BUSY = "ocupado";
+    private static final String TOO_SOON = "muy pronto";
 
     private final AppointmentService appointments;
     private final CustomerService customers;
@@ -55,6 +62,9 @@ public final class AppointmentFormController {
     private final ProfessionalService professionals;
     private final SettingsService settings;
     private final DepositRule depositRule;
+    private final Clock clock;
+    /** The start times of the list that cannot be chosen, with why. */
+    private final Map<LocalTime, String> blocked = new HashMap<>();
     private final FieldValidator fields = new FieldValidator();
     private Appointment rescheduling;
     private SlidePanel drawer;
@@ -80,7 +90,7 @@ public final class AppointmentFormController {
     @FXML
     private DatePicker dateField;
     @FXML
-    private TextField timeField;
+    private ComboBox<LocalTime> timeBox;
     @FXML
     private Label timeMessage;
     @FXML
@@ -111,6 +121,7 @@ public final class AppointmentFormController {
         this.professionals = context.professionals();
         this.settings = context.settings();
         this.depositRule = new DepositRule(context.settings());
+        this.clock = context.clock();
     }
 
     /**
@@ -141,12 +152,14 @@ public final class AppointmentFormController {
         fields.field(customerBox, customerMessage, "cliente");
         fields.field(treatmentBox, treatmentMessage, "tratamiento");
         fields.field(professionalBox, professionalMessage, "profesional", "ofrece");
-        fields.field(timeField, timeMessage, "hora", "fecha", "atiende", "cita en ese", "anticipación");
+        timeBox.setCellFactory(list -> slotCell());
+        timeBox.setButtonCell(slotCell());
+        fields.field(timeBox, timeMessage, "hora", "fecha", "atiende", "cita en ese", "anticipación");
         treatmentBox.valueProperty().addListener((observable, before, treatment) -> offerProfessionalsOf(treatment));
         customerBox.valueProperty().addListener((observable, before, now) -> updateSummary());
-        professionalBox.valueProperty().addListener((observable, before, now) -> updateSummary());
-        dateField.valueProperty().addListener((observable, before, now) -> updateSummary());
-        timeField.textProperty().addListener((observable, before, now) -> updateSummary());
+        professionalBox.valueProperty().addListener((observable, before, now) -> offerTimes());
+        dateField.valueProperty().addListener((observable, before, now) -> offerTimes());
+        timeBox.valueProperty().addListener((observable, before, now) -> updateSummary());
         cancelButton.setOnAction(event -> drawer.close());
         saveButton.setOnAction(event -> save());
         updateSummary();
@@ -174,7 +187,7 @@ public final class AppointmentFormController {
         treatmentBox.setValue(null);
         professionalBox.getItems().clear();
         dateField.setValue(day);
-        timeField.clear();
+        timeBox.setValue(null);
         fields.clear();
         updateSummary();
         drawer.open();
@@ -199,7 +212,8 @@ public final class AppointmentFormController {
         treatmentBox.setDisable(true);
         professionalBox.setDisable(true);
         dateField.setValue(appointment.getStart().toLocalDate());
-        timeField.setText(DateFormats.time(appointment.getStart().toLocalTime()));
+        offerTimes();
+        timeBox.setValue(appointment.getStart().toLocalTime());
         fields.clear();
         updateSummary();
         drawer.open();
@@ -231,17 +245,70 @@ public final class AppointmentFormController {
             alerts.showError(e);
         }
         professionalBox.setPromptText(treatment == null ? "Primero elige el tratamiento" : "Seleccionar profesional...");
+        offerTimes();
+    }
+
+    /** A line of the list of start times: the time, and why it cannot be chosen when that is the case. */
+    private ListCell<LocalTime> slotCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(LocalTime time, boolean empty) {
+                super.updateItem(time, empty);
+                boolean off = !empty && time != null && blocked.containsKey(time);
+                setText(empty || time == null ? null : DateFormats.time(time) + (off ? " · " + blocked.get(time) : ""));
+                setDisable(off);
+            }
+        };
+    }
+
+    /**
+     * Fills the list with the start times of the chosen professional on the chosen day: from the start of the working
+     * day to the last one that still finishes before it ends, every 15 minutes. The ones that clash with another
+     * appointment, or that come before the notice the business asks for, stay on the list but cannot be chosen.
+     */
+    private void offerTimes() {
+        LocalTime previous = timeBox.getValue();
+        blocked.clear();
+        List<LocalTime> slots = new ArrayList<>();
+        Professional professional = professionalBox.getValue();
+        Treatment treatment = treatmentBox.getValue();
+        LocalDate day = dateField.getValue();
+        if (professional != null && treatment != null && day != null && professional.isActive()) {
+            try {
+                LocalDateTime earliest = LocalDateTime.now(clock).plusHours(settings.minBookingNoticeHours());
+                List<Appointment> busy = appointments.listByDate(day).stream()
+                    .filter(other -> other.getProfessional().getId() == professional.getId())
+                    .filter(AppointmentService::blocksSchedule)
+                    .filter(other -> rescheduling == null || other.getId() != rescheduling.getId()).toList();
+                LocalTime last = professional.getWorkEnd().minusMinutes(treatment.getDurationMinutes());
+                for (LocalTime time = professional.getWorkStart(); !time.isAfter(last); time = time.plusMinutes(SLOT_MINUTES)) {
+                    LocalDateTime start = day.atTime(time);
+                    LocalDateTime end = AppointmentService.calculateEnd(treatment, start);
+                    slots.add(time);
+                    if (start.isBefore(earliest)) {
+                        blocked.put(time, TOO_SOON);
+                    } else if (busy.stream().anyMatch(other -> AppointmentService.overlapsWith(other, start, end))) {
+                        blocked.put(time, BUSY);
+                    }
+                    if (time.plusMinutes(SLOT_MINUTES).isBefore(time)) {
+                        break;
+                    }
+                }
+            } catch (ValidationException | DataAccessException e) {
+                alerts.showError(e);
+            }
+        }
+        timeBox.getItems().setAll(slots);
+        timeBox.setValue(slots.contains(previous) && !blocked.containsKey(previous) ? previous : null);
+        timeBox.setPromptText(slots.isEmpty() ? "Elige profesional y fecha" : "Elegir hora");
         updateSummary();
     }
 
-    /** The day and hour typed, or null while they are missing or not a time. */
+    /** The day and hour chosen, or null while one of them is missing. */
     private LocalDateTime chosenStart() {
-        try {
-            LocalDate day = dateField.getValue();
-            return day == null || timeField.getText() == null ? null : day.atTime(LocalTime.parse(timeField.getText().trim()));
-        } catch (DateTimeParseException e) {
-            return null;
-        }
+        LocalDate day = dateField.getValue();
+        LocalTime time = timeBox.getValue();
+        return day == null || time == null ? null : day.atTime(time);
     }
 
     /** Recalculates the summary with what has been chosen; what is still missing shows a dash. */
@@ -271,20 +338,9 @@ public final class AppointmentFormController {
             availabilityValue.getStyleClass().add("stat-value");
             return;
         }
-        if (rescheduling != null) {
-            availabilityValue.setText("Se comprueba al guardar");
-            availabilityValue.getStyleClass().add("stat-value");
-            return;
-        }
-        LocalDateTime end = AppointmentService.calculateEnd(treatment, start);
-        try {
-            boolean free = appointments.checkAvailability(professional, start, end);
-            availabilityValue.setText(free ? "Disponible" : AppointmentService.worksDuring(professional, start, end)
-                ? "Ya tiene una cita" : "Fuera de su jornada");
-            availabilityValue.getStyleClass().add(free ? "chip-success" : "chip-warning");
-        } catch (ValidationException | DataAccessException e) {
-            alerts.showError(e);
-        }
+        String why = blocked.get(start.toLocalTime());
+        availabilityValue.setText(why == null ? "Disponible" : BUSY.equals(why) ? "Ya tiene una cita" : "Muy pronto");
+        availabilityValue.getStyleClass().add(why == null ? "chip-success" : "chip-warning");
     }
 
     /** The deposit the rules ask for: the percentage of the price, or all of it for a customer with many no-shows. */
@@ -338,10 +394,9 @@ public final class AppointmentFormController {
 
     private LocalDateTime parseStart() throws ValidationException {
         Validator.requirePresent(dateField.getValue(), "fecha");
-        try {
-            return dateField.getValue().atTime(LocalTime.parse(timeField.getText() == null ? "" : timeField.getText().trim()));
-        } catch (DateTimeParseException e) {
-            throw new ValidationException("La hora debe tener el formato HH:mm, por ejemplo 09:30.", e);
+        if (timeBox.getValue() == null) {
+            throw new ValidationException("Elige la hora de la cita.");
         }
+        return dateField.getValue().atTime(timeBox.getValue());
     }
 }
