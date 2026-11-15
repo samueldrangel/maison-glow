@@ -287,6 +287,26 @@ class AppointmentServiceTest {
     }
 
     @Test
+    @DisplayName("listBetween returns the appointments of the range in order, both ends included")
+    void listBetween() throws Exception {
+        Appointment second = bookWithLauraAt(NINE.plusDays(1));
+        Appointment first = bookWithLauraAt(NINE);
+        bookWithLauraAt(NINE.plusDays(5));
+
+        assertThat(service.listBetween(NINE.toLocalDate(), NINE.plusDays(1).toLocalDate())).containsExactly(first, second);
+        assertThat(service.listBetween(NINE.plusDays(2).toLocalDate(), NINE.plusDays(4).toLocalDate())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("listBetween rejects a missing date or a range that ends before it starts")
+    void listBetweenRejectsABadRange() {
+        assertThatThrownBy(() -> service.listBetween(null, NINE.toLocalDate())).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> service.listBetween(NINE.toLocalDate(), null)).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> service.listBetween(NINE.toLocalDate(), NINE.minusDays(1).toLocalDate()))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("anterior");
+    }
+
+    @Test
     @DisplayName("checkAvailability considers status, working hours and other appointments")
     void checkAvailability() throws Exception {
         bookWithLauraAt(NINE);
