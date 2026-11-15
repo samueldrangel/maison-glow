@@ -2,16 +2,19 @@ package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.model.Customer;
+import com.maisonglow.model.SaleLine;
 import com.maisonglow.model.Sellable;
 import com.maisonglow.service.ContactData;
 import com.maisonglow.service.ProductData;
 import com.maisonglow.service.TreatmentData;
+import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -74,8 +78,35 @@ class SalesViewTest {
     private static void choose(Parent root, String chipId) throws Exception {
         FxTest.onFxThread(() -> {
             ((ToggleButton) root.lookup("#" + chipId)).fire();
+            root.applyCss();
+            root.layout();
             return null;
         });
+    }
+
+    /** Presses the icon button of a table that has that description, as a user would click it. */
+    private static void click(Parent root, String tableId, String description) throws Exception {
+        FxTest.onFxThread(() -> {
+            root.lookup("#" + tableId).lookupAll(".icon-button").stream().map(Button.class::cast)
+                .filter(button -> description.equals(button.getAccessibleText())).findFirst().orElseThrow().fire();
+            root.applyCss();
+            root.layout();
+            return null;
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<SaleLine> cartLines(Parent root) throws Exception {
+        TableView<SaleLine> table = (TableView<SaleLine>) root.lookup("#cartTable");
+        return FxTest.onFxThread(() -> List.copyOf(table.getItems()));
+    }
+
+    private static String total(Parent root) throws Exception {
+        return FxTest.onFxThread(() -> ((Label) root.lookup("#totalLabel")).getText());
+    }
+
+    private static String money(String amount) {
+        return CurrencyFormatter.format(new BigDecimal(amount));
     }
 
     @Test
@@ -132,5 +163,75 @@ class SalesViewTest {
         List<Button> adders = FxTest.onFxThread(() -> root.lookupAll(".icon-button").stream().map(Button.class::cast).toList());
 
         assertThat(adders).extracting(Button::isDisabled).containsExactlyInAnyOrder(false, true);
+    }
+
+    @Test
+    @DisplayName("adding the same product twice makes one line of two units and the total follows")
+    void addingTwiceMergesTheLine() throws Exception {
+        Parent root = open();
+
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+
+        assertThat(cartLines(root)).hasSize(1);
+        assertThat(cartLines(root).get(0).getQuantity()).isEqualTo(2);
+        assertThat(total(root)).isEqualTo(money("56000"));
+    }
+
+    @Test
+    @DisplayName("products and treatments go to the same cart")
+    void mixesProductsAndTreatments() throws Exception {
+        Parent root = open();
+
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+        choose(root, "treatmentsChip");
+        click(root, "catalogTable", "Agregar Corte de cabello");
+
+        assertThat(cartLines(root)).extracting(line -> line.getItem().getName())
+            .containsExactly("Champú Nutritivo", "Corte de cabello");
+        assertThat(total(root)).isEqualTo(money("73000"));
+    }
+
+    @Test
+    @DisplayName("plus and minus change the quantity of a line, and a line stops at one unit")
+    void changesTheQuantity() throws Exception {
+        Parent root = open();
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+
+        click(root, "cartTable", "Agregar una unidad de Champú Nutritivo");
+        click(root, "cartTable", "Agregar una unidad de Champú Nutritivo");
+        click(root, "cartTable", "Quitar una unidad de Champú Nutritivo");
+
+        assertThat(cartLines(root).get(0).getQuantity()).isEqualTo(2);
+        assertThat(total(root)).isEqualTo(money("56000"));
+    }
+
+    @Test
+    @DisplayName("the trash button takes the line out and the total goes back to zero")
+    void removesALine() throws Exception {
+        Parent root = open();
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+
+        click(root, "cartTable", "Quitar Champú Nutritivo de la venta");
+
+        assertThat(cartLines(root)).isEmpty();
+        assertThat(total(root)).isEqualTo(money("0"));
+    }
+
+    @Test
+    @DisplayName("Vaciar is disabled while the cart is empty and empties it otherwise")
+    void clearsTheCart() throws Exception {
+        Parent root = open();
+        Button clear = (Button) root.lookup("#clearButton");
+        assertThat(clear.isDisabled()).isTrue();
+
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+        assertThat(clear.isDisabled()).isFalse();
+        FxTest.onFxThread(() -> {
+            clear.fire();
+            return null;
+        });
+
+        assertThat(cartLines(root)).isEmpty();
     }
 }
