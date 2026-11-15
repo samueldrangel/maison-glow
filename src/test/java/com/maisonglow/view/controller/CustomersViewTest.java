@@ -7,6 +7,7 @@ import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -82,6 +83,28 @@ class CustomersViewTest {
         });
     }
 
+    private static void fill(Parent root, String document, String name, String phone, String email) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((TextField) root.lookup("#documentField")).setText(document);
+            ((TextField) root.lookup("#nameField")).setText(name);
+            ((TextField) root.lookup("#phoneField")).setText(phone);
+            ((TextField) root.lookup("#emailField")).setText(email);
+            return null;
+        });
+    }
+
+    private static void press(Parent root, String id) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((Button) root.lookup("#" + id)).fire();
+            return null;
+        });
+    }
+
+    private static String message(Parent root, String id) throws Exception {
+        Label label = (Label) root.lookup("#" + id);
+        return FxTest.onFxThread(() -> label.isVisible() ? label.getText() : "");
+    }
+
     @Test
     @DisplayName("lists every customer and counts them")
     void listsCustomers() throws Exception {
@@ -129,5 +152,66 @@ class CustomersViewTest {
 
         assertThat(root.lookupAll(".row-noshow")).hasSize(1);
         assertThat(root.lookupAll(".chip-warning")).extracting(node -> ((Label) node).getText()).containsExactly("1");
+    }
+
+    @Test
+    @DisplayName("registering a customer adds it to the table and clears the form")
+    void registers() throws Exception {
+        Parent root = open();
+
+        fill(root, "1003", "Paula Andrés", "3207778899", "paula@correo.com");
+        press(root, "saveButton");
+
+        assertThat(names(root)).contains("Paula Andrés");
+        assertThat(count(root)).isEqualTo("Mostrando 3 de 3 clientes");
+        assertThat(((TextField) root.lookup("#nameField")).getText()).isEmpty();
+        assertThat(context.customers().findByDocument("1003")).isPresent();
+    }
+
+    @Test
+    @DisplayName("a repeated document is rejected under the document field")
+    void rejectsRepeatedDocument() throws Exception {
+        Parent root = open();
+
+        fill(root, "1001", "Otra Persona", "3001110000", "otra@correo.com");
+        press(root, "saveButton");
+
+        assertThat(message(root, "documentMessage")).contains("1001");
+        assertThat(names(root)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("each wrong field is reported under its own field")
+    void reportsEachField() throws Exception {
+        Parent root = open();
+
+        fill(root, "", "Paula Andrés", "3207778899", "paula@correo.com");
+        press(root, "saveButton");
+        assertThat(message(root, "documentMessage")).isNotEmpty();
+
+        fill(root, "1003", "", "3207778899", "paula@correo.com");
+        press(root, "saveButton");
+        assertThat(message(root, "nameMessage")).isNotEmpty();
+
+        fill(root, "1003", "Paula Andrés", "12", "paula@correo.com");
+        press(root, "saveButton");
+        assertThat(message(root, "phoneMessage")).contains("entre 7 y 12");
+
+        fill(root, "1003", "Paula Andrés", "3207778899", "sin-arroba");
+        press(root, "saveButton");
+        assertThat(message(root, "emailMessage")).contains("formato");
+        assertThat(names(root)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Cancelar empties the form")
+    void cancelClearsTheForm() throws Exception {
+        Parent root = open();
+        fill(root, "1003", "Paula Andrés", "3207778899", "paula@correo.com");
+
+        press(root, "cancelButton");
+
+        assertThat(((TextField) root.lookup("#documentField")).getText()).isEmpty();
+        assertThat(((TextField) root.lookup("#emailField")).getText()).isEmpty();
     }
 }
