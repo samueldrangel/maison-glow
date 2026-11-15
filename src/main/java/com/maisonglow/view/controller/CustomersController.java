@@ -10,6 +10,8 @@ import com.maisonglow.service.CustomerService;
 import com.maisonglow.util.DateFormats;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
+import com.maisonglow.view.Icons;
+import com.maisonglow.view.SlidePanel;
 import com.maisonglow.view.customer.CustomerFilter;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -19,6 +21,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -26,9 +29,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.util.Callback;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -45,6 +51,7 @@ public final class CustomersController {
     private final FieldValidator formFields = new FieldValidator();
     private CustomerFilter filter;
     private Customer editing;
+    private SlidePanel formDrawer;
     private AlertPresenter alerts;
 
     @FXML
@@ -72,9 +79,13 @@ public final class CustomersController {
     @FXML
     private TableColumn<Customer, Integer> noShowsColumn;
     @FXML
+    private TableColumn<Customer, Customer> actionsColumn;
+    @FXML
     private Label countLabel;
     @FXML
     private Button newButton;
+    @FXML
+    private ScrollPane formPanel;
     @FXML
     private Label formTitle;
     @FXML
@@ -136,6 +147,8 @@ public final class CustomersController {
         registeredColumn.setCellFactory(showing(DateFormats::date));
         noShowsColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getNoShowCount()));
         noShowsColumn.setCellFactory(column -> new NoShowsCell());
+        actionsColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
+        actionsColumn.setCellFactory(column -> new ActionsCell());
         customersTable.setRowFactory(table -> new NoShowRow());
         SortedList<Customer> sorted = new SortedList<>(shown);
         sorted.comparatorProperty().bind(customersTable.comparatorProperty());
@@ -157,14 +170,26 @@ public final class CustomersController {
     }
 
     private void setUpForm() {
+        formDrawer = new SlidePanel(formPanel, formPanel.getContent(), formPanel.getPrefWidth());
         formFields.field(documentField, documentMessage, "documento");
         formFields.field(nameField, nameMessage, "nombre");
         formFields.field(phoneField, phoneMessage, "teléfono");
         formFields.field(emailField, emailMessage, "correo");
-        newButton.setOnAction(event -> startRegistering());
-        cancelButton.setOnAction(event -> startRegistering());
+        newButton.setOnAction(event -> {
+            startRegistering();
+            showForm();
+        });
+        cancelButton.setOnAction(event -> {
+            startRegistering();
+            formDrawer.close();
+        });
         saveButton.setOnAction(event -> save());
         startRegistering();
+    }
+
+    /** Brings the form in. */
+    private void showForm() {
+        formDrawer.open();
     }
 
     /** Leaves the form ready to register a new customer. */
@@ -190,6 +215,7 @@ public final class CustomersController {
         emailField.setText(customer.getEmail());
         documentField.setDisable(true);
         formFields.clear();
+        showForm();
         nameField.requestFocus();
     }
 
@@ -205,6 +231,7 @@ public final class CustomersController {
                 alerts.toast("Cliente actualizado.");
             }
             startRegistering();
+            formDrawer.close();
             refresh();
         } catch (ValidationException | BusinessRuleException e) {
             if (!formFields.show(e)) {
@@ -221,12 +248,34 @@ public final class CustomersController {
         showCount();
     }
 
-    /** Reads the customers again, so the table shows what is stored. */
+    /** Reads the customers again, so the table shows what is stored, keeping the selected customer. */
     void refresh() {
+        Customer selected = customersTable.getSelectionModel().getSelectedItem();
         try {
             all.setAll(customers.listAll());
             showCount();
+            if (selected != null) {
+                customersTable.getItems().stream().filter(customer -> customer.getId() == selected.getId())
+                    .findFirst().ifPresent(customersTable.getSelectionModel()::select);
+            }
         } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private void delete(Customer customer) {
+        if (!alerts.confirm("¿Eliminar a «" + customer.getName() + "»? Esta acción no se puede deshacer.")) {
+            return;
+        }
+        try {
+            customers.delete(customer.getId());
+            if (editing != null && editing.getId() == customer.getId()) {
+                startRegistering();
+                formDrawer.close();
+            }
+            alerts.toast("Cliente eliminado.");
+            refresh();
+        } catch (BusinessRuleException | DataAccessException e) {
             alerts.showError(e);
         }
     }
@@ -272,6 +321,33 @@ public final class CustomersController {
             if (!empty && customer != null && customer.getNoShowCount() > 0) {
                 getStyleClass().add("row-noshow");
             }
+        }
+    }
+
+    /** Edit and delete as small icon buttons at the end of each row. */
+    private final class ActionsCell extends TableCell<Customer, Customer> {
+        @Override
+        protected void updateItem(Customer customer, boolean empty) {
+            super.updateItem(customer, empty);
+            if (empty || customer == null) {
+                setGraphic(null);
+                return;
+            }
+            Button edit = iconButton(Icons.Kind.EDIT, "Editar " + customer.getName());
+            edit.setOnAction(event -> startEditing(customer));
+            Button remove = iconButton(Icons.Kind.TRASH, "Eliminar " + customer.getName());
+            remove.getStyleClass().add("danger");
+            remove.setOnAction(event -> delete(customer));
+            setGraphic(new HBox(4, edit, remove));
+        }
+
+        private Button iconButton(Icons.Kind kind, String description) {
+            Button button = new Button();
+            button.setGraphic(Icons.small(kind, 16));
+            button.getStyleClass().add("icon-button");
+            button.setAccessibleText(description);
+            button.setTooltip(new Tooltip(description));
+            return button;
         }
     }
 }
