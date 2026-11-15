@@ -14,6 +14,8 @@ S-12 y S-13 aportan implementaciones simuladas. Los adaptadores HTTP se desarrol
 
 La fábrica acepta proveedores de ambos servicios juntos: evita presentar una función como real y la otra como simulada bajo un único indicador. El proveedor comercial y sus endpoints se elegirán en S-15/S-16, cuando se implementen las llamadas reales. Hasta entonces `ai.provider=api` cae en modo simulado.
 
+S-15 adopta la [Responses API de OpenAI](https://developers.openai.com/api/reference/resources/responses/methods/create) para el asistente. Las herramientas siguen siendo locales y pasan por `ToolRegistry`; la [guía oficial de llamadas a funciones](https://developers.openai.com/api/docs/guides/function-calling) describe el intercambio de `function_call` y `function_call_output`. El adaptador exige `api.openai.com` por HTTPS. El probador conserva el modo simulado hasta S-16.
+
 `AppContext.ai()` se conectará cuando I-12 agregue `AppContext` a `develop`. Este PR define el contrato y la fábrica sin crear una segunda raíz de composición que compita con Isabella.
 
 ## Consecuencias
