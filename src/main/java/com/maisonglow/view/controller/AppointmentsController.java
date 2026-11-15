@@ -100,6 +100,12 @@ public final class AppointmentsController {
     @FXML
     private Label countLabel;
     @FXML
+    private Button newButton;
+    @FXML
+    private Button rescheduleButton;
+    @FXML
+    private AppointmentFormController formController;
+    @FXML
     private Button confirmButton;
     @FXML
     private Button completeButton;
@@ -126,6 +132,7 @@ public final class AppointmentsController {
      */
     public void useAlerts(AlertPresenter presenter) {
         this.alerts = Objects.requireNonNull(presenter, "presenter");
+        formController.useAlerts(presenter);
     }
 
     @FXML
@@ -203,6 +210,10 @@ public final class AppointmentsController {
 
     private void setUpActions() {
         appointmentsTable.getSelectionModel().selectedItemProperty().addListener((observable, before, appointment) -> refreshActions());
+        newButton.setOnAction(event -> formController.openToBook(
+            mode() == Mode.DAY ? dayPicker.getValue() : LocalDate.now(clock)));
+        rescheduleButton.setOnAction(event -> formController.openToReschedule(appointmentsTable.getSelectionModel().getSelectedItem()));
+        formController.onSaved(this::showSaved);
         confirmButton.setOnAction(event -> change(AppointmentStatus.CONFIRMED, "Cita confirmada.", null));
         completeButton.setOnAction(event -> change(AppointmentStatus.COMPLETED, "Cita completada.", null));
         noShowButton.setOnAction(event -> change(AppointmentStatus.NO_SHOW, "Inasistencia registrada.",
@@ -214,10 +225,20 @@ public final class AppointmentsController {
     /** Each button is on only when the state of the chosen appointment allows that change. */
     private void refreshActions() {
         Appointment chosen = appointmentsTable.getSelectionModel().getSelectedItem();
+        rescheduleButton.setDisable(chosen == null || !AppointmentService.blocksSchedule(chosen));
         enable(confirmButton, chosen, AppointmentStatus.CONFIRMED);
         enable(completeButton, chosen, AppointmentStatus.COMPLETED);
         enable(noShowButton, chosen, AppointmentStatus.NO_SHOW);
         enable(cancelAppointmentButton, chosen, AppointmentStatus.CANCELLED);
+    }
+
+    /** After a booking or a move the agenda shows the new appointment: in one-day view it goes to that day. */
+    private void showSaved(LocalDate day) {
+        if (mode() == Mode.DAY && !day.equals(dayPicker.getValue())) {
+            dayPicker.setValue(day);
+        } else {
+            refresh();
+        }
     }
 
     private static void enable(Button button, Appointment chosen, AppointmentStatus next) {
