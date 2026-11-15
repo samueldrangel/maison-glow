@@ -14,7 +14,8 @@
 <?import javafx.scene.shape.SVGPath?>
 
 <!-- Pestana Profesionales de Profesionales y tratamientos. Cada profesional es una tarjeta que ProfessionalsController
-     arma al arrancar (aqui se ve una de ejemplo). El formulario es un panel que entra desde la derecha (SlidePanel); aqui se ve
+     arma al arrancar (aqui se ve una de ejemplo). El panel de la derecha entra desde la derecha (SlidePanel): el formulario y, debajo, los tratamientos que ofrece
+     el profesional cuando se edita; aqui se ve
      abierto para disenar. Los textos
      "Mensaje de error" se ven aqui para disenar; FieldValidator los oculta al arrancar.
      Colores: View > Scene Style Sheets > styles.css. -->
@@ -98,6 +99,21 @@
                             <Button fx:id="saveButton" text="Guardar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                             <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                         </HBox>
+                    </VBox>
+
+                    <VBox fx:id="servicesCard" styleClass="card, form-card" spacing="6">
+                        <Label text="Tratamientos que ofrece" styleClass="form-title"/>
+                        <FlowPane fx:id="servicesChips" hgap="6" vgap="6">
+                            <Label text="Manicura gel" styleClass="chip-rose"/>
+                            <Label text="Corte y peinado" styleClass="chip-rose"/>
+                        </FlowPane>
+
+                        <Label text="Agregar tratamiento" styleClass="form-label"/>
+                        <ComboBox fx:id="assignBox" promptText="Seleccionar tratamiento..." maxWidth="Infinity"/>
+                        <Label fx:id="assignMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                        <Button fx:id="assignButton" text="Asignar" styleClass="button-primary, button-compact" maxWidth="Infinity">
+                            <VBox.margin><Insets top="6"/></VBox.margin>
+                        </Button>
                     </VBox>
                 </VBox>
             </ScrollPane>
