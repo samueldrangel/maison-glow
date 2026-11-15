@@ -1,11 +1,15 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
+import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Customer;
+import com.maisonglow.service.ContactData;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.util.DateFormats;
 import com.maisonglow.view.AlertPresenter;
+import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.customer.CustomerFilter;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -13,6 +17,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -37,7 +42,9 @@ public final class CustomersController {
     private final CustomerService customers;
     private final ObservableList<Customer> all = FXCollections.observableArrayList();
     private final FilteredList<Customer> shown = new FilteredList<>(all);
+    private final FieldValidator formFields = new FieldValidator();
     private CustomerFilter filter;
+    private Customer editing;
     private AlertPresenter alerts;
 
     @FXML
@@ -66,6 +73,30 @@ public final class CustomersController {
     private TableColumn<Customer, Integer> noShowsColumn;
     @FXML
     private Label countLabel;
+    @FXML
+    private Button newButton;
+    @FXML
+    private Label formTitle;
+    @FXML
+    private TextField documentField;
+    @FXML
+    private Label documentMessage;
+    @FXML
+    private TextField nameField;
+    @FXML
+    private Label nameMessage;
+    @FXML
+    private TextField phoneField;
+    @FXML
+    private Label phoneMessage;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private Label emailMessage;
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button cancelButton;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -92,6 +123,7 @@ public final class CustomersController {
         alerts = new AlertPresenter(customersTable);
         setUpTable();
         setUpFilters();
+        setUpForm();
         refresh();
     }
 
@@ -122,6 +154,65 @@ public final class CustomersController {
                 apply(filter.withGroup((CustomerFilter.Group) chip.getUserData()));
             }
         });
+    }
+
+    private void setUpForm() {
+        formFields.field(documentField, documentMessage, "documento");
+        formFields.field(nameField, nameMessage, "nombre");
+        formFields.field(phoneField, phoneMessage, "teléfono");
+        formFields.field(emailField, emailMessage, "correo");
+        newButton.setOnAction(event -> startRegistering());
+        cancelButton.setOnAction(event -> startRegistering());
+        saveButton.setOnAction(event -> save());
+        startRegistering();
+    }
+
+    /** Leaves the form ready to register a new customer. */
+    private void startRegistering() {
+        editing = null;
+        formTitle.setText("Registrar cliente");
+        documentField.clear();
+        nameField.clear();
+        phoneField.clear();
+        emailField.clear();
+        documentField.setDisable(false);
+        formFields.clear();
+        documentField.requestFocus();
+    }
+
+    /** Fills the form with a customer so it can be changed; the document cannot be changed. */
+    private void startEditing(Customer customer) {
+        editing = customer;
+        formTitle.setText("Editar cliente");
+        documentField.setText(customer.getDocument());
+        nameField.setText(customer.getName());
+        phoneField.setText(customer.getPhone());
+        emailField.setText(customer.getEmail());
+        documentField.setDisable(true);
+        formFields.clear();
+        nameField.requestFocus();
+    }
+
+    private void save() {
+        try {
+            ContactData data = new ContactData(documentField.getText(), nameField.getText(),
+                phoneField.getText(), emailField.getText());
+            if (editing == null) {
+                customers.register(data);
+                alerts.toast("Cliente registrado.");
+            } else {
+                customers.update(editing.getId(), data);
+                alerts.toast("Cliente actualizado.");
+            }
+            startRegistering();
+            refresh();
+        } catch (ValidationException | BusinessRuleException e) {
+            if (!formFields.show(e)) {
+                alerts.showError(e);
+            }
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
     }
 
     private void apply(CustomerFilter newFilter) {
