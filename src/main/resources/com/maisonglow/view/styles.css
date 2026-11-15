@@ -891,3 +891,30 @@
     -fx-border-color: -mg-gold;
     -fx-border-radius: 10;
 }
+
+/* ---- Carrito de la nueva venta ---- */
+.total-caption {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.total-amount {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 28px;
+    -fx-text-fill: -mg-text;
+}
+
+.quantity-box {
+    -fx-alignment: center;
+}
+
+.quantity-box .icon-button {
+    -fx-padding: 3;
+}
+
+.invoice-text {
+    -fx-font-family: Consolas, "Courier New", monospace;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-text;
+}
