@@ -3,13 +3,18 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -17,7 +22,7 @@
 <?import javafx.scene.shape.SVGPath?>
 
 <!-- Pantalla de Clientes (mockup M2). Parte de templates/ListFormTemplate.fxml.
-     El formulario es un panel que entra desde la derecha (SlidePanel); aqui se ve abierto para disenar.
+     Las estadisticas y el formulario son paneles que entran desde la derecha (SlidePanel); aqui se ven abiertos para disenar.
      Los textos de ejemplo ("Mensaje de error", las cifras de las estadisticas) se ven aqui para disenar;
      CustomersController los reemplaza al arrancar con los datos reales.
      Colores: View > Scene Style Sheets > styles.css. -->
@@ -67,7 +72,59 @@
     </center>
     <right>
         <HBox>
-            <ScrollPane fx:id="formPanel" fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="330" minWidth="330">
+            <ScrollPane fx:id="statsPanel" fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="330" minWidth="330">
+                <VBox spacing="16" styleClass="side-column" style="-fx-padding: 0 4 16 20;">
+                    <VBox styleClass="card, form-card" spacing="6">
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <StackPane styleClass="stat-medallion" minWidth="56" prefWidth="56" maxWidth="56" minHeight="56" prefHeight="56" maxHeight="56">
+                                <Label fx:id="statsInitials" text="AG" styleClass="stat-initials"/>
+                            </StackPane>
+                            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                <Label fx:id="statsName" text="Ana García" styleClass="stat-name" wrapText="true"/>
+                                <Label fx:id="statsDocument" text="Documento 1001" styleClass="stat-caption"/>
+                            </VBox>
+                        </HBox>
+                        <HBox fx:id="statsChips" spacing="6">
+                            <padding><Insets top="6"/></padding>
+                            <Label text="Nuevo" styleClass="chip-gold"/>
+                            <Label text="Sin inasistencias" styleClass="chip-success"/>
+                        </HBox>
+                        <VBox spacing="2">
+                            <padding><Insets top="6"/></padding>
+                            <Label fx:id="statsPhone" text="3001112233" styleClass="stat-caption"/>
+                            <Label fx:id="statsEmail" text="ana@correo.com" styleClass="stat-caption"/>
+                            <Label fx:id="statsSince" text="Cliente desde 15/11/2026" styleClass="stat-caption"/>
+                        </VBox>
+                        <GridPane hgap="10" vgap="10">
+                            <padding><Insets top="10"/></padding>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                                <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                            </columnConstraints>
+                            <VBox styleClass="stat-tile, stat-tile-gold" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="2"><Label text="Total gastado" styleClass="stat-caption"/><Label fx:id="spentValue" text="\$ 168.000" styleClass="stat-number"/></VBox>
+                            <VBox styleClass="stat-tile" GridPane.columnIndex="0" GridPane.rowIndex="1"><Label text="Compras" styleClass="stat-caption"/><Label fx:id="purchasesValue" text="3" styleClass="stat-number"/></VBox>
+                            <VBox styleClass="stat-tile" GridPane.columnIndex="1" GridPane.rowIndex="1"><Label text="Citas" styleClass="stat-caption"/><Label fx:id="appointmentsValue" text="5" styleClass="stat-number"/></VBox>
+                            <VBox styleClass="stat-tile" GridPane.columnIndex="0" GridPane.rowIndex="2"><Label text="Completadas" styleClass="stat-caption"/><Label fx:id="completedValue" text="4" styleClass="stat-number"/></VBox>
+                            <VBox styleClass="stat-tile" GridPane.columnIndex="1" GridPane.rowIndex="2"><Label text="Ticket promedio" styleClass="stat-caption"/><Label fx:id="averageValue" text="\$ 56.000" styleClass="stat-number"/></VBox>
+                        </GridPane>
+                        <HBox alignment="CENTER_LEFT">
+                            <padding><Insets top="8"/></padding>
+                            <Label text="Asistencia a citas" styleClass="stat-caption"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="attendanceValue" text="80 %" styleClass="stat-value"/>
+                        </HBox>
+                        <ProgressBar fx:id="attendanceBar" progress="0.8" maxWidth="Infinity" styleClass="attendance-bar"/>
+                    </VBox>
+                    <VBox styleClass="card, form-card" spacing="8">
+                        <Label text="Últimas compras" styleClass="form-label"/>
+                        <VBox fx:id="purchasesBox" spacing="10">
+                            <HBox styleClass="purchase-row" alignment="CENTER_LEFT">
+                                <VBox HBox.hgrow="ALWAYS"><Label text="Champú Nutritivo ×2" styleClass="purchase-items"/><Label text="15/11/2026" styleClass="stat-caption"/></VBox>
+                                <Label text="\$ 56.000" styleClass="stat-value"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+            <ScrollPane fx:id="formPanel" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="330" minWidth="330">
                 <VBox spacing="16" styleClass="side-column" style="-fx-padding: 0 4 16 20;">
                     <VBox styleClass="card, form-card" spacing="6">
                         <Label fx:id="formTitle" text="Registrar cliente" styleClass="form-title"/>
@@ -93,6 +150,14 @@
                             <Button fx:id="saveButton" text="Guardar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                             <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                         </HBox>
+                    </VBox>
+                    <Label fx:id="editNote" text="El documento no se puede cambiar." styleClass="form-hint" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <VBox alignment="BOTTOM_CENTER" spacing="8" styleClass="brand-footer">
+                        <ImageView fitWidth="84" preserveRatio="true" opacity="0.22">
+                            <image><Image url="@images/isotipo.png"/></image>
+                        </ImageView>
+                        <Label text="CUIDAMOS MÁS QUE BELLEZA, CUIDAMOS PERSONAS" styleClass="brand-tagline" wrapText="true"/>
                     </VBox>
                 </VBox>
             </ScrollPane>
