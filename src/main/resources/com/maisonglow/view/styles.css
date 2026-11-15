@@ -502,6 +502,25 @@
     -fx-padding: 8 0 0 2;
 }
 
+.form-hint {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-text-muted;
+    -fx-padding: 0 0 6 0;
+}
+
+.settings-scroll, .settings-scroll > .viewport, .settings-column {
+    -fx-background-color: transparent;
+}
+
+.settings-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.settings-column {
+    -fx-padding: 0 4 16 4;
+}
+
 /* Un chip lleva un punto de estado como grafico: <graphic><Circle radius="3.5" styleClass="chip-dot"/></graphic> */
 .chip-success, .chip-warning, .chip-gold, .chip-rose, .chip-neutral {
     -fx-background-radius: 13 3 13 3;
