@@ -421,11 +421,32 @@
     -fx-faint-focus-color: transparent;
 }
 
+/* El area de texto se ve como un campo, con el contenido sin fondo propio. */
+.text-area {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 14;
+    -fx-background-insets: 0;
+    -fx-padding: 4;
+    -fx-prompt-text-fill: derive(-mg-text-muted, 35%);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.text-area .content, .text-area > .scroll-pane, .text-area > .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area .content {
+    -fx-padding: 4 10 4 10;
+}
+
 .combo-box, .date-picker {
     -fx-padding: 3 6 3 6;
 }
 
-.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused {
+.text-field:focused, .password-field:focused, .text-area:focused, .combo-box:focused, .date-picker:focused {
     -fx-border-color: -mg-gold;
     -fx-effect: dropshadow(gaussian, rgba(201, 146, 105, 0.35), 10, 0.15, 0, 0);
 }
