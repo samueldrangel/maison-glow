@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Formulario de la agenda para agendar o reprogramar una cita. Es un panel que entra desde la derecha
+     (SlidePanel); aqui se ve abierto para disenar. La hora se elige de una lista de horarios cada 15 minutos dentro de la jornada del profesional;
+     los ocupados o muy proximos salen marcados y no se pueden elegir. El cuadro de resumen se recalcula solo con lo que se va
+     eligiendo: cuando termina, si el profesional esta libre, el anticipo y el recordatorio que fijan las reglas.
+     Los textos "Mensaje de error" y los del resumen se ven aqui para disenar.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:id="formPanel" fx:controller="com.maisonglow.view.controller.AppointmentFormController"
+            fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll, view-root" stylesheets="@styles.css"
+            prefWidth="340" minWidth="340" prefHeight="640">
+    <VBox spacing="16" styleClass="side-column" style="-fx-padding: 0 4 16 20;">
+        <VBox styleClass="card, form-card" spacing="6">
+            <Label fx:id="formTitle" text="Agendar cita" styleClass="form-title"/>
+
+            <Label text="Cliente" styleClass="form-label"/>
+            <ComboBox fx:id="customerBox" promptText="Seleccionar cliente..." maxWidth="Infinity"/>
+            <Label fx:id="customerMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+            <Label text="Tratamiento" styleClass="form-label"/>
+            <ComboBox fx:id="treatmentBox" promptText="Seleccionar tratamiento..." maxWidth="Infinity"/>
+            <Label fx:id="treatmentMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+            <Label text="Profesional" styleClass="form-label"/>
+            <ComboBox fx:id="professionalBox" promptText="Primero elige el tratamiento" maxWidth="Infinity"/>
+            <Label fx:id="professionalMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+            <HBox spacing="10">
+                <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Fecha" styleClass="form-label"/>
+                    <DatePicker fx:id="dateField" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Hora" styleClass="form-label"/>
+                    <ComboBox fx:id="timeBox" promptText="Elige profesional y fecha" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+            <Label fx:id="timeMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+            <VBox styleClass="summary-box" spacing="6">
+                <padding><Insets top="2"/></padding>
+                <HBox alignment="CENTER_LEFT"><Label text="Termina" styleClass="stat-caption"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="endValue" text="10:20" styleClass="stat-value"/></HBox>
+                <HBox alignment="CENTER_LEFT"><Label text="Profesional" styleClass="stat-caption"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="availabilityValue" text="Disponible" styleClass="chip-success"/></HBox>
+                <HBox alignment="CENTER_LEFT"><Label text="Anticipo" styleClass="stat-caption"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="depositValue" text="\$ 13.500" styleClass="stat-value"/></HBox>
+                <HBox alignment="CENTER_LEFT"><Label text="Recordatorio" styleClass="stat-caption"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="reminderValue" text="15/11/2026 09:30" styleClass="stat-value"/></HBox>
+                <Label fx:id="summaryNote" text="Anticipo del 30 % del precio." styleClass="form-hint" wrapText="true"/>
+            </VBox>
+
+            <HBox spacing="10">
+                <padding><Insets top="10"/></padding>
+                <Button fx:id="saveButton" text="Agendar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</ScrollPane>
