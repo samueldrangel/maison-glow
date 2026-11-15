@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /** Starts the JavaFX toolkit once and runs code on its thread, for the tests of the views. */
-final class FxTest {
+public final class FxTest {
 
     private static boolean available;
 
@@ -15,7 +15,7 @@ final class FxTest {
     }
 
     /** @return false when there is no display, so the test can be skipped */
-    static synchronized boolean start() {
+    public static synchronized boolean start() {
         try {
             Platform.startup(() -> { });
             available = true;
@@ -27,7 +27,7 @@ final class FxTest {
         return available;
     }
 
-    static <T> T onFxThread(Supplier<T> action) throws Exception {
+    public static <T> T onFxThread(Supplier<T> action) throws Exception {
         CompletableFuture<T> result = new CompletableFuture<>();
         Platform.runLater(() -> {
             try {
