@@ -8,6 +8,7 @@ import com.maisonglow.model.Customer;
 import com.maisonglow.service.ContactData;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.CustomerStatistics;
+import com.maisonglow.service.SaleService;
 import com.maisonglow.service.StatisticsService;
 import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.util.DateFormats;
@@ -17,6 +18,7 @@ import com.maisonglow.view.Icons;
 import com.maisonglow.view.SlidePanel;
 import com.maisonglow.view.customer.CustomerFilter;
 import com.maisonglow.view.customer.CustomerProfile;
+import com.maisonglow.view.customer.PurchaseSummary;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,9 +38,12 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -49,8 +54,11 @@ import java.util.function.Function;
  */
 public final class CustomersController {
 
+    private static final int RECENT_PURCHASES = 3;
+
     private final CustomerService customers;
     private final StatisticsService statistics;
+    private final SaleService sales;
     private final LocalDate today;
     private final ObservableList<Customer> all = FXCollections.observableArrayList();
     private final FilteredList<Customer> shown = new FilteredList<>(all);
@@ -97,6 +105,10 @@ public final class CustomersController {
     private Label statsDocument;
     @FXML
     private HBox statsChips;
+    @FXML
+    private VBox purchasesBox;
+    @FXML
+    private Label editNote;
     @FXML
     private Label statsPhone;
     @FXML
@@ -155,6 +167,7 @@ public final class CustomersController {
         Objects.requireNonNull(context, "context");
         this.customers = context.customers();
         this.statistics = context.statistics();
+        this.sales = context.sales();
         this.today = LocalDate.now(context.clock());
         this.filter = CustomerFilter.all(today);
     }
@@ -244,6 +257,8 @@ public final class CustomersController {
         phoneField.clear();
         emailField.clear();
         documentField.setDisable(false);
+        editNote.setVisible(false);
+        editNote.setManaged(false);
         formFields.clear();
         documentField.requestFocus();
     }
@@ -257,6 +272,8 @@ public final class CustomersController {
         phoneField.setText(customer.getPhone());
         emailField.setText(customer.getEmail());
         documentField.setDisable(true);
+        editNote.setVisible(true);
+        editNote.setManaged(true);
         formFields.clear();
         showForm();
         nameField.requestFocus();
@@ -317,7 +334,8 @@ public final class CustomersController {
         }
         try {
             showProfile(new CustomerProfile(customer, statistics.customerStatistics(customer.getId()), today));
-        } catch (DataAccessException e) {
+            showPurchases(PurchaseSummary.recent(sales.listByCustomer(customer.getId()), RECENT_PURCHASES));
+        } catch (ValidationException | DataAccessException e) {
             alerts.showError(e);
             return;
         }
@@ -352,6 +370,29 @@ public final class CustomersController {
         attendanceValue.setText(profile.attendance().isPresent()
             ? Math.round(profile.attendance().getAsDouble() * 100) + " %" : "Sin citas todavía");
         attendanceBar.setProgress(profile.attendance().orElse(0));
+    }
+
+    /** Lists the latest purchases, or says the customer has not bought yet. */
+    private void showPurchases(List<PurchaseSummary> recent) {
+        purchasesBox.getChildren().clear();
+        if (recent.isEmpty()) {
+            Label none = new Label("Aún no ha comprado.");
+            none.getStyleClass().add("form-hint");
+            purchasesBox.getChildren().add(none);
+        }
+        for (PurchaseSummary purchase : recent) {
+            Label items = new Label(purchase.items());
+            items.getStyleClass().add("purchase-items");
+            Label date = new Label(DateFormats.date(purchase.soldAt().toLocalDate()));
+            date.getStyleClass().add("stat-caption");
+            Label total = new Label(CurrencyFormatter.format(purchase.total()));
+            total.getStyleClass().add("stat-value");
+            VBox words = new VBox(items, date);
+            HBox.setHgrow(words, Priority.ALWAYS);
+            HBox row = new HBox(words, total);
+            row.getStyleClass().add("purchase-row");
+            purchasesBox.getChildren().add(row);
+        }
     }
 
     private static Label chip(String text, String style) {
