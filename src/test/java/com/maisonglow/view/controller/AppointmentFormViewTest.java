@@ -22,7 +22,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,10 +33,12 @@ import org.junit.jupiter.api.io.TempDir;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,10 +113,28 @@ class AppointmentFormViewTest {
         });
     }
 
-    private static void type(Parent root, String id, String text) throws Exception {
+    /** Picks a start time of the list, as a click on it would. */
+    @SuppressWarnings("unchecked")
+    private static void pickTime(Parent root, String time) throws Exception {
+        ComboBox<LocalTime> box = (ComboBox<LocalTime>) root.lookup("#timeBox");
         FxTest.onFxThread(() -> {
-            ((TextField) root.lookup("#" + id)).setText(text);
+            box.getSelectionModel().select(box.getItems().stream().filter(t -> DateFormats.time(t).equals(time)).findFirst().orElseThrow());
             return null;
+        });
+    }
+
+    /** The lines of the list of start times, as the user reads them; " |off" marks the ones that cannot be chosen. */
+    @SuppressWarnings("unchecked")
+    private static List<String> slotLines(Parent root) throws Exception {
+        ComboBox<LocalTime> box = (ComboBox<LocalTime>) root.lookup("#timeBox");
+        return FxTest.onFxThread(() -> {
+            ListView<LocalTime> view = new ListView<>(box.getItems());
+            return IntStream.range(0, box.getItems().size()).mapToObj(index -> {
+                ListCell<LocalTime> cell = box.getCellFactory().call(view);
+                cell.updateListView(view);
+                cell.updateIndex(index);
+                return cell.getText() + (cell.isDisable() ? " |off" : "");
+            }).toList();
         });
     }
 
@@ -167,7 +188,7 @@ class AppointmentFormViewTest {
         choose(root, "treatmentBox", (Treatment t) -> t.getId() == treatment.getId());
         choose(root, "professionalBox", (Professional p) -> p.getDocument().equals(professional.getDocument()));
         chooseDate(root, tomorrow);
-        type(root, "timeField", time);
+        pickTime(root, time);
     }
 
     private List<Appointment> stored() throws Exception {
@@ -226,7 +247,7 @@ class AppointmentFormViewTest {
     }
 
     @Test
-    @DisplayName("the summary warns when the professional already has an appointment or is outside the working day")
+    @DisplayName("the summary warns when the chosen time clashes with another appointment, and is fine on a free one")
     void summaryWarnsAboutAvailability() throws Exception {
         context.appointments().book(laura, camila, cut, tomorrow.atTime(10, 0), 16500);
         Parent root = open();
@@ -235,13 +256,58 @@ class AppointmentFormViewTest {
         fillBooking(root, ana, manicure, camila, "10:30");
         assertThat(text(root, "availabilityValue")).isEqualTo("Ya tiene una cita");
 
-        type(root, "timeField", "07:00");
-        assertThat(text(root, "availabilityValue")).isEqualTo("Fuera de su jornada");
-
-        type(root, "timeField", "13:00");
+        pickTime(root, "13:00");
         assertThat(text(root, "availabilityValue")).isEqualTo("Disponible");
     }
 
+    @Test
+    @DisplayName("the list offers a start time every 15 minutes inside the working day, and marks the ones that clash")
+    void listsTheStartTimes() throws Exception {
+        context.appointments().book(laura, camila, cut, tomorrow.atTime(10, 0), 16500);
+        Parent root = open();
+        press(root, "newButton");
+        assertThat(slotLines(root)).isEmpty();
+
+        choose(root, "treatmentBox", (Treatment t) -> t.getId() == manicure.getId());
+        choose(root, "professionalBox", (Professional p) -> p.getId() == camila.getId());
+        chooseDate(root, tomorrow);
+
+        List<String> lines = slotLines(root);
+        assertThat(lines).startsWith("08:00", "08:15").endsWith("15:45", "16:00");
+        assertThat(lines).doesNotContain("16:15", "07:45");
+        assertThat(lines).contains("09:15 · ocupado |off", "10:00 · ocupado |off", "10:45 · ocupado |off")
+            .contains("09:00", "11:00");
+    }
+
+    @Test
+    @DisplayName("the list follows the professional: other working hours and other appointments give another list")
+    void listFollowsTheProfessional() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+        choose(root, "treatmentBox", (Treatment t) -> t.getId() == manicure.getId());
+        chooseDate(root, tomorrow);
+
+        choose(root, "professionalBox", (Professional p) -> p.getId() == daniela.getId());
+
+        List<String> lines = slotLines(root);
+        assertThat(lines.get(0)).isEqualTo("09:00");
+        assertThat(lines.get(lines.size() - 1)).isEqualTo("17:00");
+    }
+
+    @Test
+    @DisplayName("a time that stops being free is dropped from the choice when the professional changes")
+    void choiceIsDroppedWhenItIsNoLongerFree() throws Exception {
+        context.appointments().book(laura, daniela, manicure, tomorrow.atTime(9, 0), 13500);
+        Parent root = open();
+        press(root, "newButton");
+        fillBooking(root, ana, manicure, camila, "09:00");
+        assertThat(FxTest.onFxThread(() -> ((ComboBox<?>) root.lookup("#timeBox")).getValue())).isNotNull();
+
+        choose(root, "professionalBox", (Professional p) -> p.getId() == daniela.getId());
+
+        assertThat(FxTest.onFxThread(() -> ((ComboBox<?>) root.lookup("#timeBox")).getValue())).isNull();
+        assertThat(text(root, "availabilityValue")).isEqualTo("—");
+    }
     @Test
     @DisplayName("a customer with many no-shows is asked for the whole price, and the summary says why")
     void penalisedCustomerPaysInFull() throws Exception {
@@ -272,7 +338,6 @@ class AppointmentFormViewTest {
         assertThat(saved.getDeposit()).isEqualByComparingTo("13500");
         assertThat(saved.getReminderAt()).isEqualTo(tomorrow.atTime(10, 0).minusHours(24));
         assertThat(panelManaged(root, false)).isFalse();
-        assertThat(FxTest.onFxThread(() -> ((DatePicker) root.lookup("#dayPicker")).getValue())).isEqualTo(tomorrow);
         assertThat(rows(root)).hasSize(1);
     }
 
@@ -295,12 +360,10 @@ class AppointmentFormViewTest {
 
         choose(root, "professionalBox", (Professional p) -> p.getId() == camila.getId());
         chooseDate(root, tomorrow);
-        type(root, "timeField", "mañana");
         press(root, "saveButton");
-        assertThat(message(root, "timeMessage")).contains("HH:mm");
+        assertThat(message(root, "timeMessage")).contains("Elige la hora");
         assertThat(stored()).isEmpty();
     }
-
     @Test
     @DisplayName("booking over another appointment shows the rejection under the hour and books nothing")
     void rejectsACrossedAppointment() throws Exception {
@@ -317,22 +380,25 @@ class AppointmentFormViewTest {
     }
 
     @Test
-    @DisplayName("an hour outside the working day or too soon is rejected under the hour")
-    void rejectsOutsideTheWorkingDayOrTooSoon() throws Exception {
+    @DisplayName("today the times that come before the minimum notice are marked, and booking one is rejected")
+    void rejectsATimeThatIsTooSoon() throws Exception {
         Parent root = open();
         press(root, "newButton");
-        fillBooking(root, ana, manicure, camila, "07:00");
-
-        press(root, "saveButton");
-        assertThat(message(root, "timeMessage")).contains("solo atiende");
-
+        choose(root, "customerBox", (Customer c) -> c.getId() == ana.getId());
+        choose(root, "treatmentBox", (Treatment t) -> t.getId() == manicure.getId());
+        choose(root, "professionalBox", (Professional p) -> p.getId() == camila.getId());
         chooseDate(root, LocalDate.now());
-        type(root, "timeField", DateFormats.time(LocalTime.now().minusHours(1).withSecond(0).withNano(0)));
-        press(root, "saveButton");
-        assertThat(message(root, "timeMessage")).isNotEmpty();
-        assertThat(stored()).isEmpty();
-    }
+        String tooSoon = slotLines(root).stream().filter(line -> line.contains("muy pronto")).findFirst().orElse(null);
+        assumeTrue(tooSoon != null, "every time of today is still ahead of the notice");
+        assertThat(tooSoon).endsWith("|off");
 
+        pickTime(root, tooSoon.substring(0, 5));
+        assertThat(text(root, "availabilityValue")).isEqualTo("Muy pronto");
+        press(root, "saveButton");
+
+        assertThat(message(root, "timeMessage")).isNotEmpty();
+        assertThat(context.appointments().listByDate(LocalDate.now())).isEmpty();
+    }
     @Test
     @DisplayName("Cancelar closes the panel without booking")
     void cancelCloses() throws Exception {
@@ -363,9 +429,10 @@ class AppointmentFormViewTest {
         assertThat(text(root, "formTitle")).isEqualTo("Reprogramar cita");
         assertThat(root.lookup("#customerBox").isDisabled()).isTrue();
         assertThat(root.lookup("#professionalBox").isDisabled()).isTrue();
-        assertThat(((TextField) root.lookup("#timeField")).getText()).isEqualTo("10:00");
+        assertThat(FxTest.onFxThread(() -> ((ComboBox<?>) root.lookup("#timeBox")).getValue())).isEqualTo(LocalTime.of(10, 0));
+        assertThat(slotLines(root)).doesNotContain("10:00 · ocupado |off");
 
-        type(root, "timeField", "11:30");
+        pickTime(root, "11:30");
         press(root, "saveButton");
 
         Appointment moved = context.appointments().listByDate(tomorrow).get(0);
@@ -388,7 +455,7 @@ class AppointmentFormViewTest {
         });
         press(root, "rescheduleButton");
 
-        type(root, "timeField", "14:20");
+        pickTime(root, "14:15");
         press(root, "saveButton");
 
         assertThat(message(root, "timeMessage")).contains("ya tiene una cita");
