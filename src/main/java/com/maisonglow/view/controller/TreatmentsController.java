@@ -15,35 +15,38 @@ import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.Icons;
 import com.maisonglow.view.SlidePanel;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import javafx.util.Callback;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
- * Controller of {@code TreatmentsPane.fxml}: the treatments tab of "Profesionales y servicios" (mockup M3).
- * It lists the treatments with their duration, price and state, and searches them by name. It only talks to
- * {@link TreatmentService}, never to a DAO.
+ * Controller of {@code TreatmentsPane.fxml}: the treatments tab of "Profesionales y tratamientos" (mockup M3).
+ * Each treatment is a card with its name, what it includes, its duration, price and state, and the list can be
+ * searched by name. It only talks to {@link TreatmentService}, never to a DAO.
  */
 public final class TreatmentsController {
+
+    /** Longest height of the description on a card; a longer text ends in an ellipsis. */
+    private static final double DESCRIPTION_HEIGHT = 58;
 
     private final TreatmentService treatments;
     private final ObservableList<Treatment> all = FXCollections.observableArrayList();
@@ -56,17 +59,9 @@ public final class TreatmentsController {
     @FXML
     private TextField searchField;
     @FXML
-    private TableView<Treatment> treatmentsTable;
+    private FlowPane cardsPane;
     @FXML
-    private TableColumn<Treatment, String> nameColumn;
-    @FXML
-    private TableColumn<Treatment, Integer> durationColumn;
-    @FXML
-    private TableColumn<Treatment, BigDecimal> priceColumn;
-    @FXML
-    private TableColumn<Treatment, Treatment> statusColumn;
-    @FXML
-    private TableColumn<Treatment, Treatment> actionsColumn;
+    private Label countLabel;
     @FXML
     private Button newButton;
     @FXML
@@ -112,27 +107,101 @@ public final class TreatmentsController {
 
     @FXML
     private void initialize() {
-        alerts = new AlertPresenter(treatmentsTable);
-        setUpTable();
+        alerts = new AlertPresenter(cardsPane);
         setUpForm();
-        searchField.textProperty().addListener((observable, before, text) ->
-            shown.setPredicate(treatment -> TextSearch.contains(treatment.getName(), text)));
+        searchField.textProperty().addListener((observable, before, text) -> {
+            shown.setPredicate(treatment -> TextSearch.contains(treatment.getName(), text));
+            showCards();
+        });
         refresh();
     }
 
-    private void setUpTable() {
-        nameColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getName()));
-        durationColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getDurationMinutes()));
-        durationColumn.setCellFactory(showing(minutes -> minutes + " min"));
-        priceColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getPrice()));
-        priceColumn.setCellFactory(showing(CurrencyFormatter::format));
-        statusColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
-        statusColumn.setCellFactory(column -> new StatusCell());
-        actionsColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
-        actionsColumn.setCellFactory(column -> new ActionsCell());
-        SortedList<Treatment> sorted = new SortedList<>(shown);
-        sorted.comparatorProperty().bind(treatmentsTable.comparatorProperty());
-        treatmentsTable.setItems(sorted);
+    /** Reads the treatments again, so the cards show what is stored. */
+    void refresh() {
+        try {
+            all.setAll(treatments.listAll());
+            showCards();
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private void showCards() {
+        cardsPane.getChildren().setAll(shown.stream()
+            .sorted(Comparator.comparing(Treatment::getName, String.CASE_INSENSITIVE_ORDER)).map(this::card).toList());
+        countLabel.setText("Mostrando " + shown.size() + " de " + all.size()
+            + (all.size() == 1 ? " tratamiento" : " tratamientos"));
+    }
+
+    /** One treatment as a card: state and actions on top, then the name, what it includes, the duration and the price. */
+    private Node card(Treatment treatment) {
+        Region gap = new Region();
+        HBox.setHgrow(gap, Priority.ALWAYS);
+        HBox top = new HBox(2, status(treatment), gap, actions(treatment));
+        top.setAlignment(Pos.CENTER_LEFT);
+        Label name = text(treatment.getName(), "tre-name");
+        String included = treatment.getDescription() == null ? "" : treatment.getDescription().trim();
+        Label description = included.isEmpty() ? text("Sin descripción", "tre-description-empty") : text(included, "tre-description");
+        description.setMaxHeight(DESCRIPTION_HEIGHT);
+        Region fill = new Region();
+        VBox.setVgrow(fill, Priority.ALWAYS);
+        Region space = new Region();
+        HBox.setHgrow(space, Priority.ALWAYS);
+        HBox bottom = new HBox(text(treatment.getDurationMinutes() + " min", "tre-meta"), space,
+            text(CurrencyFormatter.format(treatment.getPrice()), "tre-price"));
+        bottom.setAlignment(Pos.CENTER_LEFT);
+        VBox card = new VBox(8, top, name, description, fill, bottom);
+        card.getStyleClass().addAll("card", "tre-card");
+        if (!treatment.isActive()) {
+            card.getStyleClass().add("tre-card-inactive");
+        }
+        return card;
+    }
+
+    /** Edit, and deactivate or reactivate, as small icon buttons at the top of each card. */
+    private Node actions(Treatment treatment) {
+        Button edit = iconButton(Icons.Kind.EDIT, "Editar " + treatment.getName());
+        edit.setOnAction(event -> startEditing(treatment));
+        Button toggle = treatment.isActive()
+            ? iconButton(Icons.Kind.TRASH, "Desactivar " + treatment.getName())
+            : iconButton(Icons.Kind.RESTORE, "Reactivar " + treatment.getName());
+        if (treatment.isActive()) {
+            toggle.getStyleClass().add("danger");
+        }
+        toggle.setOnAction(event -> {
+            if (treatment.isActive()) {
+                deactivate(treatment);
+            } else {
+                changeActive(treatment, true, "Tratamiento reactivado.");
+            }
+        });
+        return new HBox(4, edit, toggle);
+    }
+
+    private static Button iconButton(Icons.Kind kind, String description) {
+        Button button = new Button();
+        button.setGraphic(Icons.small(kind, 16));
+        button.getStyleClass().add("icon-button");
+        button.setAccessibleText(description);
+        button.setTooltip(new Tooltip(description));
+        return button;
+    }
+
+    private static Label text(String text, String style) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.getStyleClass().add(style);
+        return label;
+    }
+
+    /** The state of a treatment as a chip with a dot. */
+    private static Label status(Treatment treatment) {
+        Label chip = new Label(treatment.isActive() ? "Activo" : "Inactivo");
+        Circle dot = new Circle(3.5);
+        dot.getStyleClass().add("chip-dot");
+        chip.setGraphic(dot);
+        chip.getStyleClass().add(treatment.isActive() ? "chip-success" : "chip-neutral");
+        return chip;
     }
 
     private void setUpForm() {
@@ -226,80 +295,6 @@ public final class TreatmentsController {
             refresh();
         } catch (BusinessRuleException | DataAccessException e) {
             alerts.showError(e);
-        }
-    }
-
-    /** Reads the treatments again, so the table shows what is stored. */
-    void refresh() {
-        try {
-            all.setAll(treatments.listAll());
-        } catch (DataAccessException e) {
-            alerts.showError(e);
-        }
-    }
-
-    private static <T> Callback<TableColumn<Treatment, T>, TableCell<Treatment, T>> showing(Function<T, String> text) {
-        return column -> new TableCell<>() {
-            @Override
-            protected void updateItem(T item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : text.apply(item));
-            }
-        };
-    }
-
-    /** The state of a treatment as a chip with a dot. */
-    private static final class StatusCell extends TableCell<Treatment, Treatment> {
-        @Override
-        protected void updateItem(Treatment treatment, boolean empty) {
-            super.updateItem(treatment, empty);
-            if (empty || treatment == null) {
-                setGraphic(null);
-                return;
-            }
-            Label chip = new Label(treatment.isActive() ? "Activo" : "Inactivo");
-            Circle dot = new Circle(3.5);
-            dot.getStyleClass().add("chip-dot");
-            chip.setGraphic(dot);
-            chip.getStyleClass().add(treatment.isActive() ? "chip-success" : "chip-neutral");
-            setGraphic(chip);
-        }
-    }
-
-    /** Edit, and deactivate or reactivate, as small icon buttons at the end of each row. */
-    private final class ActionsCell extends TableCell<Treatment, Treatment> {
-        @Override
-        protected void updateItem(Treatment treatment, boolean empty) {
-            super.updateItem(treatment, empty);
-            if (empty || treatment == null) {
-                setGraphic(null);
-                return;
-            }
-            Button edit = iconButton(Icons.Kind.EDIT, "Editar " + treatment.getName());
-            edit.setOnAction(event -> startEditing(treatment));
-            Button toggle = treatment.isActive()
-                ? iconButton(Icons.Kind.TRASH, "Desactivar " + treatment.getName())
-                : iconButton(Icons.Kind.RESTORE, "Reactivar " + treatment.getName());
-            if (treatment.isActive()) {
-                toggle.getStyleClass().add("danger");
-            }
-            toggle.setOnAction(event -> {
-                if (treatment.isActive()) {
-                    deactivate(treatment);
-                } else {
-                    changeActive(treatment, true, "Tratamiento reactivado.");
-                }
-            });
-            setGraphic(new HBox(4, edit, toggle));
-        }
-
-        private Button iconButton(Icons.Kind kind, String description) {
-            Button button = new Button();
-            button.setGraphic(Icons.small(kind, 16));
-            button.getStyleClass().add("icon-button");
-            button.setAccessibleText(description);
-            button.setTooltip(new Tooltip(description));
-            return button;
         }
     }
 }
