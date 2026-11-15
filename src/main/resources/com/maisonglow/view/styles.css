@@ -1168,3 +1168,6 @@
     -fx-padding: 0 10 2 10;
 }
 
+.table-row-cell.row-muted .table-cell {
+    -fx-opacity: 0.55;
+}

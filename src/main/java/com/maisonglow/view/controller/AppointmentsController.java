@@ -1,9 +1,11 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Appointment;
+import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.service.AppointmentService;
 import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.util.DateFormats;
@@ -73,6 +75,14 @@ public final class AppointmentsController {
     private TableColumn<Appointment, BigDecimal> depositColumn;
     @FXML
     private Label countLabel;
+    @FXML
+    private Button confirmButton;
+    @FXML
+    private Button completeButton;
+    @FXML
+    private Button noShowButton;
+    @FXML
+    private Button cancelAppointmentButton;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -99,6 +109,7 @@ public final class AppointmentsController {
         alerts = new AlertPresenter(appointmentsTable);
         setUpTable();
         setUpDay();
+        setUpActions();
         refresh();
     }
 
@@ -146,6 +157,58 @@ public final class AppointmentsController {
         todayButton.setOnAction(event -> dayPicker.setValue(LocalDate.now(clock)));
     }
 
+    private void setUpActions() {
+        appointmentsTable.getSelectionModel().selectedItemProperty().addListener((observable, before, appointment) -> refreshActions());
+        confirmButton.setOnAction(event -> change(AppointmentStatus.CONFIRMED, "Cita confirmada.", null));
+        completeButton.setOnAction(event -> change(AppointmentStatus.COMPLETED, "Cita completada.", null));
+        noShowButton.setOnAction(event -> change(AppointmentStatus.NO_SHOW, "Inasistencia registrada.",
+            "¿Marcar la inasistencia de %s? Se suma a sus inasistencias y puede exigirle el pago total en su próxima cita."));
+        cancelAppointmentButton.setOnAction(event -> change(AppointmentStatus.CANCELLED, "Cita cancelada.",
+            "¿Cancelar la cita de %s? Su horario quedará libre."));
+    }
+
+    /** Each button is on only when the state of the chosen appointment allows that change. */
+    private void refreshActions() {
+        Appointment chosen = appointmentsTable.getSelectionModel().getSelectedItem();
+        enable(confirmButton, chosen, AppointmentStatus.CONFIRMED);
+        enable(completeButton, chosen, AppointmentStatus.COMPLETED);
+        enable(noShowButton, chosen, AppointmentStatus.NO_SHOW);
+        enable(cancelAppointmentButton, chosen, AppointmentStatus.CANCELLED);
+    }
+
+    private static void enable(Button button, Appointment chosen, AppointmentStatus next) {
+        button.setDisable(chosen == null || !AppointmentService.canChangeTo(chosen.getStatus(), next));
+    }
+
+    /**
+     * Moves the chosen appointment to another state, asking first when the change is hard to undo.
+     *
+     * @param next     the new state
+     * @param notice   what to tell the user when it is done
+     * @param question the confirmation to ask with the customer's name, or null to do it at once
+     */
+    private void change(AppointmentStatus next, String notice, String question) {
+        Appointment chosen = appointmentsTable.getSelectionModel().getSelectedItem();
+        if (chosen == null || (question != null && !alerts.confirm(String.format(question, chosen.getCustomer().getName())))) {
+            return;
+        }
+        try {
+            switch (next) {
+                case CONFIRMED -> appointments.confirm(chosen.getId());
+                case COMPLETED -> appointments.complete(chosen.getId());
+                case NO_SHOW -> appointments.markNoShow(chosen.getId());
+                case CANCELLED -> appointments.cancel(chosen.getId());
+                default -> throw new IllegalArgumentException("Estado sin acción: " + next);
+            }
+            alerts.toast(notice);
+            refresh();
+            appointmentsTable.getItems().stream().filter(appointment -> appointment.getId() == chosen.getId())
+                .findFirst().ifPresent(appointmentsTable.getSelectionModel()::select);
+        } catch (BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
     /** Reads the appointments of the chosen day again, in order of time. */
     void refresh() {
         LocalDate day = dayPicker.getValue();
@@ -158,6 +221,7 @@ public final class AppointmentsController {
         dayTitle.setText(title.substring(0, 1).toUpperCase() + title.substring(1));
         long pending = shown.stream().filter(appointment -> AppointmentService.blocksSchedule(appointment)).count();
         countLabel.setText(shown.size() + (shown.size() == 1 ? " cita" : " citas") + ", " + pending + " por atender");
+        refreshActions();
     }
 
     private static <T> Callback<TableColumn<Appointment, T>, TableCell<Appointment, T>> showing(Function<T, String> text) {
