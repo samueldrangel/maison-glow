@@ -1,6 +1,7 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.ai.AiConfig;
 import com.maisonglow.model.Appointment;
 import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.model.Customer;
@@ -19,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,9 +29,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +98,18 @@ class AppointmentsViewTest {
         });
     }
 
+    private static void chooseView(Parent root, String chipId) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((ToggleButton) root.lookup("#" + chipId)).fire();
+            root.applyCss();
+            root.layout();
+            return null;
+        });
+    }
+
+    /** Shows one day, as a user would: choosing "Un día" and then the date. */
     private static void goTo(Parent root, LocalDate day) throws Exception {
+        chooseView(root, "dayChip");
         FxTest.onFxThread(() -> {
             ((DatePicker) root.lookup("#dayPicker")).setValue(day);
             root.applyCss();
@@ -145,16 +160,79 @@ class AppointmentsViewTest {
     }
 
     @Test
-    @DisplayName("opens on today, with a capitalised title and nothing booked")
-    void opensOnToday() throws Exception {
+    @DisplayName("opens on the upcoming appointments, across days and in order, with their date")
+    void opensOnUpcoming() throws Exception {
         Parent root = open();
 
-        assertThat(day(root)).isEqualTo(LocalDate.now());
-        assertThat(rows(root)).isEmpty();
-        assertThat(text(root, "dayTitle")).matches("^\\p{Lu}.*");
-        assertThat(text(root, "countLabel")).isEqualTo("0 citas, 0 por atender");
+        assertThat(rows(root)).extracting(a -> a.getCustomer().getName() + " " + a.getStart().toLocalTime())
+            .containsExactly("Laura Méndez 09:30", "Ana García 10:00", "Ana García 14:00");
+        assertThat(text(root, "dayTitle")).startsWith("Próximas citas");
+        assertThat(text(root, "countLabel")).isEqualTo("3 citas, 3 por atender");
+        assertThat(FxTest.onFxThread(() -> root.lookup("#dayControls").isManaged())).isFalse();
+        assertThat(FxTest.onFxThread(() -> ((TableView<?>) root.lookup("#appointmentsTable")).getColumns().get(0).isVisible())).isTrue();
     }
 
+    @Test
+    @DisplayName("Hoy shows only today, with a capitalised title, and Un día brings the date selector")
+    void todayAndDayViews() throws Exception {
+        Parent root = open();
+
+        chooseView(root, "todayChip");
+        assertThat(rows(root)).isEmpty();
+        assertThat(text(root, "dayTitle")).matches("^\\p{Lu}.*");
+        assertThat(FxTest.onFxThread(() -> root.lookup("#dayControls").isManaged())).isFalse();
+
+        chooseView(root, "dayChip");
+        assertThat(FxTest.onFxThread(() -> root.lookup("#dayControls").isManaged())).isTrue();
+        assertThat(day(root)).isEqualTo(LocalDate.now());
+    }
+
+    /** Books two appointments 10 days ago, with the clock of that day, and starts the app again as today. */
+    private void bookInThePast() throws Exception {
+        LocalDate then = LocalDate.now().minusDays(10);
+        AppContext past = new AppContext(data, Clock.fixed(then.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
+            ZoneId.systemDefault()), AiConfig.simulated());
+        Customer laura = past.customers().findByDocument("1002").orElseThrow();
+        Professional camila = past.professionals().listAll().stream().filter(p -> p.getDocument().equals("2001")).findFirst().orElseThrow();
+        Treatment cut = past.treatments().listAll().stream().filter(t -> t.getName().startsWith("Corte")).findFirst().orElseThrow();
+        past.appointments().book(laura, camila, cut, then.atTime(11, 0), 16500);
+        past.appointments().book(laura, camila, cut, then.atTime(15, 0), 16500);
+        past.appointments().complete(past.appointments().listByDate(then).get(0).getId());
+        context = new AppContext(data);
+    }
+
+    @Test
+    @DisplayName("Pasadas lists what already happened, the most recent first, and counts the ones left unresolved")
+    void pastView() throws Exception {
+        bookInThePast();
+        Parent root = open();
+
+        chooseView(root, "pastChip");
+
+        assertThat(rows(root)).extracting(a -> a.getStart().toLocalTime().toString()).containsExactly("15:00", "11:00");
+        assertThat(text(root, "dayTitle")).startsWith("Citas pasadas");
+        assertThat(text(root, "countLabel")).isEqualTo("2 citas, 1 sin cerrar");
+        assertThat(rows(root)).extracting(Appointment::getStatus).containsExactly(AppointmentStatus.PENDING, AppointmentStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("the upcoming and the past never mix, and a past one can still be closed from Pasadas")
+    void upcomingAndPastDoNotMix() throws Exception {
+        bookInThePast();
+        Parent root = open();
+        assertThat(rows(root)).hasSize(3).allMatch(a -> a.getStart().isAfter(java.time.LocalDateTime.now()));
+
+        chooseView(root, "pastChip");
+        assertThat(rows(root)).hasSize(2).allMatch(a -> a.getEnd().isBefore(java.time.LocalDateTime.now()));
+        FxTest.onFxThread(() -> {
+            ((TableView<?>) root.lookup("#appointmentsTable")).getSelectionModel().select(0);
+            return null;
+        });
+        press(root, "noShowButton");
+
+        assertThat(rows(root).get(0).getStatus()).isEqualTo(AppointmentStatus.NO_SHOW);
+        assertThat(text(root, "countLabel")).isEqualTo("2 citas, 0 sin cerrar");
+    }
     @Test
     @DisplayName("shows the appointments of the day in order of time, with the count of the ones still to attend")
     void listsTheDayInOrder() throws Exception {
@@ -184,9 +262,10 @@ class AppointmentsViewTest {
     }
 
     @Test
-    @DisplayName("the arrows move one day at a time and Hoy comes back")
+    @DisplayName("in Un día the arrows move one day at a time")
     void movesBetweenDays() throws Exception {
         Parent root = open();
+        chooseView(root, "dayChip");
 
         press(root, "nextButton");
         assertThat(day(root)).isEqualTo(LocalDate.now().plusDays(1));
@@ -196,11 +275,9 @@ class AppointmentsViewTest {
         press(root, "previousButton");
         assertThat(day(root)).isEqualTo(LocalDate.now().plusDays(1));
 
-        press(root, "todayButton");
-        assertThat(day(root)).isEqualTo(LocalDate.now());
+        press(root, "previousButton");
         assertThat(rows(root)).isEmpty();
     }
-
     @Test
     @DisplayName("clearing the date keeps the day that was showing")
     void clearingTheDateKeepsTheDay() throws Exception {
