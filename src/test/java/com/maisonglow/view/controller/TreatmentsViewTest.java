@@ -13,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +110,8 @@ class TreatmentsViewTest {
     /** Presses the icon button of the table that has that description, as a user would click it. */
     private static void click(Parent root, String description) throws Exception {
         FxTest.onFxThread(() -> {
+            root.applyCss();
+            root.layout();
             root.lookup("#treatmentsTable").lookupAll(".icon-button").stream().map(Button.class::cast)
                 .filter(button -> description.equals(button.getAccessibleText())).findFirst().orElseThrow().fire();
             root.applyCss();
@@ -188,6 +191,23 @@ class TreatmentsViewTest {
         Treatment saved = context.treatments().listAll().stream().filter(t -> t.getName().equals("Limpieza facial")).findFirst().orElseThrow();
         assertThat(saved.getPrice()).isEqualByComparingTo("38000");
         assertThat(saved.getDurationMinutes()).isEqualTo(45);
+    }
+
+    @Test
+    @DisplayName("a description of several lines is saved and comes back in the form when editing")
+    void keepsAMultiLineDescription() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+        fill(root, "Limpieza facial", "38000", "45");
+        FxTest.onFxThread(() -> {
+            ((TextArea) root.lookup("#descriptionField")).setText("Incluye:\nlimpieza profunda\nmascarilla");
+            return null;
+        });
+        press(root, "saveButton");
+
+        click(root, "Editar Limpieza facial");
+
+        assertThat(((TextArea) root.lookup("#descriptionField")).getText()).isEqualTo("Incluye:\nlimpieza profunda\nmascarilla");
     }
 
     @Test
