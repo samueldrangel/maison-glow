@@ -542,6 +542,26 @@
     -fx-padding: 0 4 16 4;
 }
 
+.settings-medallion {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-background-radius: 16;
+}
+
+.settings-medallion .line-icon {
+    -fx-stroke: -mg-chip-rose;
+}
+
+.unit-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -mg-text-muted;
+    -fx-min-width: 52;
+}
+
+.unsaved-note {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-gold-dark;
+}
+
 /* Un chip lleva un punto de estado como grafico: <graphic><Circle radius="3.5" styleClass="chip-dot"/></graphic> */
 .chip-success, .chip-warning, .chip-gold, .chip-rose, .chip-neutral {
     -fx-background-radius: 13 3 13 3;
