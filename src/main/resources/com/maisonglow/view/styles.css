@@ -919,8 +919,88 @@
     -fx-text-fill: -mg-text;
 }
 
-/* ---- Clientes ---- */
+/* ---- Estadisticas del cliente seleccionado ---- */
+.stat-medallion {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-background-radius: 28;
+}
+
+.stat-initials, .stat-name {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-text-fill: -mg-text;
+}
+
+.stat-initials {
+    -fx-font-size: 21px;
+    -fx-text-fill: -mg-chip-rose;
+}
+
+.stat-name {
+    -fx-font-size: 21px;
+}
+
+.stat-tile {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 16 4 16 4;
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 2;
+}
+
+.stat-tile-gold {
+    -fx-background-color: -mg-gold-soft;
+}
+
+.stat-number {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text;
+}
+
+.stat-tile-gold .stat-number {
+    -fx-text-fill: -mg-gold-dark;
+}
+
+.purchase-row {
+    -fx-padding: 0 0 8 0;
+    -fx-border-color: transparent transparent -mg-border transparent;
+}
+
+.purchase-items {
+    -fx-font-size: 13.5px;
+    -fx-text-fill: -mg-text;
+}
+
+.brand-footer {
+    -fx-padding: 24 0 8 0;
+}
+
+.brand-tagline {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -mg-text-muted;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
+
+.attendance-bar > .track {
+    -fx-background-color: -mg-border;
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+}
+
+.attendance-bar > .bar {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+    -fx-padding: 4;
+}
+
 .stat-caption {
     -fx-font-size: 13px;
     -fx-text-fill: -mg-text-muted;
+}
+
+.stat-value {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text;
 }

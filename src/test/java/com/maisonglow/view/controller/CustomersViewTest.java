@@ -2,7 +2,11 @@ package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.model.Customer;
+import com.maisonglow.model.Sale;
 import com.maisonglow.service.ContactData;
+import com.maisonglow.service.ProductData;
+import com.maisonglow.service.SaleService;
+import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
@@ -10,16 +14,20 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
@@ -129,6 +137,15 @@ class CustomersViewTest {
         });
     }
 
+    @SuppressWarnings("unchecked")
+    private static void select(Parent root, String name) throws Exception {
+        TableView<Customer> table = (TableView<Customer>) root.lookup("#customersTable");
+        FxTest.onFxThread(() -> {
+            table.getSelectionModel().select(table.getItems().stream().filter(c -> name.equals(c.getName())).findFirst().orElseThrow());
+            return null;
+        });
+    }
+
     private static String text(Parent root, String id) throws Exception {
         return FxTest.onFxThread(() -> ((Label) root.lookup("#" + id)).getText());
     }
@@ -144,6 +161,18 @@ class CustomersViewTest {
             value = FxTest.onFxThread(reading);
         }
         return value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> chips(Parent root) throws Exception {
+        return FxTest.onFxThread(() -> ((HBox) root.lookup("#statsChips")).getChildren().stream()
+            .map(node -> ((Label) node).getText()).toList());
+    }
+
+    /** The labels of each purchase row of the panel, one list per row. */
+    private static List<List<String>> purchaseRows(Parent root) throws Exception {
+        return FxTest.onFxThread(() -> ((VBox) root.lookup("#purchasesBox")).getChildren().stream()
+            .map(row -> row.lookupAll(".label").stream().map(node -> ((Label) node).getText()).toList()).toList());
     }
 
     @Test
@@ -287,6 +316,57 @@ class CustomersViewTest {
     }
 
     @Test
+    @DisplayName("selecting a customer brings in a side panel with its purchases, appointments and no-shows")
+    void showsStatisticsInAPanel() throws Exception {
+        Customer ana = context.customers().findByDocument("1001").orElseThrow();
+        var shampoo = context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 10), 5);
+        Sale sale = new Sale(ana);
+        SaleService.addLine(sale, shampoo, 2);
+        context.sales().register(sale);
+        Parent root = open();
+        assertThat(root.lookup("#statsPanel").isManaged()).isFalse();
+
+        select(root, "Ana García");
+
+        assertThat(panelManaged(root, "statsPanel", true)).isTrue();
+        assertThat(text(root, "statsName")).isEqualTo("Ana García");
+        assertThat(text(root, "statsInitials")).isEqualTo("AG");
+        assertThat(text(root, "purchasesValue")).isEqualTo("1");
+        assertThat(text(root, "spentValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("56000")));
+        assertThat(text(root, "appointmentsValue")).isEqualTo("0");
+        assertThat(text(root, "averageValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("56000")));
+        select(root, "Laura Méndez");
+        assertThat(text(root, "statsName")).isEqualTo("Laura Méndez");
+        assertThat(text(root, "purchasesValue")).isEqualTo("0");
+    }
+
+    @Test
+    @DisplayName("Nuevo cliente and the pencil take the statistics out to make room for the form")
+    void formTakesTheSideFromTheStatistics() throws Exception {
+        Parent root = open();
+        select(root, "Ana García");
+        assertThat(panelManaged(root, "statsPanel", true)).isTrue();
+
+        press(root, "newButton");
+
+        assertThat(panelManaged(root, "formPanel", true)).isTrue();
+        assertThat(panelManaged(root, "statsPanel", false)).isFalse();
+    }
+
+    @Test
+    @DisplayName("selecting a customer while the form is open closes the form and shows the statistics")
+    void statisticsTakeTheSideFromTheForm() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+        assertThat(panelManaged(root, "formPanel", true)).isTrue();
+
+        select(root, "Laura Méndez");
+
+        assertThat(panelManaged(root, "statsPanel", true)).isTrue();
+        assertThat(panelManaged(root, "formPanel", false)).isFalse();
+    }
+
+    @Test
     @DisplayName("the form is hidden at first; Nuevo cliente brings it in and Cancelar takes it out and empties it")
     void newOpensAndCancelCloses() throws Exception {
         Parent root = open();
@@ -314,5 +394,76 @@ class CustomersViewTest {
 
         assertThat(message(root, "documentMessage")).isNotEmpty();
         assertThat(panelManaged(root, "formPanel", true)).isTrue();
+    }
+
+    @Test
+    @DisplayName("the profile tells who the customer is: document, contact, since when, and that the customer is new")
+    void profileShowsWhoTheCustomerIs() throws Exception {
+        Parent root = open();
+
+        select(root, "Ana García");
+
+        assertThat(text(root, "statsDocument")).isEqualTo("Documento 1001");
+        assertThat(text(root, "statsPhone")).isEqualTo("3001112233");
+        assertThat(text(root, "statsEmail")).isEqualTo("ana@correo.com");
+        assertThat(text(root, "statsSince")).startsWith("Cliente desde ");
+        assertThat(chips(root)).containsExactly("Nuevo", "Sin inasistencias");
+    }
+
+    @Test
+    @DisplayName("a customer who missed appointments gets a warning chip and a zero attendance; without any there is none to show")
+    void profileWarnsAboutNoShows() throws Exception {
+        Parent root = open();
+
+        select(root, "Laura Méndez");
+
+        assertThat(chips(root)).containsExactly("Nuevo", "1 inasistencia");
+        assertThat(text(root, "attendanceValue")).isEqualTo("0 %");
+        assertThat(((ProgressBar) root.lookup("#attendanceBar")).getProgress()).isZero();
+
+        select(root, "Ana García");
+        assertThat(text(root, "attendanceValue")).isEqualTo("Sin citas todavía");
+    }
+
+    @Test
+    @DisplayName("the panel lists the latest purchases of the customer, newest first and at most three")
+    void listsTheLatestPurchases() throws Exception {
+        Customer ana = context.customers().findByDocument("1001").orElseThrow();
+        var shampoo = context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 10), 20);
+        for (int units = 1; units <= 4; units++) {
+            Sale sale = new Sale(ana);
+            SaleService.addLine(sale, shampoo, units);
+            context.sales().register(sale);
+        }
+        Parent root = open();
+
+        select(root, "Ana García");
+
+        assertThat(purchaseRows(root)).hasSize(3);
+        assertThat(purchaseRows(root).get(0)).contains("Champú Nutritivo ×4", CurrencyFormatter.format(new BigDecimal("112000")));
+    }
+
+    @Test
+    @DisplayName("a customer who has not bought yet gets a note instead of an empty card")
+    void saysWhenThereAreNoPurchases() throws Exception {
+        Parent root = open();
+
+        select(root, "Ana García");
+
+        assertThat(FxTest.onFxThread(() -> ((Label) ((VBox) root.lookup("#purchasesBox")).getChildren().get(0)).getText()))
+            .isEqualTo("Aún no ha comprado.");
+    }
+
+    @Test
+    @DisplayName("the note about the document shows only while editing")
+    void noteAboutTheDocumentShowsWhileEditing() throws Exception {
+        Parent root = open();
+        assertThat(root.lookup("#editNote").isVisible()).isFalse();
+
+        click(root, "Editar Ana García");
+        assertThat(root.lookup("#editNote").isVisible()).isTrue();
+
+        press(root, "cancelButton");
+        assertThat(root.lookup("#editNote").isVisible()).isFalse();
     }
 }
