@@ -693,3 +693,81 @@
 .toast .line-icon {
     -fx-stroke: -mg-gold;
 }
+
+/* ---- Pantalla de Productos (y las listas que se le parezcan) ---- */
+.banner-warning {
+    -fx-background-color: -mg-chip-gold-bg;
+    -fx-background-radius: 14;
+    -fx-border-color: derive(-mg-chip-gold-dot, 45%);
+    -fx-border-radius: 14;
+    -fx-padding: 10 16 10 14;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.banner-warning .line-icon {
+    -fx-stroke: -mg-chip-gold;
+}
+
+.banner-text {
+    -fx-text-fill: -mg-chip-gold;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Chips de categoria: se eligen como botones de opcion. */
+.filter-chip {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-text-fill: -mg-chip-rose;
+    -fx-background-radius: 16 4 16 4;
+    -fx-padding: 7 16 7 16;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.filter-chip:hover {
+    -fx-background-color: derive(-mg-chip-rose-bg, -6%);
+}
+
+.filter-chip:selected {
+    -fx-background-color: -mg-rose;
+    -fx-text-fill: white;
+}
+
+/* Botones solo con icono: editar, desactivar, sumar y restar. */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-background-color: -mg-active;
+}
+
+.icon-button.danger:hover {
+    -fx-background-color: -mg-chip-alert-bg;
+}
+
+.icon-button.danger .line-icon {
+    -fx-stroke: -mg-chip-alert;
+}
+
+.table-row-cell.row-restock {
+    -fx-background-color: rgba(246, 220, 213, 0.30);
+}
+
+.table-row-cell.row-restock:selected {
+    -fx-background-color: -mg-gold, -mg-active;
+    -fx-background-insets: 0, 0 0 0 3;
+}
+
+/* Tablas estrechas (Productos): celdas y cabeceras con menos relleno. */
+.compact-table .table-cell {
+    -fx-padding: 0 8 0 8;
+}
+
+.compact-table .column-header .label {
+    -fx-padding: 0 0 0 8;
+}

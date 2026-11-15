@@ -5,11 +5,10 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TextInputControl;
+import com.maisonglow.util.TextSearch;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -90,7 +89,7 @@ public final class FieldValidator {
     }
 
     private static String normalize(String text) {
-        return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+        return TextSearch.normalize(text);
     }
 
     /** A field, its message label and the words that identify it. */

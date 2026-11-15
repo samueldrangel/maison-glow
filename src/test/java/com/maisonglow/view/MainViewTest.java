@@ -1,12 +1,14 @@
 package com.maisonglow.view;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.service.ProductData;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Toggle;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
@@ -333,6 +335,25 @@ class MainViewTest {
             value = onFxThread(reading);
         }
         return value;
+    }
+
+    @Test
+    @DisplayName("opens with the badges filled when there is something to restock")
+    void opensWithBadges() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        AppContext.seed(data);
+        AppContext context = new AppContext(data);
+        context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 10), 5);
+
+        Parent root = onFxThread(() -> {
+            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"), context);
+            new Scene(loaded, 1100, 720);
+            return loaded;
+        });
+
+        Label badge = (Label) root.lookup("#productsBadge");
+        assertThat(badge.getText()).isEqualTo("1");
+        assertThat(badge.isVisible()).isTrue();
     }
 
     @Test

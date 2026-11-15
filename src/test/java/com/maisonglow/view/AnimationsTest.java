@@ -88,6 +88,21 @@ class AnimationsTest {
     }
 
     @Test
+    @DisplayName("a badge that appears bounces and ends at its normal size")
+    void aBadgePopsAndSettles() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        Button badge = FxTest.onFxThread(Button::new);
+
+        FxTest.onFxThread(() -> {
+            Animations.pop(badge);
+            return null;
+        });
+
+        assertThat(badge.getScaleX()).as("it starts small").isLessThan(1);
+        assertThat(eventually(badge::getScaleX, scale -> scale == 1)).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("installing the motion twice does not stack it")
     void installingTwiceIsHarmless() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");

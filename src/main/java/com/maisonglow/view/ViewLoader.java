@@ -20,6 +20,10 @@ public final class ViewLoader {
     private ViewLoader() {
     }
 
+    /** A loaded screen and the controller that was built for it. */
+    public record Loaded<C>(Parent root, C controller) {
+    }
+
     /**
      * Loads a view and wires its controller.
      *
@@ -29,12 +33,26 @@ public final class ViewLoader {
      * @throws UncheckedIOException if the file cannot be read or is malformed
      */
     public static Parent load(URL fxml, AppContext context) {
+        return loadWithController(fxml, context).root();
+    }
+
+    /**
+     * Loads a view and also returns its controller, which the tests use to reach the screen's logic.
+     *
+     * @param fxml location of the {@code .fxml}
+     * @param context services handed to the controller
+     * @param <C> the controller class declared by {@code fx:controller}
+     * @return the root node and the controller
+     * @throws UncheckedIOException if the file cannot be read or is malformed
+     */
+    public static <C> Loaded<C> loadWithController(URL fxml, AppContext context) {
         Objects.requireNonNull(fxml, "fxml");
         Objects.requireNonNull(context, "context");
         FXMLLoader loader = new FXMLLoader(fxml);
         loader.setControllerFactory(type -> createController(type, context));
         try {
-            return loader.load();
+            Parent root = loader.load();
+            return new Loaded<>(root, loader.getController());
         } catch (IOException e) {
             throw new UncheckedIOException("Could not load view " + fxml, e);
         }
