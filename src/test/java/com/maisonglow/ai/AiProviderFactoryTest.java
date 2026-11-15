@@ -8,6 +8,10 @@ import com.maisonglow.service.TreatmentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -70,7 +74,7 @@ class AiProviderFactoryTest {
     @Test
     void absentAdaptersOrNetworkFallsBackWithoutPartialApiModule() throws Exception {
         AiConfig config = config("ai.provider=api\n", Map.of("MAISON_GLOW_AI_API_KEY", "test-key"));
-        assertThat(create(new AiProviderFactory(config)).isSimulated()).isTrue();
+        assertThat(create(new AiProviderFactory(config, () -> true, null, null)).isSimulated()).isTrue();
         assertThat(create(new AiProviderFactory(config, () -> false,
             () -> mock(SmartAssistant.class), () -> mock(TryOnService.class))).isSimulated()).isTrue();
         assertThat(create(new AiProviderFactory(config, () -> true,
@@ -85,5 +89,42 @@ class AiProviderFactoryTest {
             .isEqualTo(AiConfig.Provider.SIMULATED);
         assertThat(config("ai.provider=api\nai.api_key_env= \n", Map.of()).provider())
             .isEqualTo(AiConfig.Provider.SIMULATED);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void productionFactoryWiresRealPairWithBoundedProbeAndFallsBackOnFailure() throws Exception {
+        AiConfig config = config("ai.provider=api\n", Map.of("MAISON_GLOW_AI_API_KEY", "test-key"));
+        HttpClient client = mock(HttpClient.class);
+        when(client.followRedirects()).thenReturn(HttpClient.Redirect.NEVER);
+        HttpResponse<Void> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(client.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+        AiModule module = create(new AiProviderFactory(config, client));
+        assertThat(module.isSimulated()).isFalse();
+        assertThat(module.assistant()).isInstanceOf(ApiAssistant.class);
+        assertThat(module.tryOn()).isInstanceOf(ApiTryOnService.class);
+        var captured = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
+        verify(client).send(captured.capture(), any(HttpResponse.BodyHandler.class));
+        assertThat(captured.getValue().method()).isEqualTo("GET");
+        assertThat(captured.getValue().timeout()).contains(java.time.Duration.ofSeconds(3));
+        when(response.statusCode()).thenReturn(401);
+        assertThat(create(new AiProviderFactory(config, client)).isSimulated()).isTrue();
+        when(client.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .thenThrow(new HttpTimeoutException("offline"));
+        assertThat(create(new AiProviderFactory(config, client)).isSimulated()).isTrue();
+        when(client.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+            .thenThrow(new InterruptedException("cancelled"));
+        try {
+            assertThat(create(new AiProviderFactory(config, client)).isSimulated()).isTrue();
+            assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        } finally { Thread.interrupted(); }
+    }
+
+    @Test
+    void simulatedConfigurationNeverContactsProvider() {
+        HttpClient client = mock(HttpClient.class);
+        assertThat(create(new AiProviderFactory(AiConfig.simulated(), client)).isSimulated()).isTrue();
+        verifyNoInteractions(client);
     }
 }
