@@ -27,6 +27,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -77,7 +78,7 @@ public final class TreatmentsController {
     @FXML
     private Label nameMessage;
     @FXML
-    private TextField descriptionField;
+    private TextArea descriptionField;
     @FXML
     private TextField priceField;
     @FXML

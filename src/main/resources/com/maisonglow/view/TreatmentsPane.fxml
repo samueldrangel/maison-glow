@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -56,7 +57,7 @@
                         <Label fx:id="nameMessage" text="Mensaje de error" styleClass="field-error-message"/>
 
                         <Label text="Descripción" styleClass="form-label"/>
-                        <TextField fx:id="descriptionField" promptText="Qué incluye (opcional)"/>
+                        <TextArea fx:id="descriptionField" promptText="Qué incluye (opcional)" prefRowCount="4" wrapText="true"/>
 
                         <HBox spacing="10">
                             <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
