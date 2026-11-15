@@ -771,3 +771,31 @@
 .compact-table .column-header .label {
     -fx-padding: 0 0 0 8;
 }
+
+/* Columna lateral con desplazamiento (formularios de la pantalla de Productos). */
+.side-scroll, .side-scroll > .viewport, .side-column {
+    -fx-background-color: transparent;
+}
+
+.side-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.side-column {
+    -fx-padding: 0 4 16 4;
+}
+
+/* Tablas estrechas (Productos): celdas y cabeceras con menos relleno. */
+.compact-table .table-cell {
+    -fx-padding: 0 8 0 8;
+}
+
+.compact-table .column-header .label {
+    -fx-padding: 0 0 0 8;
+}
+
+/* Botones de formulario que comparten una fila: menos relleno lateral para que el texto quepa. */
+.button-compact {
+    -fx-padding: 10 12 10 12;
+}
