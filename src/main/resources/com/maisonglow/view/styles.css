@@ -771,3 +771,104 @@
 .compact-table .column-header .label {
     -fx-padding: 0 0 0 8;
 }
+
+/* Columna lateral con desplazamiento (formularios de la pantalla de Productos). */
+.side-scroll, .side-scroll > .viewport, .side-column {
+    -fx-background-color: transparent;
+}
+
+.side-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.side-column {
+    -fx-padding: 0 4 16 4;
+}
+
+/* Tablas estrechas (Productos): celdas y cabeceras con menos relleno. */
+.compact-table .table-cell {
+    -fx-padding: 0 8 0 8;
+}
+
+.compact-table .column-header .label {
+    -fx-padding: 0 0 0 8;
+}
+
+/* Botones de formulario que comparten una fila: menos relleno lateral para que el texto quepa. */
+.button-compact {
+    -fx-padding: 10 12 10 12;
+}
+
+/* ---- Listas desplegables de los combos: tarjeta clara, opcion con fondo suave en lugar del azul por defecto ---- */
+.combo-box-popup > .list-view {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 14;
+    -fx-background-insets: 0;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.22), 18, 0.05, 0, 6);
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-text-fill: -mg-text;
+    -fx-padding: 9 12 9 12;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -mg-active;
+}
+
+.combo-box-popup .list-cell:filled:selected, .combo-box-popup .list-cell:filled:selected:hover,
+.combo-box-popup .list-cell:filled:focused:selected {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-text-fill: -mg-chip-rose;
+    -fx-font-weight: bold;
+}
+
+/* ---- Calendario del selector de fecha ---- */
+.date-picker-popup {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.22), 18, 0.05, 0, 6);
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 8 8 4 8;
+}
+
+.date-picker-popup .label {
+    -fx-text-fill: -mg-text;
+}
+
+.date-picker-popup .day-cell, .date-picker-popup .day-name-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -mg-text;
+}
+
+.date-picker-popup .day-name-cell {
+    -fx-text-fill: -mg-text-muted;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 10;
+}
+
+.date-picker-popup .day-cell:selected, .date-picker-popup .day-cell:selected:hover {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+}
+
+.date-picker-popup .day-cell:today {
+    -fx-border-color: -mg-gold;
+    -fx-border-radius: 10;
+}

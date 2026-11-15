@@ -2,7 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -14,8 +16,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.SVGPath?>
 
-<!-- Pantalla de Productos e Inventario (mockup M4): la lista con el aviso de stock bajo y los filtros.
-     Los textos de ejemplo (el aviso y las categorias) se ven aqui para disenar;
+<!-- Pantalla de Productos e Inventario (mockup M4). Parte de templates/ListFormTemplate.fxml.
+     Los textos de ejemplo (el aviso, las categorias, "Mensaje de error") se ven aqui para disenar;
      ProductsController los reemplaza al arrancar con los datos reales.
      Colores: View > Scene Style Sheets > styles.css. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -68,4 +70,72 @@
             </TableView>
         </VBox>
     </center>
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="310" minWidth="310">
+            <VBox spacing="16" styleClass="side-column">
+                <VBox styleClass="card, form-card" spacing="6">
+                    <Label fx:id="formTitle" text="Registrar producto" styleClass="form-title"/>
+
+                    <Label text="Nombre" styleClass="form-label"/>
+                    <TextField fx:id="nameField" promptText="Nombre del producto"/>
+                    <Label fx:id="nameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                    <Label text="Categoría" styleClass="form-label"/>
+                    <ComboBox fx:id="categoryBox" promptText="Selecciona" maxWidth="Infinity"/>
+                    <Label fx:id="categoryMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                    <Label text="Precio" styleClass="form-label"/>
+                    <TextField fx:id="priceField" promptText="28000"/>
+                    <Label fx:id="priceMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                    <HBox spacing="10">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Stock mínimo" styleClass="form-label"/>
+                            <TextField fx:id="minimumField" promptText="10"/>
+                            <Label fx:id="minimumMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                        </VBox>
+                        <VBox fx:id="initialStockBox" spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Stock inicial" styleClass="form-label"/>
+                            <TextField fx:id="initialStockField" promptText="0"/>
+                            <Label fx:id="initialStockMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="10">
+                        <padding><Insets top="10"/></padding>
+                        <Button fx:id="saveButton" text="Guardar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                </VBox>
+
+                <VBox styleClass="card, form-card" spacing="6">
+                    <Label text="Ajustar stock" styleClass="form-title"/>
+
+                    <Label text="Producto" styleClass="form-label"/>
+                    <ComboBox fx:id="adjustProductBox" promptText="Seleccionar producto..." maxWidth="Infinity"/>
+                    <Label fx:id="adjustProductMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                    <Label text="Cantidad (negativa para restar)" styleClass="form-label"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button fx:id="minusButton" styleClass="icon-button">
+                            <graphic><StackPane minWidth="16" prefWidth="16" maxWidth="16" minHeight="16" prefHeight="16" maxHeight="16">
+                                <SVGPath styleClass="line-icon" scaleX="0.67" scaleY="0.67" content="M5 12h14"/>
+                            </StackPane></graphic>
+                        </Button>
+                        <TextField fx:id="quantityField" text="1" alignment="CENTER" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="plusButton" styleClass="icon-button">
+                            <graphic><StackPane minWidth="16" prefWidth="16" maxWidth="16" minHeight="16" prefHeight="16" maxHeight="16">
+                                <SVGPath styleClass="line-icon" scaleX="0.67" scaleY="0.67" content="M12 5v14 M5 12h14"/>
+                            </StackPane></graphic>
+                        </Button>
+                    </HBox>
+                    <Label fx:id="quantityMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                    <Button fx:id="adjustButton" text="Guardar ajuste" styleClass="button-primary" maxWidth="Infinity">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                    </Button>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </right>
 </BorderPane>
