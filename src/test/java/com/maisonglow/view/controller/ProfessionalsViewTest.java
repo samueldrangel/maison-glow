@@ -6,12 +6,15 @@ import com.maisonglow.model.Treatment;
 import com.maisonglow.service.ContactData;
 import com.maisonglow.service.TreatmentData;
 import com.maisonglow.service.WorkSchedule;
+import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,6 +26,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -59,9 +64,18 @@ class ProfessionalsViewTest {
     }
 
     private Parent open() throws Exception {
+        return open(true);
+    }
+
+    /** Opens the screen; a confirmation is answered as the user would, with "Confirmar" or by cancelling. */
+    private Parent open(boolean confirm) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         return FxTest.onFxThread(() -> {
-            Parent root = ViewLoader.load(ProfessionalsViewTest.class.getResource("/com/maisonglow/view/ProfessionalsPane.fxml"), context);
+            ViewLoader.Loaded<ProfessionalsController> loaded = ViewLoader.loadWithController(
+                ProfessionalsViewTest.class.getResource("/com/maisonglow/view/ProfessionalsPane.fxml"), context);
+            loaded.controller().useAlerts(new AlertPresenter(() -> null, alert -> alert.getButtonTypes().stream()
+                .filter(button -> confirm && "Confirmar".equals(button.getText())).findFirst()));
+            Parent root = loaded.root();
             new Scene(root, 1100, 700);
             root.applyCss();
             root.layout();
@@ -90,6 +104,56 @@ class ProfessionalsViewTest {
             filter.getSelectionModel().select(filter.getItems().stream().filter(t -> t.getName().equals(treatment)).findFirst().orElseThrow());
             return null;
         });
+    }
+
+    private static void fill(Parent root, String document, String name, String phone, String email, String specialty,
+                             String start, String end) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((TextField) root.lookup("#documentField")).setText(document);
+            ((TextField) root.lookup("#nameField")).setText(name);
+            ((TextField) root.lookup("#phoneField")).setText(phone);
+            ((TextField) root.lookup("#emailField")).setText(email);
+            ((TextField) root.lookup("#specialtyField")).setText(specialty);
+            ((TextField) root.lookup("#startField")).setText(start);
+            ((TextField) root.lookup("#endField")).setText(end);
+            return null;
+        });
+    }
+
+    private static void press(Parent root, String id) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((Button) root.lookup("#" + id)).fire();
+            return null;
+        });
+    }
+
+    private static String message(Parent root, String id) throws Exception {
+        Label label = (Label) root.lookup("#" + id);
+        return FxTest.onFxThread(() -> label.isVisible() ? label.getText() : "");
+    }
+
+    /** Presses the icon button of a card that has that description, as a user would click it. */
+    private static void click(Parent root, String description) throws Exception {
+        FxTest.onFxThread(() -> {
+            root.lookup("#cardsPane").lookupAll(".icon-button").stream().map(Button.class::cast)
+                .filter(button -> description.equals(button.getAccessibleText())).findFirst().orElseThrow().fire();
+            root.applyCss();
+            root.layout();
+            return null;
+        });
+    }
+
+    /** The animation runs on its own; this waits for the panel to reach the state the test expects. */
+    private static boolean panelManaged(Parent root, boolean expected) throws Exception {
+        ScrollPane panel = (ScrollPane) root.lookup("#formPanel");
+        Supplier<Boolean> reading = panel::isManaged;
+        Predicate<Boolean> done = managed -> managed == expected;
+        boolean value = FxTest.onFxThread(reading);
+        for (int attempt = 0; attempt < 80 && !done.test(value); attempt++) {
+            Thread.sleep(25);
+            value = FxTest.onFxThread(reading);
+        }
+        return value;
     }
 
     @Test
@@ -134,5 +198,132 @@ class ProfessionalsViewTest {
 
         filterBy(root, "Todos los tratamientos");
         assertThat(cards(root)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("registering a professional adds a card, closes the form and keeps the working hours")
+    void registers() throws Exception {
+        Parent root = open();
+
+        press(root, "newButton");
+        assertThat(panelManaged(root, true)).isTrue();
+        fill(root, "2003", "María López", "3207778899", "maria@correo.com", "Esteticista", "08:30", "16:30");
+        press(root, "saveButton");
+
+        assertThat(cards(root)).contains("María López");
+        assertThat(panelManaged(root, false)).isFalse();
+        Professional saved = context.professionals().listAll().stream().filter(p -> p.getName().equals("María López")).findFirst().orElseThrow();
+        assertThat(saved.getWorkStart()).isEqualTo(LocalTime.of(8, 30));
+        assertThat(saved.getWorkEnd()).isEqualTo(LocalTime.of(16, 30));
+    }
+
+    @Test
+    @DisplayName("each wrong field is reported under its own field and nothing is saved")
+    void reportsEachField() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+
+        fill(root, "", "María López", "3207778899", "maria@correo.com", "Esteticista", "08:00", "17:00");
+        press(root, "saveButton");
+        assertThat(message(root, "documentMessage")).isNotEmpty();
+
+        fill(root, "2003", "María López", "12", "maria@correo.com", "Esteticista", "08:00", "17:00");
+        press(root, "saveButton");
+        assertThat(message(root, "phoneMessage")).isNotEmpty();
+
+        fill(root, "2003", "María López", "3207778899", "sin-arroba", "Esteticista", "08:00", "17:00");
+        press(root, "saveButton");
+        assertThat(message(root, "emailMessage")).isNotEmpty();
+
+        fill(root, "2003", "María López", "3207778899", "maria@correo.com", "", "08:00", "17:00");
+        press(root, "saveButton");
+        assertThat(message(root, "specialtyMessage")).isNotEmpty();
+        assertThat(cards(root)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("a working day that starts after it ends, or a time that is not HH:mm, is rejected under the hours")
+    void rejectsABadWorkingDay() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+
+        fill(root, "2003", "María López", "3207778899", "maria@correo.com", "Esteticista", "18:00", "09:00");
+        press(root, "saveButton");
+        assertThat(message(root, "scheduleMessage")).contains("anterior");
+
+        fill(root, "2003", "María López", "3207778899", "maria@correo.com", "Esteticista", "mañana", "17:00");
+        press(root, "saveButton");
+        assertThat(message(root, "scheduleMessage")).contains("HH:mm");
+        assertThat(cards(root)).hasSize(2);
+        assertThat(panelManaged(root, true)).isTrue();
+    }
+
+    @Test
+    @DisplayName("a repeated document is rejected under the document field")
+    void rejectsRepeatedDocument() throws Exception {
+        Parent root = open();
+        press(root, "newButton");
+
+        fill(root, "2001", "Otra Persona", "3001110000", "otra@correo.com", "Estilista", "08:00", "17:00");
+        press(root, "saveButton");
+
+        assertThat(message(root, "documentMessage")).contains("2001");
+    }
+
+    @Test
+    @DisplayName("the pencil fills the form, keeps the document fixed and saves new data and hours")
+    void edits() throws Exception {
+        Parent root = open();
+
+        click(root, "Editar Camila Ruiz");
+        assertThat(((TextField) root.lookup("#documentField")).isDisabled()).isTrue();
+        assertThat(((TextField) root.lookup("#startField")).getText()).isEqualTo("08:00");
+        assertThat(((Label) root.lookup("#formTitle")).getText()).isEqualTo("Editar profesional");
+        fill(root, "2001", "Camila Ruiz Peña", "3001112233", "camila@correo.com", "Estilista senior", "07:30", "16:00");
+        press(root, "saveButton");
+
+        Professional saved = context.professionals().listAll().stream().filter(p -> p.getDocument().equals("2001")).findFirst().orElseThrow();
+        assertThat(saved.getName()).isEqualTo("Camila Ruiz Peña");
+        assertThat(saved.getSpecialty()).isEqualTo("Estilista senior");
+        assertThat(saved.getWorkStart()).isEqualTo(LocalTime.of(7, 30));
+        assertThat(saved.getWorkEnd()).isEqualTo(LocalTime.of(16, 0));
+        assertThat(panelManaged(root, false)).isFalse();
+    }
+
+    @Test
+    @DisplayName("deactivating asks first and the card shows Inactivo; reactivating brings it back")
+    void deactivatesAndReactivates() throws Exception {
+        Parent root = open(true);
+
+        click(root, "Desactivar Camila Ruiz");
+        assertThat(context.professionals().listAll().stream().filter(p -> !p.isActive()).map(Professional::getName)).containsExactly("Camila Ruiz");
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".pro-card-inactive").size())).isEqualTo(1);
+
+        click(root, "Reactivar Camila Ruiz");
+        assertThat(context.professionals().listAll().stream().allMatch(Professional::isActive)).isTrue();
+    }
+
+    @Test
+    @DisplayName("cancelling the confirmation keeps the professional active")
+    void keepsActiveWhenCancelled() throws Exception {
+        Parent root = open(false);
+
+        click(root, "Desactivar Camila Ruiz");
+
+        assertThat(context.professionals().listAll().stream().allMatch(Professional::isActive)).isTrue();
+    }
+
+    @Test
+    @DisplayName("the form is hidden at first; Cancelar takes it out and empties it")
+    void drawerOpensAndCloses() throws Exception {
+        Parent root = open();
+        assertThat(root.lookup("#formPanel").isManaged()).isFalse();
+
+        press(root, "newButton");
+        fill(root, "2003", "María López", "3207778899", "maria@correo.com", "Esteticista", "08:00", "17:00");
+        press(root, "cancelButton");
+
+        assertThat(panelManaged(root, false)).isFalse();
+        assertThat(((TextField) root.lookup("#nameField")).getText()).isEmpty();
     }
 }
