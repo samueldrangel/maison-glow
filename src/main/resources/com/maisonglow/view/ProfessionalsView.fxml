@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.BorderPane?>
 
 <!-- Pantalla de Profesionales y tratamientos (mockup M3): una pestana por tema. Cada pestana es su propio
-     archivo (TreatmentsPane.fxml, ...) con su controlador; aqui solo se reunen. En Scene Builder abre cada
+     archivo (ProfessionalsPane.fxml, TreatmentsPane.fxml) con su controlador; aqui solo se reunen. En Scene Builder abre cada
      pestana con su archivo para editarla. Colores: View > Scene Style Sheets > styles.css. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="660">
@@ -18,6 +18,9 @@
     </top>
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Profesionales">
+                <content><fx:include source="ProfessionalsPane.fxml"/></content>
+            </Tab>
             <Tab text="Tratamientos">
                 <content><fx:include source="TreatmentsPane.fxml"/></content>
             </Tab>
