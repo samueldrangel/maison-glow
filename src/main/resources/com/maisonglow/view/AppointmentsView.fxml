@@ -6,13 +6,15 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Pantalla de Agenda de citas (mockup M5). Arriba el dia que se ve, con flechas para pasar de un dia a otro y
-     el boton Hoy; en el centro las citas del dia y debajo los botones que cambian el estado de la cita
+<!-- Pantalla de Agenda de citas (mockup M5). Arriba se elige que citas ver: las proximas, las de hoy, las pasadas o las de un
+     dia (solo entonces aparecen el selector de fecha y sus flechas); en el centro las citas del dia y debajo los botones que cambian el estado de la cita
      elegida (el controlador los activa solo cuando ese cambio es posible). Los textos de ejemplo se ven aqui
      para disenar; AppointmentsController los reemplaza al arrancar.
      Colores: View > Scene Style Sheets > styles.css. -->
@@ -24,17 +26,36 @@
             <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
             <Label text="Agenda" styleClass="view-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="previousButton" text="‹" styleClass="icon-button, day-arrow"/>
-            <DatePicker fx:id="dayPicker" prefWidth="170"/>
-            <Button fx:id="nextButton" text="›" styleClass="icon-button, day-arrow"/>
-            <Button fx:id="todayButton" text="Hoy" styleClass="button-secondary, button-compact"/>
+            <HBox alignment="CENTER_RIGHT" spacing="8">
+                <ToggleButton fx:id="upcomingChip" text="Próximas" styleClass="filter-chip" selected="true">
+                    <toggleGroup><ToggleGroup fx:id="modeChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="todayChip" text="Hoy" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="modeChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="pastChip" text="Pasadas" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="modeChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="dayChip" text="Un día" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="modeChips"/></toggleGroup>
+                </ToggleButton>
+            </HBox>
         </HBox>
     </top>
     <center>
         <VBox spacing="12">
-            <Label fx:id="dayTitle" text="Lunes 17 de noviembre de 2026" styleClass="day-title"/>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label fx:id="dayTitle" text="Próximas citas · próximos 60 días" styleClass="day-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="dayControls" alignment="CENTER_RIGHT" spacing="8">
+                    <Button fx:id="previousButton" text="‹" styleClass="icon-button, day-arrow"/>
+                    <DatePicker fx:id="dayPicker" prefWidth="170"/>
+                    <Button fx:id="nextButton" text="›" styleClass="icon-button, day-arrow"/>
+                </HBox>
+            </HBox>
             <TableView fx:id="appointmentsTable" styleClass="compact-table" VBox.vgrow="ALWAYS">
                 <columns>
+                    <TableColumn fx:id="dateColumn" text="Fecha" prefWidth="80"/>
                     <TableColumn fx:id="timeColumn" text="Hora" prefWidth="110"/>
                     <TableColumn fx:id="customerColumn" text="Cliente" prefWidth="150"/>
                     <TableColumn fx:id="treatmentColumn" text="Tratamiento" prefWidth="150"/>
