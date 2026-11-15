@@ -2,6 +2,7 @@ package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.model.Appointment;
+import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Treatment;
@@ -9,6 +10,7 @@ import com.maisonglow.service.ContactData;
 import com.maisonglow.service.TreatmentData;
 import com.maisonglow.service.WorkSchedule;
 import com.maisonglow.util.CurrencyFormatter;
+import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
 import javafx.scene.Parent;
@@ -73,9 +75,18 @@ class AppointmentsViewTest {
     }
 
     private Parent open() throws Exception {
+        return open(true);
+    }
+
+    /** Opens the agenda; a confirmation is answered as the user would, with "Confirmar" or by cancelling. */
+    private Parent open(boolean confirm) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         return FxTest.onFxThread(() -> {
-            Parent root = ViewLoader.load(AppointmentsViewTest.class.getResource("/com/maisonglow/view/AppointmentsView.fxml"), context);
+            ViewLoader.Loaded<AppointmentsController> loaded = ViewLoader.loadWithController(
+                AppointmentsViewTest.class.getResource("/com/maisonglow/view/AppointmentsView.fxml"), context);
+            loaded.controller().useAlerts(new AlertPresenter(() -> null, alert -> alert.getButtonTypes().stream()
+                .filter(button -> confirm && "Confirmar".equals(button.getText())).findFirst()));
+            Parent root = loaded.root();
             new Scene(root, 1100, 700);
             root.applyCss();
             root.layout();
@@ -95,6 +106,8 @@ class AppointmentsViewTest {
     private static void press(Parent root, String id) throws Exception {
         FxTest.onFxThread(() -> {
             ((Button) root.lookup("#" + id)).fire();
+            root.applyCss();
+            root.layout();
             return null;
         });
     }
@@ -111,6 +124,24 @@ class AppointmentsViewTest {
 
     private static LocalDate day(Parent root) throws Exception {
         return FxTest.onFxThread(() -> ((DatePicker) root.lookup("#dayPicker")).getValue());
+    }
+
+    /** Chooses the row of the day at that position, as a click on the table would. */
+    @SuppressWarnings("unchecked")
+    private static void select(Parent root, int index) throws Exception {
+        TableView<Appointment> table = (TableView<Appointment>) root.lookup("#appointmentsTable");
+        FxTest.onFxThread(() -> {
+            table.getSelectionModel().select(index);
+            return null;
+        });
+    }
+
+    private static boolean disabled(Parent root, String id) throws Exception {
+        return FxTest.onFxThread(() -> root.lookup("#" + id).isDisabled());
+    }
+
+    private Appointment stored(int index) throws Exception {
+        return context.appointments().listByDate(tomorrow).stream().sorted(java.util.Comparator.comparing(Appointment::getStart)).toList().get(index);
     }
 
     @Test
@@ -183,5 +214,113 @@ class AppointmentsViewTest {
 
         assertThat(day(root)).isEqualTo(tomorrow);
         assertThat(rows(root)).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("the state buttons are off until an appointment is chosen")
+    void buttonsStartOff() throws Exception {
+        Parent root = open();
+        goTo(root, tomorrow);
+
+        for (String id : List.of("confirmButton", "completeButton", "noShowButton", "cancelAppointmentButton")) {
+            assertThat(disabled(root, id)).as(id).isTrue();
+        }
+
+        select(root, 0);
+        for (String id : List.of("confirmButton", "completeButton", "noShowButton", "cancelAppointmentButton")) {
+            assertThat(disabled(root, id)).as(id).isFalse();
+        }
+    }
+
+    @Test
+    @DisplayName("Confirmar moves a pending appointment to confirmed and can no longer be pressed")
+    void confirms() throws Exception {
+        Parent root = open();
+        goTo(root, tomorrow);
+        select(root, 0);
+
+        press(root, "confirmButton");
+
+        assertThat(stored(0).getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".chip-success").stream().map(node -> ((Label) node).getText()).toList()))
+            .containsExactly("Confirmada");
+        assertThat(disabled(root, "confirmButton")).isTrue();
+        assertThat(disabled(root, "completeButton")).isFalse();
+    }
+
+    @Test
+    @DisplayName("Completar closes the appointment and no state button is left on")
+    void completes() throws Exception {
+        Parent root = open();
+        goTo(root, tomorrow);
+        select(root, 0);
+
+        press(root, "completeButton");
+
+        assertThat(stored(0).getStatus()).isEqualTo(AppointmentStatus.COMPLETED);
+        assertThat(text(root, "countLabel")).isEqualTo("3 citas, 2 por atender");
+        for (String id : List.of("confirmButton", "completeButton", "noShowButton", "cancelAppointmentButton")) {
+            assertThat(disabled(root, id)).as(id).isTrue();
+        }
+    }
+
+    @Test
+    @DisplayName("Inasistencia asks first, then marks the appointment and adds one to the customer")
+    void marksANoShow() throws Exception {
+        Parent root = open(true);
+        goTo(root, tomorrow);
+        select(root, 0);
+
+        press(root, "noShowButton");
+
+        assertThat(stored(0).getStatus()).isEqualTo(AppointmentStatus.NO_SHOW);
+        assertThat(context.customers().findByDocument("1002").orElseThrow().getNoShowCount()).isEqualTo(1);
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".chip-warning").stream().map(node -> ((Label) node).getText()).toList()))
+            .containsExactly("Inasistencia");
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".row-noshow").size())).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("cancelling asks first and frees the schedule of the professional")
+    void cancelsAndFreesTheSchedule() throws Exception {
+        Parent root = open(true);
+        goTo(root, tomorrow);
+        select(root, 1);
+        Appointment cut = stored(1);
+        assertThat(context.appointments().checkAvailability(cut.getProfessional(), cut.getStart(), cut.getEnd())).isFalse();
+
+        press(root, "cancelAppointmentButton");
+
+        assertThat(stored(1).getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
+        assertThat(context.appointments().checkAvailability(cut.getProfessional(), cut.getStart(), cut.getEnd())).isTrue();
+        assertThat(text(root, "countLabel")).isEqualTo("3 citas, 2 por atender");
+    }
+
+    @Test
+    @DisplayName("answering no to the confirmation changes nothing")
+    void declinedConfirmationChangesNothing() throws Exception {
+        Parent root = open(false);
+        goTo(root, tomorrow);
+        select(root, 0);
+
+        press(root, "cancelAppointmentButton");
+        press(root, "noShowButton");
+
+        assertThat(stored(0).getStatus()).isEqualTo(AppointmentStatus.PENDING);
+        assertThat(context.customers().findByDocument("1002").orElseThrow().getNoShowCount()).isZero();
+    }
+
+    @Test
+    @DisplayName("a cancelled appointment goes quiet in the table and offers no more changes")
+    void cancelledGoesQuiet() throws Exception {
+        Parent root = open(true);
+        goTo(root, tomorrow);
+        select(root, 0);
+
+        press(root, "cancelAppointmentButton");
+
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".row-muted").size())).isEqualTo(1);
+        assertThat(disabled(root, "confirmButton")).isTrue();
+        assertThat(disabled(root, "cancelAppointmentButton")).isTrue();
     }
 }
