@@ -1004,3 +1004,41 @@
     -fx-font-weight: bold;
     -fx-text-fill: -mg-text;
 }
+
+/* ---- Pestanas: sin caja, la elegida con linea rosa debajo ---- */
+.tab-pane {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 6 18 6 18;
+    -fx-border-color: transparent transparent -mg-border transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-font-size: 15px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-border-color: transparent transparent -mg-rose transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -mg-rose-dark;
+    -fx-font-weight: bold;
+}
+
