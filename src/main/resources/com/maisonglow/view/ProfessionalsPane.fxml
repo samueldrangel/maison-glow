@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Pestana Profesionales de Profesionales y tratamientos. Cada profesional es una tarjeta que ProfessionalsController
+     arma al arrancar (aqui se ve una de ejemplo). El formulario es un panel que entra desde la derecha (SlidePanel); aqui se ve
+     abierto para disenar. Los textos
+     "Mensaje de error" se ven aqui para disenar; FieldValidator los oculta al arrancar.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.ProfessionalsController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="600">
+    <padding><Insets top="14"/></padding>
+    <center>
+        <VBox spacing="14">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <TextField fx:id="searchField" promptText="Buscar profesional..." styleClass="search-field" HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="treatmentFilter" promptText="Todos los tratamientos" prefWidth="210"/>
+                <Button fx:id="newButton" text="Nuevo profesional" styleClass="button-gold">
+                    <graphic><StackPane styleClass="sparkle" minWidth="15" prefWidth="15" maxWidth="15" minHeight="15" prefHeight="15" maxHeight="15">
+                        <SVGPath styleClass="line-icon" scaleX="0.625" scaleY="0.625" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>
+                    </StackPane></graphic>
+                </Button>
+            </HBox>
+
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" VBox.vgrow="ALWAYS">
+                <FlowPane fx:id="cardsPane" hgap="14" vgap="14" styleClass="side-column" style="-fx-padding: 4 4 16 4;">
+                    <VBox styleClass="card, pro-card">
+                        <HBox alignment="CENTER_RIGHT" spacing="2">
+                            <Button styleClass="icon-button" text="Editar"/>
+                        </HBox>
+                        <StackPane styleClass="pro-medallion" minWidth="64" prefWidth="64" maxWidth="64" minHeight="64" prefHeight="64" maxHeight="64">
+                            <Label text="CR" styleClass="pro-initials"/>
+                        </StackPane>
+                        <Label text="Camila Ruiz" styleClass="pro-name"/>
+                        <Label text="Estilista" styleClass="pro-specialty"/>
+                        <Label text="08:00 - 17:00" styleClass="pro-hours"/>
+                        <Label text="3 tratamientos" styleClass="pro-hours"/>
+                        <Label text="Activo" styleClass="chip-success"/>
+                    </VBox>
+                </FlowPane>
+            </ScrollPane>
+            <Label fx:id="countLabel" text="Mostrando 1 de 1 profesionales" styleClass="stat-caption"/>
+        </VBox>
+    </center>
+    <right>
+        <HBox>
+            <ScrollPane fx:id="formPanel" fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="330" minWidth="330">
+                <VBox spacing="16" styleClass="side-column" style="-fx-padding: 0 4 16 20;">
+                    <VBox styleClass="card, form-card" spacing="6">
+                        <Label fx:id="formTitle" text="Registrar profesional" styleClass="form-title"/>
+
+                        <Label text="Documento" styleClass="form-label"/>
+                        <TextField fx:id="documentField" promptText="Número de documento"/>
+                        <Label fx:id="documentMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Nombre" styleClass="form-label"/>
+                        <TextField fx:id="nameField" promptText="Nombre completo"/>
+                        <Label fx:id="nameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Teléfono" styleClass="form-label"/>
+                        <TextField fx:id="phoneField" promptText="3001234567"/>
+                        <Label fx:id="phoneMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Correo electrónico" styleClass="form-label"/>
+                        <TextField fx:id="emailField" promptText="correo@ejemplo.com"/>
+                        <Label fx:id="emailMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Especialidad" styleClass="form-label"/>
+                        <TextField fx:id="specialtyField" promptText="Estilista, manicurista..."/>
+                        <Label fx:id="specialtyMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <HBox spacing="10">
+                            <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                                <Label text="Entrada" styleClass="form-label"/>
+                                <TextField fx:id="startField" promptText="08:00"/>
+                            </VBox>
+                            <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                                <Label text="Salida" styleClass="form-label"/>
+                                <TextField fx:id="endField" promptText="17:00"/>
+                            </VBox>
+                        </HBox>
+                        <Label fx:id="scheduleMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <HBox spacing="10">
+                            <padding><Insets top="10"/></padding>
+                            <Button fx:id="saveButton" text="Guardar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </HBox>
+    </right>
+</BorderPane>
