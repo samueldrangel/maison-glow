@@ -35,8 +35,8 @@
 | — | S-12 | **IA:** asistente con herramientas (simulado) | Samuel | 🔴 | libre | — | ✅ Hecha |
 | — | S-13 | **IA:** probador virtual (simulado) | Samuel | 🔴 | libre | — | ✅ Hecha |
 | — | S-14 | **IA:** `AiConfig` y fábrica de proveedores (simulado/API) | Samuel | 🔴 | libre | S-12, S-13 | ✅ Hecha |
-| — | S-15 | **IA:** adaptador por API del asistente | Samuel | 🟠 | libre | S-14 | 🟨 En progreso |
-| — | S-16 | **IA:** adaptador por API del probador virtual | Samuel | 🟢 | libre | S-14 | ⬜ Pendiente |
+| — | S-15 | **IA:** adaptador por API del asistente | Samuel | 🟠 | libre | S-14 | ✅ Hecha |
+| — | S-16 | **IA:** adaptador por API del probador virtual | Samuel | 🟢 | libre | S-14 | 🟨 En progreso |
 | — | S-17 | **IA:** persistencia de conversaciones y sesiones de prueba | Samuel | 🟢 | libre | S-12, S-13 | ⬜ Pendiente |
 | — | S-18 | Integración final y entrega del corte | Samuel | 🔴 | Día 14 | todas las 🔴 | ⬜ Pendiente |
 
