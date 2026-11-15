@@ -12,9 +12,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -80,10 +80,13 @@ class TreatmentsViewTest {
         return open("TreatmentsPane.fxml");
     }
 
-    @SuppressWarnings("unchecked")
+    /** The names on the cards, in the order they are shown. */
     private static List<String> names(Parent root) throws Exception {
-        TableView<Treatment> table = (TableView<Treatment>) root.lookup("#treatmentsTable");
-        return FxTest.onFxThread(() -> table.getItems().stream().map(Treatment::getName).toList());
+        return texts(root, ".tre-name");
+    }
+
+    private static List<String> texts(Parent root, String style) throws Exception {
+        return FxTest.onFxThread(() -> root.lookupAll(style).stream().map(node -> ((Label) node).getText()).toList());
     }
 
     private static void fill(Parent root, String name, String price, String minutes) throws Exception {
@@ -112,7 +115,7 @@ class TreatmentsViewTest {
         FxTest.onFxThread(() -> {
             root.applyCss();
             root.layout();
-            root.lookup("#treatmentsTable").lookupAll(".icon-button").stream().map(Button.class::cast)
+            root.lookup("#cardsPane").lookupAll(".icon-button").stream().map(Button.class::cast)
                 .filter(button -> description.equals(button.getAccessibleText())).findFirst().orElseThrow().fire();
             root.applyCss();
             root.layout();
@@ -145,14 +148,25 @@ class TreatmentsViewTest {
     }
 
     @Test
-    @DisplayName("shows the duration in minutes and the price in pesos")
-    void formatsDurationAndPrice() throws Exception {
+    @DisplayName("each card shows the duration in minutes, the price in pesos and what the treatment includes")
+    void showsTheDetails() throws Exception {
         Parent root = open();
 
-        List<String> cells = FxTest.onFxThread(() -> root.lookupAll(".table-cell").stream()
-            .map(node -> ((javafx.scene.control.Labeled) node).getText()).filter(text -> text != null).toList());
+        assertThat(texts(root, ".tre-meta")).contains("50 min", "60 min");
+        assertThat(texts(root, ".tre-price")).contains(CurrencyFormatter.format(new BigDecimal("45000")));
+        assertThat(texts(root, ".tre-description")).containsExactly("Esmaltado semipermanente");
+        assertThat(texts(root, ".tre-description-empty")).containsExactly("Sin descripción");
+        assertThat(((Label) root.lookup("#countLabel")).getText()).isEqualTo("Mostrando 2 de 2 tratamientos");
+    }
 
-        assertThat(cells).contains("50 min", CurrencyFormatter.format(new BigDecimal("45000")));
+    @Test
+    @DisplayName("the cards come in alphabetical order and an inactive one is dimmed")
+    void ordersAndDimsTheInactive() throws Exception {
+        Parent root = open();
+
+        assertThat(names(root)).containsExactly("Corte y peinado", "Manicura gel");
+        assertThat(FxTest.onFxThread(() -> ((FlowPane) root.lookup("#cardsPane")).getChildren().get(0).getStyleClass()))
+            .contains("tre-card-inactive");
     }
 
     @Test
@@ -166,6 +180,7 @@ class TreatmentsViewTest {
         });
 
         assertThat(names(root)).containsExactly("Manicura gel");
+        assertThat(((Label) root.lookup("#countLabel")).getText()).isEqualTo("Mostrando 1 de 2 tratamientos");
     }
 
     @Test
