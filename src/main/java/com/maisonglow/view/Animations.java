@@ -5,6 +5,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
 import javafx.animation.RotateTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -23,7 +24,9 @@ public final class Animations {
 
     private static final Duration QUICK = Duration.millis(140);
     private static final Duration STANDARD = Duration.millis(220);
-    private static final Duration POP = Duration.millis(260);
+    private static final Duration POP_GROW = Duration.millis(170);
+    private static final Duration POP_SETTLE = Duration.millis(110);
+    private static final double POP_PEAK = 1.15;
     private static final double RISE = 10;
     private static final double NUDGE = 3;
     private static final double LIFT = 2;
@@ -60,11 +63,16 @@ public final class Animations {
         Objects.requireNonNull(node, "node");
         node.setScaleX(0.5);
         node.setScaleY(0.5);
-        ScaleTransition grow = new ScaleTransition(POP, node);
-        grow.setToX(1);
-        grow.setToY(1);
-        grow.setInterpolator(Interpolator.SPLINE(0.2, 1.6, 0.4, 1));
-        grow.play();
+        // The bounce is two steps (a little past the final size, then back): a spline cannot go beyond 1.
+        ScaleTransition grow = new ScaleTransition(POP_GROW, node);
+        grow.setToX(POP_PEAK);
+        grow.setToY(POP_PEAK);
+        grow.setInterpolator(Interpolator.EASE_OUT);
+        ScaleTransition settle = new ScaleTransition(POP_SETTLE, node);
+        settle.setToX(1);
+        settle.setToY(1);
+        settle.setInterpolator(Interpolator.EASE_IN);
+        new SequentialTransition(grow, settle).play();
     }
 
     /**
