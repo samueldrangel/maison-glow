@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Pantalla de Clientes (mockup M2). Parte de templates/ListFormTemplate.fxml.
+     El formulario es un panel que entra desde la derecha (SlidePanel); aqui se ve abierto para disenar.
+     Los textos de ejemplo ("Mensaje de error", las cifras de las estadisticas) se ven aqui para disenar;
+     CustomersController los reemplaza al arrancar con los datos reales.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.CustomersController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="660">
+    <center>
+        <VBox spacing="14">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="Clientes" styleClass="view-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="newButton" text="Nuevo cliente" styleClass="button-gold">
+                    <graphic><StackPane styleClass="sparkle" minWidth="15" prefWidth="15" maxWidth="15" minHeight="15" prefHeight="15" maxHeight="15">
+                        <SVGPath styleClass="line-icon" scaleX="0.625" scaleY="0.625" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>
+                    </StackPane></graphic>
+                </Button>
+            </HBox>
+
+            <TextField fx:id="searchField" promptText="Buscar por nombre, documento o teléfono..." styleClass="search-field"/>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <ToggleButton fx:id="allChip" text="Todos" styleClass="filter-chip" selected="true">
+                    <toggleGroup><ToggleGroup fx:id="groupChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="noShowsChip" text="Con inasistencias" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="groupChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="newChip" text="Nuevos" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="groupChips"/></toggleGroup>
+                </ToggleButton>
+            </HBox>
+
+            <TableView fx:id="customersTable" styleClass="compact-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="documentColumn" text="Documento" prefWidth="78"/>
+                    <TableColumn fx:id="nameColumn" text="Nombre" prefWidth="126"/>
+                    <TableColumn fx:id="phoneColumn" text="Teléfono" prefWidth="108"/>
+                    <TableColumn fx:id="emailColumn" text="Correo" prefWidth="150"/>
+                    <TableColumn fx:id="registeredColumn" text="Registro" prefWidth="94"/>
+                    <TableColumn fx:id="noShowsColumn" text="Inasist." prefWidth="58"/>
+                    <TableColumn fx:id="actionsColumn" text="Acciones" prefWidth="64" sortable="false"/>
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                <placeholder><Label text="Aún no hay clientes. Pulsa «Nuevo cliente» para registrar el primero." styleClass="placeholder-notice"/></placeholder>
+            </TableView>
+            <Label fx:id="countLabel" text="Mostrando 8 de 8 clientes" styleClass="stat-caption"/>
+        </VBox>
+    </center>
+    <right>
+        <HBox>
+            <ScrollPane fx:id="formPanel" fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="330" minWidth="330">
+                <VBox spacing="16" styleClass="side-column" style="-fx-padding: 0 4 16 20;">
+                    <VBox styleClass="card, form-card" spacing="6">
+                        <Label fx:id="formTitle" text="Registrar cliente" styleClass="form-title"/>
+
+                        <Label text="Documento" styleClass="form-label"/>
+                        <TextField fx:id="documentField" promptText="Número de documento"/>
+                        <Label fx:id="documentMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Nombre" styleClass="form-label"/>
+                        <TextField fx:id="nameField" promptText="Nombre completo"/>
+                        <Label fx:id="nameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Teléfono" styleClass="form-label"/>
+                        <TextField fx:id="phoneField" promptText="3001234567"/>
+                        <Label fx:id="phoneMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <Label text="Correo electrónico" styleClass="form-label"/>
+                        <TextField fx:id="emailField" promptText="correo@ejemplo.com"/>
+                        <Label fx:id="emailMessage" text="Mensaje de error" styleClass="field-error-message"/>
+
+                        <HBox spacing="10">
+                            <padding><Insets top="10"/></padding>
+                            <Button fx:id="saveButton" text="Guardar" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </HBox>
+    </right>
+</BorderPane>

@@ -773,11 +773,11 @@
     -fx-stroke: -mg-chip-alert;
 }
 
-.table-row-cell.row-restock {
+.table-row-cell.row-restock, .table-row-cell.row-noshow {
     -fx-background-color: rgba(246, 220, 213, 0.30);
 }
 
-.table-row-cell.row-restock:selected {
+.table-row-cell.row-restock:selected, .table-row-cell.row-noshow:selected {
     -fx-background-color: -mg-gold, -mg-active;
     -fx-background-insets: 0, 0 0 0 3;
 }
@@ -917,4 +917,10 @@
     -fx-font-family: Consolas, "Courier New", monospace;
     -fx-font-size: 12.5px;
     -fx-text-fill: -mg-text;
+}
+
+/* ---- Clientes ---- */
+.stat-caption {
+    -fx-font-size: 13px;
+    -fx-text-fill: -mg-text-muted;
 }
