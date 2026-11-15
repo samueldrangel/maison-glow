@@ -57,6 +57,7 @@ public final class ProfessionalsController {
     private final ObservableList<Professional> all = FXCollections.observableArrayList();
     private final FilteredList<Professional> shown = new FilteredList<>(all);
     private final FieldValidator formFields = new FieldValidator();
+    private final FieldValidator assignFields = new FieldValidator();
     private Professional editing;
     private SlidePanel formDrawer;
     private AlertPresenter alerts;
@@ -105,6 +106,16 @@ public final class ProfessionalsController {
     private Button saveButton;
     @FXML
     private Button cancelButton;
+    @FXML
+    private VBox servicesCard;
+    @FXML
+    private FlowPane servicesChips;
+    @FXML
+    private ComboBox<Treatment> assignBox;
+    @FXML
+    private Label assignMessage;
+    @FXML
+    private Button assignButton;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -168,6 +179,19 @@ public final class ProfessionalsController {
             formDrawer.close();
         });
         saveButton.setOnAction(event -> save());
+        assignBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Treatment treatment) {
+                return treatment == null ? "" : treatment.getName() + (treatment.isActive() ? "" : " (inactivo)");
+            }
+
+            @Override
+            public Treatment fromString(String text) {
+                return null;
+            }
+        });
+        assignFields.field(assignBox, assignMessage, "tratamiento", "ofrece");
+        assignButton.setOnAction(event -> assign());
         startRegistering();
     }
 
@@ -183,6 +207,8 @@ public final class ProfessionalsController {
         startField.setText("08:00");
         endField.setText("17:00");
         documentField.setDisable(false);
+        servicesCard.setVisible(false);
+        servicesCard.setManaged(false);
         formFields.clear();
         documentField.requestFocus();
     }
@@ -199,7 +225,10 @@ public final class ProfessionalsController {
         startField.setText(DateFormats.time(professional.getWorkStart()));
         endField.setText(DateFormats.time(professional.getWorkEnd()));
         documentField.setDisable(true);
+        servicesCard.setVisible(true);
+        servicesCard.setManaged(true);
         formFields.clear();
+        showServices(professional);
         formDrawer.open();
         nameField.requestFocus();
     }
@@ -229,6 +258,61 @@ public final class ProfessionalsController {
         } catch (DataAccessException e) {
             alerts.showError(e);
         }
+    }
+
+    /** Lists the services the professional offers, each with a button to take it away, and refills the picker. */
+    private void showServices(Professional professional) {
+        servicesChips.getChildren().setAll(professional.getTreatments().stream().map(treatment -> {
+            Button chip = new Button(treatment.getName() + "  ×");
+            chip.getStyleClass().add("chip-rose");
+            chip.setAccessibleText("Quitar " + treatment.getName());
+            chip.setTooltip(new Tooltip("Quitar " + treatment.getName()));
+            chip.setOnAction(event -> removeService(treatment));
+            return chip;
+        }).toList());
+        if (professional.getTreatments().isEmpty()) {
+            servicesChips.getChildren().setAll(text("Aún no ofrece ningún tratamiento.", "form-hint"));
+        }
+        try {
+            assignBox.getItems().setAll(treatments.listAll());
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+        assignBox.setValue(null);
+        assignFields.clear();
+    }
+
+    private void assign() {
+        try {
+            Treatment treatment = assignBox.getValue();
+            Validator.requirePresent(treatment, "tratamiento");
+            professionals.assignTreatment(editing.getId(), treatment.getId());
+            alerts.toast("Tratamiento asignado.");
+            reloadEditing();
+        } catch (ValidationException | BusinessRuleException e) {
+            if (!assignFields.show(e)) {
+                alerts.showError(e);
+            }
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private void removeService(Treatment treatment) {
+        try {
+            professionals.removeTreatment(editing.getId(), treatment.getId());
+            alerts.toast("Tratamiento quitado.");
+            reloadEditing();
+        } catch (BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    /** Reads the professional being edited again, so the chips and the card show the services that are stored. */
+    private void reloadEditing() throws DataAccessException, BusinessRuleException {
+        editing = professionals.findById(editing.getId());
+        showServices(editing);
+        refresh();
     }
 
     private static LocalTime time(TextField field, String which) throws ValidationException {
