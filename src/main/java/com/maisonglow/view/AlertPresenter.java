@@ -47,8 +47,13 @@ public final class AlertPresenter {
         this(() -> windowOf(anchor), Alert::showAndWait);
     }
 
-    /** Lets the tests choose how a dialog is displayed instead of opening a real window. */
-    AlertPresenter(Supplier<Window> owner, Function<Alert, Optional<ButtonType>> display) {
+    /**
+     * Lets the tests choose how a dialog is displayed instead of opening a real window.
+     *
+     * @param owner the window the dialogs belong to, or null
+     * @param display shows a dialog and returns the button pressed
+     */
+    public AlertPresenter(Supplier<Window> owner, Function<Alert, Optional<ButtonType>> display) {
         this.owner = Objects.requireNonNull(owner, "owner");
         this.display = Objects.requireNonNull(display, "display");
     }
