@@ -1,23 +1,34 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
+import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Treatment;
+import com.maisonglow.service.ContactData;
 import com.maisonglow.service.ProfessionalService;
 import com.maisonglow.service.TreatmentService;
+import com.maisonglow.service.WorkSchedule;
 import com.maisonglow.util.DateFormats;
 import com.maisonglow.util.Initials;
 import com.maisonglow.util.TextSearch;
+import com.maisonglow.util.Validator;
 import com.maisonglow.view.AlertPresenter;
+import com.maisonglow.view.FieldValidator;
+import com.maisonglow.view.Icons;
+import com.maisonglow.view.SlidePanel;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -25,6 +36,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.util.StringConverter;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,6 +56,9 @@ public final class ProfessionalsController {
     private final TreatmentService treatments;
     private final ObservableList<Professional> all = FXCollections.observableArrayList();
     private final FilteredList<Professional> shown = new FilteredList<>(all);
+    private final FieldValidator formFields = new FieldValidator();
+    private Professional editing;
+    private SlidePanel formDrawer;
     private AlertPresenter alerts;
 
     @FXML
@@ -53,6 +69,42 @@ public final class ProfessionalsController {
     private FlowPane cardsPane;
     @FXML
     private Label countLabel;
+    @FXML
+    private Button newButton;
+    @FXML
+    private ScrollPane formPanel;
+    @FXML
+    private Label formTitle;
+    @FXML
+    private TextField documentField;
+    @FXML
+    private Label documentMessage;
+    @FXML
+    private TextField nameField;
+    @FXML
+    private Label nameMessage;
+    @FXML
+    private TextField phoneField;
+    @FXML
+    private Label phoneMessage;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private Label emailMessage;
+    @FXML
+    private TextField specialtyField;
+    @FXML
+    private Label specialtyMessage;
+    @FXML
+    private TextField startField;
+    @FXML
+    private TextField endField;
+    @FXML
+    private Label scheduleMessage;
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button cancelButton;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -78,6 +130,7 @@ public final class ProfessionalsController {
     private void initialize() {
         alerts = new AlertPresenter(cardsPane);
         setUpFilters();
+        setUpForm();
         refresh();
     }
 
@@ -95,6 +148,117 @@ public final class ProfessionalsController {
         });
         searchField.textProperty().addListener((observable, before, text) -> applyFilters());
         treatmentFilter.valueProperty().addListener((observable, before, treatment) -> applyFilters());
+    }
+
+    private void setUpForm() {
+        formDrawer = new SlidePanel(formPanel, formPanel.getContent(), formPanel.getPrefWidth());
+        // The order matters: the first keyword that appears in the message picks the field.
+        formFields.field(documentField, documentMessage, "documento");
+        formFields.field(nameField, nameMessage, "nombre");
+        formFields.field(phoneField, phoneMessage, "teléfono");
+        formFields.field(emailField, emailMessage, "correo");
+        formFields.field(specialtyField, specialtyMessage, "especialidad");
+        formFields.field(endField, scheduleMessage, "jornada", "hora");
+        newButton.setOnAction(event -> {
+            startRegistering();
+            formDrawer.open();
+        });
+        cancelButton.setOnAction(event -> {
+            startRegistering();
+            formDrawer.close();
+        });
+        saveButton.setOnAction(event -> save());
+        startRegistering();
+    }
+
+    /** Leaves the form ready to register a new professional, with the usual working day filled in. */
+    private void startRegistering() {
+        editing = null;
+        formTitle.setText("Registrar profesional");
+        documentField.clear();
+        nameField.clear();
+        phoneField.clear();
+        emailField.clear();
+        specialtyField.clear();
+        startField.setText("08:00");
+        endField.setText("17:00");
+        documentField.setDisable(false);
+        formFields.clear();
+        documentField.requestFocus();
+    }
+
+    /** Fills the form with a professional so it can be changed; the document cannot be changed. */
+    private void startEditing(Professional professional) {
+        editing = professional;
+        formTitle.setText("Editar profesional");
+        documentField.setText(professional.getDocument());
+        nameField.setText(professional.getName());
+        phoneField.setText(professional.getPhone());
+        emailField.setText(professional.getEmail());
+        specialtyField.setText(professional.getSpecialty());
+        startField.setText(DateFormats.time(professional.getWorkStart()));
+        endField.setText(DateFormats.time(professional.getWorkEnd()));
+        documentField.setDisable(true);
+        formFields.clear();
+        formDrawer.open();
+        nameField.requestFocus();
+    }
+
+    private void save() {
+        try {
+            ContactData contact = new ContactData(documentField.getText(), nameField.getText(),
+                phoneField.getText(), emailField.getText());
+            contact.validate();
+            Validator.requireText(specialtyField.getText(), "especialidad");
+            WorkSchedule schedule = new WorkSchedule(time(startField, "entrada"), time(endField, "salida"));
+            if (editing == null) {
+                professionals.register(contact, specialtyField.getText(), schedule);
+                alerts.toast("Profesional registrado.");
+            } else {
+                professionals.update(editing.getId(), contact, specialtyField.getText());
+                professionals.changeWorkingHours(editing.getId(), schedule);
+                alerts.toast("Profesional actualizado.");
+            }
+            startRegistering();
+            formDrawer.close();
+            refresh();
+        } catch (ValidationException | BusinessRuleException e) {
+            if (!formFields.show(e)) {
+                alerts.showError(e);
+            }
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private static LocalTime time(TextField field, String which) throws ValidationException {
+        try {
+            return LocalTime.parse(field.getText().trim());
+        } catch (DateTimeParseException e) {
+            throw new ValidationException("La hora de " + which + " de la jornada debe tener el formato HH:mm, por ejemplo 08:00.", e);
+        }
+    }
+
+    private void deactivate(Professional professional) {
+        if (!alerts.confirm("¿Desactivar a «" + professional.getName() + "»? Dejará de aparecer en la agenda; "
+            + "podrás reactivar al profesional cuando quieras.")) {
+            return;
+        }
+        changeActive(professional, false, "Profesional desactivado.");
+    }
+
+    private void changeActive(Professional professional, boolean active, String notice) {
+        try {
+            if (active) {
+                professionals.activate(professional.getId());
+            } else {
+                professionals.deactivate(professional.getId());
+            }
+            alerts.toast(notice);
+            refresh();
+        } catch (BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
     }
 
     private void applyFilters() {
@@ -152,9 +316,33 @@ public final class ProfessionalsController {
 
     /** The row at the top of a card with its action buttons. */
     private Node actions(Professional professional) {
-        HBox row = new HBox(2);
+        Button edit = iconButton(Icons.Kind.EDIT, "Editar " + professional.getName());
+        edit.setOnAction(event -> startEditing(professional));
+        Button toggle = professional.isActive()
+            ? iconButton(Icons.Kind.TRASH, "Desactivar " + professional.getName())
+            : iconButton(Icons.Kind.RESTORE, "Reactivar " + professional.getName());
+        if (professional.isActive()) {
+            toggle.getStyleClass().add("danger");
+        }
+        toggle.setOnAction(event -> {
+            if (professional.isActive()) {
+                deactivate(professional);
+            } else {
+                changeActive(professional, true, "Profesional reactivado.");
+            }
+        });
+        HBox row = new HBox(2, edit, toggle);
         row.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
         return row;
+    }
+
+    private static Button iconButton(Icons.Kind kind, String description) {
+        Button button = new Button();
+        button.setGraphic(Icons.small(kind, 16));
+        button.getStyleClass().add("icon-button");
+        button.setAccessibleText(description);
+        button.setTooltip(new Tooltip(description));
+        return button;
     }
 
     private static Label text(String text, String style) {
