@@ -156,6 +156,21 @@ class ProfessionalsViewTest {
         return value;
     }
 
+    @SuppressWarnings("unchecked")
+    private static void pick(Parent root, String treatment) throws Exception {
+        ComboBox<Treatment> box = (ComboBox<Treatment>) root.lookup("#assignBox");
+        FxTest.onFxThread(() -> {
+            box.getSelectionModel().select(box.getItems().stream().filter(t -> t.getName().equals(treatment)).findFirst().orElseThrow());
+            return null;
+        });
+    }
+
+    /** The names of the services offered by a professional, as the store has them. */
+    private List<String> offered(String document) throws Exception {
+        return context.professionals().listAll().stream().filter(p -> p.getDocument().equals(document)).findFirst().orElseThrow()
+            .getTreatments().stream().map(Treatment::getName).toList();
+    }
+
     @Test
     @DisplayName("shows a card per professional with the specialty, the hours and the treatments")
     void showsCards() throws Exception {
@@ -325,5 +340,79 @@ class ProfessionalsViewTest {
 
         assertThat(panelManaged(root, false)).isFalse();
         assertThat(((TextField) root.lookup("#nameField")).getText()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("the services card appears only when editing, with the services already offered")
+    void servicesCardShowsWhileEditing() throws Exception {
+        Parent root = open();
+        assertThat(root.lookup("#servicesCard").isManaged()).isFalse();
+
+        click(root, "Editar Camila Ruiz");
+
+        assertThat(root.lookup("#servicesCard").isManaged()).isTrue();
+        assertThat(FxTest.onFxThread(() -> ((javafx.scene.layout.FlowPane) root.lookup("#servicesChips")).getChildren().stream()
+            .map(node -> ((javafx.scene.control.Labeled) node).getText().trim()).toList())).containsExactly("Corte y peinado  ×".trim());
+        press(root, "cancelButton");
+        assertThat(root.lookup("#servicesCard").isManaged()).isFalse();
+    }
+
+    @Test
+    @DisplayName("assigning a service adds it to the professional and to the card")
+    void assignsAService() throws Exception {
+        Parent root = open();
+        click(root, "Editar Daniela Soto");
+
+        pick(root, "Manicura gel");
+        press(root, "assignButton");
+
+        assertThat(offered("2002")).containsExactly("Manicura gel");
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".pro-hours").stream().map(node -> ((Label) node).getText()).toList()))
+            .doesNotContain("Sin tratamientos");
+    }
+
+    @Test
+    @DisplayName("assigning an inactive service shows the error under the picker and changes nothing")
+    void rejectsAnInactiveService() throws Exception {
+        context.treatments().deactivate(manicure.getId());
+        Parent root = open();
+        click(root, "Editar Daniela Soto");
+
+        pick(root, "Manicura gel");
+        press(root, "assignButton");
+
+        assertThat(message(root, "assignMessage")).contains("no está activo");
+        assertThat(offered("2002")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("assigning a service the professional already offers, or none at all, shows the error")
+    void rejectsRepeatedOrMissing() throws Exception {
+        Parent root = open();
+        click(root, "Editar Camila Ruiz");
+
+        press(root, "assignButton");
+        assertThat(message(root, "assignMessage")).isNotEmpty();
+
+        pick(root, "Corte y peinado");
+        press(root, "assignButton");
+        assertThat(message(root, "assignMessage")).contains("ya ofrece");
+        assertThat(offered("2001")).containsExactly("Corte y peinado");
+    }
+
+    @Test
+    @DisplayName("the chip of an offered service takes it away")
+    void removesAService() throws Exception {
+        Parent root = open();
+        click(root, "Editar Camila Ruiz");
+
+        FxTest.onFxThread(() -> {
+            ((Button) root.lookup("#servicesChips").lookupAll(".chip-rose").stream().findFirst().orElseThrow()).fire();
+            return null;
+        });
+
+        assertThat(offered("2001")).isEmpty();
+        assertThat(FxTest.onFxThread(() -> root.lookupAll(".pro-hours").stream().map(node -> ((Label) node).getText()).toList()))
+            .doesNotContain("1 tratamiento");
     }
 }
