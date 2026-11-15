@@ -1,21 +1,29 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
+import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Product;
+import com.maisonglow.model.Sale;
 import com.maisonglow.model.SaleLine;
 import com.maisonglow.model.Sellable;
 import com.maisonglow.service.CustomerService;
+import com.maisonglow.service.EmailNotifier;
 import com.maisonglow.service.ProductService;
 import com.maisonglow.service.SaleService;
+import com.maisonglow.service.SettingsService;
+import com.maisonglow.service.SimulatedEmailNotifier;
 import com.maisonglow.service.TreatmentService;
 import com.maisonglow.util.CurrencyFormatter;
+import com.maisonglow.util.InvoiceFormatter;
 import com.maisonglow.util.TextSearch;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.Icons;
 import com.maisonglow.view.sales.Cart;
+import com.maisonglow.view.sales.InvoiceDialog;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -39,6 +47,7 @@ import javafx.util.StringConverter;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Controller of {@code SalesView.fxml}: a new sale (mockup M6). The left side picks the customer and
@@ -50,11 +59,15 @@ public final class SalesController {
     private final CustomerService customers;
     private final ProductService products;
     private final TreatmentService treatments;
+    private final SaleService sales;
+    private final SettingsService settings;
     private final ObservableList<Sellable> catalog = FXCollections.observableArrayList();
     private final FilteredList<Sellable> shown = new FilteredList<>(catalog);
     private final FieldValidator fields = new FieldValidator();
     private final Cart cart = new Cart();
     private AlertPresenter alerts;
+    private Predicate<String> invoiceViewer;
+    private EmailNotifier email;
 
     @FXML
     private ComboBox<Customer> customerBox;
@@ -92,6 +105,8 @@ public final class SalesController {
     private Label totalLabel;
     @FXML
     private Button clearButton;
+    @FXML
+    private Button chargeButton;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -103,6 +118,8 @@ public final class SalesController {
         this.customers = context.customers();
         this.products = context.products();
         this.treatments = context.treatments();
+        this.sales = context.sales();
+        this.settings = context.settings();
     }
 
     /**
@@ -114,9 +131,22 @@ public final class SalesController {
         this.alerts = Objects.requireNonNull(presenter, "presenter");
     }
 
+    /**
+     * Replaces how the invoice is shown and the e-mail that sends it, which the tests use so that no
+     * real window is opened.
+     *
+     * @param viewer shows the invoice text and answers true if the user wants it sent by e-mail
+     * @param notifier sends the invoice
+     */
+    public void useInvoice(Predicate<String> viewer, EmailNotifier notifier) {
+        this.invoiceViewer = Objects.requireNonNull(viewer, "viewer");
+        this.email = Objects.requireNonNull(notifier, "notifier");
+    }
+
     @FXML
     private void initialize() {
         alerts = new AlertPresenter(catalogTable);
+        invoiceViewer = invoice -> InvoiceDialog.show(catalogTable.getScene().getWindow(), invoice);
         fields.field(customerBox, customerMessage, "cliente");
         setUpCustomers();
         setUpCatalog();
@@ -193,11 +223,50 @@ public final class SalesController {
         cart.lines().addListener((ListChangeListener<SaleLine>) change -> hideCartMessage());
         clearButton.disableProperty().bind(Bindings.isEmpty(cart.lines()));
         clearButton.setOnAction(event -> cart.clear());
+        chargeButton.setOnAction(event -> charge());
     }
 
     /** Adds one unit of the item to the cart. */
     private void addToCart(Sellable item) {
         cart.add(Objects.requireNonNull(item, "item"));
+    }
+
+    /** Registers the sale. A rejected sale (no lines, not enough stock) leaves the cart and the stock as they were. */
+    private void charge() {
+        fields.clear();
+        Customer customer = customerBox.getValue();
+        if (customer == null) {
+            fields.show(new ValidationException("Selecciona un cliente."));
+            return;
+        }
+        Sale sale;
+        try {
+            sale = sales.register(cart.toSale(customer));
+        } catch (ValidationException | BusinessRuleException e) {
+            showCartMessage(e.getMessage());
+            return;
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+            return;
+        }
+        cart.clear();
+        customerBox.setValue(null);
+        refreshCatalog();
+        alerts.toast("Venta registrada");
+        showInvoice(sale);
+    }
+
+    private void showInvoice(Sale sale) {
+        try {
+            InvoiceFormatter formatter = new InvoiceFormatter(settings.businessName());
+            if (invoiceViewer.test(formatter.format(sale))) {
+                EmailNotifier notifier = email != null ? email : new SimulatedEmailNotifier(formatter, System.out);
+                notifier.sendInvoice(sale.getCustomer(), sale);
+                alerts.toast("Factura enviada a " + sale.getCustomer().getEmail());
+            }
+        } catch (ValidationException | DataAccessException e) {
+            alerts.showError(e);
+        }
     }
 
     private void showCartMessage(String text) {
