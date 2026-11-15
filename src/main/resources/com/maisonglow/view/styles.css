@@ -893,3 +893,9 @@
 .quantity-box .icon-button {
     -fx-padding: 3;
 }
+
+.invoice-text {
+    -fx-font-family: Consolas, "Courier New", monospace;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-text;
+}
