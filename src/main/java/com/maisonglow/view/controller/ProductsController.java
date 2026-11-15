@@ -13,6 +13,7 @@ import com.maisonglow.util.NumberInput;
 import com.maisonglow.util.Validator;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
+import com.maisonglow.view.Icons;
 import com.maisonglow.view.product.ProductFilter;
 import com.maisonglow.view.product.ProductStatus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -29,6 +30,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
@@ -54,6 +56,8 @@ public final class ProductsController {
     private final FilteredList<Product> shown = new FilteredList<>(all);
     private final ToggleGroup categories = new ToggleGroup();
     private final FieldValidator formFields = new FieldValidator();
+    private final FieldValidator adjustFields = new FieldValidator();
+    private Product editing;
     private ProductFilter filter = ProductFilter.all();
     private AlertPresenter alerts;
 
@@ -103,6 +107,27 @@ public final class ProductsController {
     private Button cancelButton;
 
     @FXML
+    private ComboBox<Product> adjustProductBox;
+
+    @FXML
+    private Label adjustProductMessage;
+
+    @FXML
+    private Button minusButton;
+
+    @FXML
+    private Button plusButton;
+
+    @FXML
+    private TextField quantityField;
+
+    @FXML
+    private Label quantityMessage;
+
+    @FXML
+    private Button adjustButton;
+
+    @FXML
     private HBox lowStockBanner;
 
     @FXML
@@ -138,6 +163,9 @@ public final class ProductsController {
     @FXML
     private TableColumn<Product, Product> statusColumn;
 
+    @FXML
+    private TableColumn<Product, Product> actionsColumn;
+
     /**
      * Creates the controller (called by the {@code ViewLoader}).
      *
@@ -162,6 +190,7 @@ public final class ProductsController {
         setUpTable();
         setUpFilters();
         setUpForm();
+        setUpAdjust();
         refresh();
     }
 
@@ -174,6 +203,8 @@ public final class ProductsController {
         statusColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
         priceColumn.setCellFactory(showing(CurrencyFormatter::format));
         statusColumn.setCellFactory(column -> new StatusCell());
+        actionsColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
+        actionsColumn.setCellFactory(column -> new ActionsCell());
         statusColumn.setComparator((first, second) -> ProductStatus.of(first).compareTo(ProductStatus.of(second)));
         productsTable.setRowFactory(table -> new RestockRow());
         SortedList<Product> sorted = new SortedList<>(shown);
@@ -218,8 +249,101 @@ public final class ProductsController {
         startRegistering();
     }
 
+    /** Fills the form with a product so it can be changed; its stock is changed with the adjustment, not here. */
+    private void startEditing(Product product) {
+        editing = product;
+        formTitle.setText("Editar producto");
+        nameField.setText(product.getName());
+        categoryBox.getItems().stream().filter(category -> category.getId() == product.getCategory().getId())
+            .findFirst().ifPresent(categoryBox::setValue);
+        priceField.setText(product.getPrice().stripTrailingZeros().toPlainString());
+        minimumField.setText(String.valueOf(product.getMinimumStock()));
+        initialStockBox.setVisible(false);
+        initialStockBox.setManaged(false);
+        formFields.clear();
+        nameField.requestFocus();
+    }
+
+    private void setUpAdjust() {
+        adjustProductBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Product product) {
+                return product == null ? "" : product.getName() + " · " + product.getStock() + " uds.";
+            }
+
+            @Override
+            public Product fromString(String text) {
+                return null;
+            }
+        });
+        adjustFields.field(adjustProductBox, adjustProductMessage, "producto");
+        adjustFields.field(quantityField, quantityMessage, "cantidad", "ajuste", "insuficiente", "excede");
+        minusButton.setGraphic(Icons.small(Icons.Kind.MINUS, 16));
+        plusButton.setGraphic(Icons.small(Icons.Kind.PLUS, 16));
+        minusButton.setOnAction(event -> stepQuantity(-1));
+        plusButton.setOnAction(event -> stepQuantity(1));
+        adjustButton.setOnAction(event -> adjustStock());
+        productsTable.getSelectionModel().selectedItemProperty().addListener((observable, before, product) -> {
+            if (product != null && product.isActive()) {
+                adjustProductBox.getItems().stream().filter(item -> item.getId() == product.getId()).findFirst()
+                    .ifPresent(adjustProductBox::setValue);
+            }
+        });
+    }
+
+    private void stepQuantity(int step) {
+        int current;
+        try {
+            current = NumberInput.wholeNumber(quantityField.getText(), "cantidad");
+        } catch (ValidationException e) {
+            current = 0;
+        }
+        quantityField.setText(String.valueOf(current + step));
+    }
+
+    private void adjustStock() {
+        try {
+            Product selected = adjustProductBox.getValue();
+            Validator.requirePresent(selected, "producto");
+            int delta = NumberInput.wholeNumber(quantityField.getText(), "cantidad");
+            Product updated = products.adjustStock(selected.getId(), delta);
+            alerts.toast("Stock actualizado: " + updated.getName() + " ahora tiene " + updated.getStock() + " uds.");
+            quantityField.setText("1");
+            refresh();
+        } catch (ValidationException | BusinessRuleException e) {
+            if (!adjustFields.show(e)) {
+                alerts.showError(e);
+            }
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private void deactivate(Product product) {
+        if (!alerts.confirm("¿Desactivar «" + product.getName() + "»? Dejará de aparecer en las ventas; "
+            + "podrás reactivarlo cuando quieras.")) {
+            return;
+        }
+        changeActive(product, false, "Producto desactivado.");
+    }
+
+    private void changeActive(Product product, boolean active, String notice) {
+        try {
+            if (active) {
+                products.activate(product.getId());
+            } else {
+                products.deactivate(product.getId());
+            }
+            alerts.toast(notice);
+            refresh();
+        } catch (BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
     /** Leaves the form ready to register a new product. */
     private void startRegistering() {
+        editing = null;
         formTitle.setText("Registrar producto");
         nameField.clear();
         categoryBox.setValue(null);
@@ -235,9 +359,13 @@ public final class ProductsController {
     private void save() {
         try {
             ProductData data = readForm();
-            int initialStock = NumberInput.wholeNumber(initialStockField.getText(), "stock inicial");
-            products.register(data, initialStock);
-            alerts.toast("Producto registrado.");
+            if (editing == null) {
+                products.register(data, NumberInput.wholeNumber(initialStockField.getText(), "stock inicial"));
+                alerts.toast("Producto registrado.");
+            } else {
+                products.update(editing.getId(), data);
+                alerts.toast("Producto actualizado.");
+            }
             startRegistering();
             refresh();
         } catch (ValidationException | BusinessRuleException e) {
@@ -263,6 +391,7 @@ public final class ProductsController {
     void refresh() {
         try {
             all.setAll(products.listAll());
+            showProductsToAdjust();
             List<ProductCategory> categoryList = products.listCategories();
             showCategoryChips(categoryList);
             showCategoriesInForm(categoryList);
@@ -290,6 +419,16 @@ public final class ProductsController {
             chip.setSelected(chosen != null && chosen == category.getId());
             return chip;
         }).toList());
+    }
+
+    /** Fills the product box of the adjustment with the active products, keeping the one that was chosen. */
+    private void showProductsToAdjust() {
+        Product chosen = adjustProductBox.getValue();
+        adjustProductBox.getItems().setAll(all.stream().filter(Product::isActive).toList());
+        if (chosen != null) {
+            adjustProductBox.getItems().stream().filter(item -> item.getId() == chosen.getId()).findFirst()
+                .ifPresent(adjustProductBox::setValue);
+        }
     }
 
     /** Fills the category box of the form, keeping the category that was chosen. */
@@ -327,6 +466,43 @@ public final class ProductsController {
             chip.setGraphic(dot);
             chip.getStyleClass().add(status.chipStyle());
             setGraphic(chip);
+        }
+    }
+
+    /** Edit, and deactivate or reactivate, as small icon buttons at the end of each row. */
+    private final class ActionsCell extends TableCell<Product, Product> {
+        @Override
+        protected void updateItem(Product product, boolean empty) {
+            super.updateItem(product, empty);
+            if (empty || product == null) {
+                setGraphic(null);
+                return;
+            }
+            Button edit = iconButton(Icons.Kind.EDIT, "Editar " + product.getName(), false);
+            edit.setOnAction(event -> startEditing(product));
+            Button toggle = product.isActive()
+                ? iconButton(Icons.Kind.TRASH, "Desactivar " + product.getName(), true)
+                : iconButton(Icons.Kind.RESTORE, "Reactivar " + product.getName(), false);
+            toggle.setOnAction(event -> {
+                if (product.isActive()) {
+                    deactivate(product);
+                } else {
+                    changeActive(product, true, "Producto reactivado.");
+                }
+            });
+            setGraphic(new HBox(4, edit, toggle));
+        }
+
+        private Button iconButton(Icons.Kind kind, String description, boolean danger) {
+            Button button = new Button();
+            button.setGraphic(Icons.small(kind, 16));
+            button.getStyleClass().add("icon-button");
+            if (danger) {
+                button.getStyleClass().add("danger");
+            }
+            button.setAccessibleText(description);
+            button.setTooltip(new Tooltip(description));
+            return button;
         }
     }
 
