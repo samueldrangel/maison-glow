@@ -3,11 +3,14 @@ package com.maisonglow.view.controller;
 import com.maisonglow.AppContext;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.SaleLine;
+import com.maisonglow.model.Sale;
 import com.maisonglow.model.Sellable;
 import com.maisonglow.service.ContactData;
 import com.maisonglow.service.ProductData;
+import com.maisonglow.service.SimulatedEmailNotifier;
 import com.maisonglow.service.TreatmentData;
 import com.maisonglow.util.CurrencyFormatter;
+import com.maisonglow.util.InvoiceFormatter;
 import com.maisonglow.view.FxTest;
 import com.maisonglow.view.ViewLoader;
 import javafx.scene.Parent;
@@ -25,7 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.math.BigDecimal;
+import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +47,8 @@ class SalesViewTest {
     Path data;
 
     private AppContext context;
+    private final List<String> invoices = new ArrayList<>();
+    private SimulatedEmailNotifier mail;
 
     @BeforeAll
     static void startToolkit() {
@@ -59,9 +66,18 @@ class SalesViewTest {
     }
 
     private Parent open() throws Exception {
+        return open(false);
+    }
+
+    /** Opens the screen; the invoice is recorded instead of shown, and the user answers whether to send it. */
+    private Parent open(boolean sendInvoice) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        mail = new SimulatedEmailNotifier(new InvoiceFormatter("Maison Glow"), new PrintStream(java.io.OutputStream.nullOutputStream()));
         return FxTest.onFxThread(() -> {
-            Parent root = ViewLoader.load(SalesViewTest.class.getResource("/com/maisonglow/view/SalesView.fxml"), context);
+            ViewLoader.Loaded<SalesController> loaded = ViewLoader.loadWithController(
+                SalesViewTest.class.getResource("/com/maisonglow/view/SalesView.fxml"), context);
+            loaded.controller().useInvoice(invoice -> invoices.add(invoice) && sendInvoice, mail);
+            Parent root = loaded.root();
             new Scene(root, 1100, 700);
             root.applyCss();
             root.layout();
@@ -233,5 +249,91 @@ class SalesViewTest {
         });
 
         assertThat(cartLines(root)).isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void pickCustomer(Parent root) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((ComboBox<Customer>) root.lookup("#customerBox")).getSelectionModel().selectFirst();
+            return null;
+        });
+    }
+
+    private static void charge(Parent root) throws Exception {
+        FxTest.onFxThread(() -> {
+            ((Button) root.lookup("#chargeButton")).fire();
+            return null;
+        });
+    }
+
+    private static String message(Parent root, String id) throws Exception {
+        Label label = (Label) root.lookup("#" + id);
+        return FxTest.onFxThread(() -> label.isVisible() ? label.getText() : "");
+    }
+
+    @Test
+    @DisplayName("charging without a customer or without lines is rejected next to what is missing")
+    void rejectsAnIncompleteSale() throws Exception {
+        Parent root = open();
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+
+        charge(root);
+        assertThat(message(root, "customerMessage")).contains("cliente");
+
+        pickCustomer(root);
+        click(root, "cartTable", "Quitar Champú Nutritivo de la venta");
+        charge(root);
+        assertThat(message(root, "cartMessage")).contains("al menos una línea");
+        assertThat(invoices).isEmpty();
+    }
+
+    @Test
+    @DisplayName("selling more than the stock shows the error and changes nothing")
+    void rejectsMoreThanTheStock() throws Exception {
+        Parent root = open();
+        pickCustomer(root);
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+        for (int unit = 0; unit < 5; unit++) {
+            click(root, "cartTable", "Agregar una unidad de Champú Nutritivo");
+        }
+
+        charge(root);
+
+        assertThat(message(root, "cartMessage")).contains("Stock insuficiente");
+        assertThat(cartLines(root).get(0).getQuantity()).isEqualTo(6);
+        assertThat(context.products().findById(1).getStock()).isEqualTo(5);
+        assertThat(context.sales().listByCustomer(1)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("a valid sale discounts the stock, empties the cart, shows the invoice and sends it by e-mail on request")
+    void registersAndSendsTheInvoice() throws Exception {
+        Parent root = open(true);
+        pickCustomer(root);
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+        click(root, "cartTable", "Agregar una unidad de Champú Nutritivo");
+
+        charge(root);
+
+        List<Sale> sold = context.sales().listByCustomer(1);
+        assertThat(sold).hasSize(1);
+        assertThat(sold.get(0).getTotal()).isEqualByComparingTo("56000");
+        assertThat(context.products().findById(1).getStock()).isEqualTo(3);
+        assertThat(cartLines(root)).isEmpty();
+        assertThat(invoices).singleElement().asString().contains("2 x Champú Nutritivo", "Ana Pérez");
+        assertThat(mail.getSentMessages()).singleElement().asString().contains("Para: ana@correo.com");
+    }
+
+    @Test
+    @DisplayName("the invoice is not sent when the user only closes it")
+    void doesNotSendWhenClosed() throws Exception {
+        Parent root = open(false);
+        pickCustomer(root);
+        click(root, "catalogTable", "Agregar Champú Nutritivo");
+
+        charge(root);
+
+        assertThat(invoices).hasSize(1);
+        assertThat(mail.getSentMessages()).isEmpty();
     }
 }
