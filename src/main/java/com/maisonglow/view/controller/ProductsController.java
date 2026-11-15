@@ -1,12 +1,18 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
+import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Product;
 import com.maisonglow.model.ProductCategory;
+import com.maisonglow.service.ProductData;
 import com.maisonglow.service.ProductService;
 import com.maisonglow.util.CurrencyFormatter;
+import com.maisonglow.util.NumberInput;
+import com.maisonglow.util.Validator;
 import com.maisonglow.view.AlertPresenter;
+import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.product.ProductFilter;
 import com.maisonglow.view.product.ProductStatus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -16,6 +22,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -25,8 +32,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,8 +53,54 @@ public final class ProductsController {
     private final ObservableList<Product> all = FXCollections.observableArrayList();
     private final FilteredList<Product> shown = new FilteredList<>(all);
     private final ToggleGroup categories = new ToggleGroup();
+    private final FieldValidator formFields = new FieldValidator();
     private ProductFilter filter = ProductFilter.all();
     private AlertPresenter alerts;
+
+    @FXML
+    private Button newButton;
+
+    @FXML
+    private Label formTitle;
+
+    @FXML
+    private TextField nameField;
+
+    @FXML
+    private Label nameMessage;
+
+    @FXML
+    private ComboBox<ProductCategory> categoryBox;
+
+    @FXML
+    private Label categoryMessage;
+
+    @FXML
+    private TextField priceField;
+
+    @FXML
+    private Label priceMessage;
+
+    @FXML
+    private TextField minimumField;
+
+    @FXML
+    private Label minimumMessage;
+
+    @FXML
+    private VBox initialStockBox;
+
+    @FXML
+    private TextField initialStockField;
+
+    @FXML
+    private Label initialStockMessage;
+
+    @FXML
+    private Button saveButton;
+
+    @FXML
+    private Button cancelButton;
 
     @FXML
     private HBox lowStockBanner;
@@ -106,6 +161,7 @@ public final class ProductsController {
         alerts = new AlertPresenter(productsTable);
         setUpTable();
         setUpFilters();
+        setUpForm();
         refresh();
     }
 
@@ -138,11 +194,78 @@ public final class ProductsController {
         lowStockButton.setText(filter.onlyRestock() ? "Ver todos" : "Ver solo esos");
     }
 
+    private void setUpForm() {
+        categoryBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ProductCategory category) {
+                return category == null ? "" : category.getName();
+            }
+
+            @Override
+            public ProductCategory fromString(String text) {
+                return null;
+            }
+        });
+        // The order matters: "stock mínimo" is looked for before "stock", which its message also contains.
+        formFields.field(nameField, nameMessage, "nombre", "llamado");
+        formFields.field(categoryBox, categoryMessage, "categoría");
+        formFields.field(priceField, priceMessage, "precio");
+        formFields.field(minimumField, minimumMessage, "mínimo");
+        formFields.field(initialStockField, initialStockMessage, "campo stock");
+        newButton.setOnAction(event -> startRegistering());
+        cancelButton.setOnAction(event -> startRegistering());
+        saveButton.setOnAction(event -> save());
+        startRegistering();
+    }
+
+    /** Leaves the form ready to register a new product. */
+    private void startRegistering() {
+        formTitle.setText("Registrar producto");
+        nameField.clear();
+        categoryBox.setValue(null);
+        priceField.clear();
+        minimumField.clear();
+        initialStockField.setText("0");
+        initialStockBox.setVisible(true);
+        initialStockBox.setManaged(true);
+        formFields.clear();
+        nameField.requestFocus();
+    }
+
+    private void save() {
+        try {
+            ProductData data = readForm();
+            int initialStock = NumberInput.wholeNumber(initialStockField.getText(), "stock inicial");
+            products.register(data, initialStock);
+            alerts.toast("Producto registrado.");
+            startRegistering();
+            refresh();
+        } catch (ValidationException | BusinessRuleException e) {
+            if (!formFields.show(e)) {
+                alerts.showError(e);
+            }
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    /** Reads the fields in the order they appear, so the first mistake is the one that shows. */
+    private ProductData readForm() throws ValidationException {
+        Validator.requireText(nameField.getText(), "nombre");
+        ProductCategory category = categoryBox.getValue();
+        Validator.requirePresent(category, "categoría");
+        BigDecimal price = NumberInput.money(priceField.getText(), "precio");
+        int minimum = NumberInput.wholeNumber(minimumField.getText(), "stock mínimo");
+        return new ProductData(nameField.getText(), category.getId(), price, minimum);
+    }
+
     /** Reads the inventory again, so the table, the warning and the chips show what is stored. */
     void refresh() {
         try {
             all.setAll(products.listAll());
-            showCategoryChips(products.listCategories());
+            List<ProductCategory> categoryList = products.listCategories();
+            showCategoryChips(categoryList);
+            showCategoriesInForm(categoryList);
             showLowStockWarning(products.listLowStock().size());
         } catch (DataAccessException e) {
             alerts.showError(e);
@@ -167,6 +290,15 @@ public final class ProductsController {
             chip.setSelected(chosen != null && chosen == category.getId());
             return chip;
         }).toList());
+    }
+
+    /** Fills the category box of the form, keeping the category that was chosen. */
+    private void showCategoriesInForm(List<ProductCategory> list) {
+        ProductCategory chosen = categoryBox.getValue();
+        categoryBox.getItems().setAll(list);
+        if (chosen != null) {
+            list.stream().filter(category -> category.getId() == chosen.getId()).findFirst().ifPresent(categoryBox::setValue);
+        }
     }
 
     private static <T> Callback<TableColumn<Product, T>, TableCell<Product, T>> showing(Function<T, String> text) {
