@@ -16,6 +16,7 @@ import com.maisonglow.util.Validator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -175,6 +176,29 @@ public class AppointmentService {
             }
             throw e;
         }
+    }
+
+    /**
+     * Returns the appointments of a range of days, in every status, so the agenda can show what comes next
+     * and what already happened without asking day by day.
+     *
+     * @param from the first day, included
+     * @param to   the last day, included
+     * @return the appointments ordered by start time; empty if there are none
+     * @throws ValidationException if a date is missing or the last day is before the first
+     * @throws DataAccessException if the appointments cannot be read
+     */
+    public List<Appointment> listBetween(LocalDate from, LocalDate to) throws ValidationException, DataAccessException {
+        Validator.requirePresent(from, "fecha inicial");
+        Validator.requirePresent(to, "fecha final");
+        if (to.isBefore(from)) {
+            throw new ValidationException("La fecha final no puede ser anterior a la inicial.");
+        }
+        return appointmentDao.findAll().stream()
+            .filter(appointment -> !appointment.getStart().toLocalDate().isBefore(from)
+                && !appointment.getStart().toLocalDate().isAfter(to))
+            .sorted(Comparator.comparing(Appointment::getStart))
+            .toList();
     }
 
     /**

@@ -1156,3 +1156,18 @@
     -fx-text-fill: -mg-text-muted;
 }
 
+/* ---- Agenda: el dia que se ve y las flechas para cambiarlo ---- */
+.day-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 20px;
+    -fx-text-fill: -mg-text;
+}
+
+.day-arrow {
+    -fx-font-size: 22px;
+    -fx-padding: 0 10 2 10;
+}
+
+.table-row-cell.row-muted .table-cell {
+    -fx-opacity: 0.55;
+}
