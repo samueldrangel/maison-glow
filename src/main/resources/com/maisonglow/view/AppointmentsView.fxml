@@ -15,7 +15,8 @@
 
 <!-- Pantalla de Agenda de citas (mockup M5). Arriba se elige que citas ver: las proximas, las de hoy, las pasadas o las de un
      dia (solo entonces aparecen el selector de fecha y sus flechas); en el centro las citas del dia y debajo los botones que cambian el estado de la cita
-     elegida (el controlador los activa solo cuando ese cambio es posible). Los textos de ejemplo se ven aqui
+     elegida (el controlador los activa solo cuando ese cambio es posible). El formulario de agendar y
+     reprogramar es un panel que entra desde la derecha (AppointmentFormPane.fxml). Los textos de ejemplo se ven aqui
      para disenar; AppointmentsController los reemplaza al arrancar.
      Colores: View > Scene Style Sheets > styles.css. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -40,6 +41,7 @@
                     <toggleGroup><fx:reference source="modeChips"/></toggleGroup>
                 </ToggleButton>
             </HBox>
+            <Button fx:id="newButton" text="Nueva cita" styleClass="button-gold"/>
         </HBox>
     </top>
     <center>
@@ -70,10 +72,14 @@
                 <Label fx:id="countLabel" text="3 citas" styleClass="stat-caption"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="confirmButton" text="Confirmar" styleClass="button-primary, button-compact"/>
+                <Button fx:id="rescheduleButton" text="Reprogramar" styleClass="button-secondary, button-compact"/>
                 <Button fx:id="completeButton" text="Completar" styleClass="button-secondary, button-compact"/>
                 <Button fx:id="noShowButton" text="Inasistencia" styleClass="button-secondary, button-compact"/>
                 <Button fx:id="cancelAppointmentButton" text="Cancelar cita" styleClass="button-secondary, button-compact"/>
             </HBox>
         </VBox>
     </center>
+    <right>
+        <fx:include fx:id="form" source="AppointmentFormPane.fxml"/>
+    </right>
 </BorderPane>

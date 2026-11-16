@@ -1171,3 +1171,10 @@
 .table-row-cell.row-muted .table-cell {
     -fx-opacity: 0.55;
 }
+
+/* ---- Resumen del formulario de la cita ---- */
+.summary-box {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 14;
+    -fx-padding: 12 14 12 14;
+}
