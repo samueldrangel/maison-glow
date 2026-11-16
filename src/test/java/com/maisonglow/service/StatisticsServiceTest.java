@@ -125,6 +125,27 @@ class StatisticsServiceTest {
     }
 
     @Test
+    @DisplayName("topTreatments over a range counts only the appointments of those days and ignores the cancelled ones")
+    void topTreatmentsInARange() throws Exception {
+        Appointment outside = AppointmentService.newAppointment(9, ana, laura, manicure, LocalDateTime.of(2026, 9, 30, 9, 0));
+        Appointment cancelled = appointment(3, luis, haircut);
+        AppointmentService.changeStatus(cancelled, AppointmentStatus.CANCELLED, "cancelar");
+        when(appointmentDao.findAll()).thenReturn(List.of(appointment(1, ana, haircut), appointment(2, ana, haircut), outside, cancelled));
+
+        assertThat(service.topTreatments(5, FROM, TO)).containsExactly(entry("Corte de cabello", 2));
+        assertThat(service.topTreatments(5, FROM.minusDays(1), TO)).containsExactly(entry("Corte de cabello", 2), entry("Manicure", 1));
+    }
+
+    @Test
+    @DisplayName("topTreatments over a range rejects a bad limit, a missing date or a range that ends before it starts")
+    void topTreatmentsRejectsBadArguments() {
+        assertThatThrownBy(() -> service.topTreatments(0, FROM, TO)).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> service.topTreatments(3, null, TO)).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> service.topTreatments(3, TO, FROM)).isInstanceOf(ValidationException.class)
+            .hasMessageContaining("posterior");
+    }
+
+    @Test
     @DisplayName("frequentCustomers ranks by number of purchases")
     void frequentCustomers() throws Exception {
         when(saleDao.findAll()).thenReturn(List.of(sale(1, ana, shampoo, 1), sale(2, luis, mask, 1),
