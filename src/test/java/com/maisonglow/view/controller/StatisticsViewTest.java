@@ -454,4 +454,51 @@ class StatisticsViewTest {
         assertThat(text(root, "revenueValue")).isEqualTo(CurrencyFormatter.format(BigDecimal.ZERO));
         assertThat(text(root, "newCustomersValue")).isEqualTo("0");
     }
+
+    @Test
+    @DisplayName("the income block adds the sales and the completed treatments, and shows the deposits held and the income lost")
+    void incomeBlock() throws Exception {
+        sellSomething();
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        bookInThePast(2, 10, laura, AppointmentStatus.CANCELLED);
+        bookAhead();
+        Parent root = open();
+
+        setRange(root, LocalDate.now().minusDays(30), LocalDate.now().plusDays(7));
+
+        assertThat(text(root, "totalIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("285000")));
+        assertThat(text(root, "totalIncomeNote")).contains(CurrencyFormatter.format(new BigDecimal("175000")), CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "treatmentIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "pendingDepositsValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("43500")));
+        assertThat(text(root, "lostIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "lostIncomeNote")).startsWith("2 citas");
+    }
+
+    @Test
+    @DisplayName("the income charts rank the completed appointments by professional and by treatment")
+    void incomeCharts() throws Exception {
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        Parent root = open();
+
+        assertThat(bars(root, "professionalIncomeChart")).hasSize(1);
+        assertThat(bars(root, "professionalIncomeChart").get("Camila Ruiz").doubleValue()).isEqualTo(110000.0);
+        assertThat(bars(root, "treatmentIncomeChart").get("Corte y peinado").doubleValue()).isEqualTo(110000.0);
+        assertThat(visible(root, "professionalIncomeEmpty")).isFalse();
+    }
+
+    @Test
+    @DisplayName("without income the block shows zeros and the charts give way to a message")
+    void incomeWithoutData() throws Exception {
+        Parent root = open();
+
+        assertThat(text(root, "totalIncomeValue")).isEqualTo(CurrencyFormatter.format(BigDecimal.ZERO));
+        assertThat(text(root, "lostIncomeNote")).startsWith("0 citas");
+        assertThat(visible(root, "professionalIncomeChart")).isFalse();
+        assertThat(visible(root, "professionalIncomeEmpty")).isTrue();
+        assertThat(visible(root, "treatmentIncomeEmpty")).isTrue();
+    }
 }
