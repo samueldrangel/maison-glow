@@ -3,7 +3,17 @@ package com.maisonglow.view.controller;
 import com.maisonglow.AppContext;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
+import com.maisonglow.model.Customer;
+import com.maisonglow.service.AdminNotifier;
+import com.maisonglow.service.CustomerService;
+import com.maisonglow.service.LowRotationService;
+import com.maisonglow.service.ProductSales;
+import com.maisonglow.service.PromotionService;
+import com.maisonglow.service.PromotionSuggestion;
+import com.maisonglow.service.SettingsService;
+import com.maisonglow.service.SimulatedAdminNotifier;
 import com.maisonglow.service.StatisticsService;
+import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -12,6 +22,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -44,6 +56,11 @@ public final class StatisticsController {
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final StatisticsService statistics;
+    private final LowRotationService lowRotation;
+    private final PromotionService promotions;
+    private final CustomerService customers;
+    private final SettingsService settings;
+    private AdminNotifier notifier = new SimulatedAdminNotifier(System.out);
     private final Clock clock;
     private final FieldValidator rangeFields = new FieldValidator();
     private final ObservableList<Map.Entry<String, Integer>> frequent = FXCollections.observableArrayList();
@@ -80,6 +97,30 @@ public final class StatisticsController {
     private TableColumn<Map.Entry<String, Integer>, String> customerNameColumn;
     @FXML
     private TableColumn<Map.Entry<String, Integer>, Integer> purchasesColumn;
+    @FXML
+    private Label lowRotationHint;
+    @FXML
+    private TableView<ProductSales> lowRotationTable;
+    @FXML
+    private TableColumn<ProductSales, String> lowNameColumn;
+    @FXML
+    private TableColumn<ProductSales, String> lowStockColumn;
+    @FXML
+    private TableColumn<ProductSales, String> lowSoldColumn;
+    @FXML
+    private Button notifyButton;
+    @FXML
+    private ComboBox<Customer> promotionsCustomerBox;
+    @FXML
+    private TableView<PromotionSuggestion> promotionsTable;
+    @FXML
+    private TableColumn<PromotionSuggestion, String> promoProductColumn;
+    @FXML
+    private TableColumn<PromotionSuggestion, String> promoRegularColumn;
+    @FXML
+    private TableColumn<PromotionSuggestion, String> promoDiscountColumn;
+    @FXML
+    private TableColumn<PromotionSuggestion, String> promoPriceColumn;
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -89,6 +130,10 @@ public final class StatisticsController {
     public StatisticsController(AppContext context) {
         Objects.requireNonNull(context, "context");
         this.statistics = context.statistics();
+        this.lowRotation = context.lowRotation();
+        this.promotions = context.promotions();
+        this.customers = context.customers();
+        this.settings = context.settings();
         this.clock = context.clock();
     }
 
@@ -101,13 +146,24 @@ public final class StatisticsController {
         this.alerts = Objects.requireNonNull(presenter, "presenter");
     }
 
+    /**
+     * Replaces who is told about the products of low rotation, which the tests use to read the notice.
+     *
+     * @param newNotifier the notifier to use from now on
+     */
+    public void useNotifier(AdminNotifier newNotifier) {
+        this.notifier = Objects.requireNonNull(newNotifier, "newNotifier");
+    }
+
     @FXML
     private void initialize() {
         alerts = new AlertPresenter(customersTable);
         rangeFields.field(toPicker, rangeMessage, "fecha");
         setUpCustomers();
         setUpRange();
+        setUpInsights();
         refresh();
+        refreshLowRotation();
     }
 
     private void setUpCustomers() {
@@ -122,6 +178,76 @@ public final class StatisticsController {
         customerNameColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getKey()));
         purchasesColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().getValue()));
         customersTable.setItems(frequent);
+    }
+
+    private void setUpInsights() {
+        lowNameColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().product().getName()));
+        lowStockColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().product().getStock() + " uds."));
+        lowSoldColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().unitsSold() + " uds."));
+        notifyButton.setOnAction(event -> notifyAdministrator());
+        promotionsCustomerBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Customer customer) {
+                return customer == null ? "" : customer.getName() + " · " + customer.getDocument();
+            }
+
+            @Override
+            public Customer fromString(String text) {
+                return null;
+            }
+        });
+        try {
+            promotionsCustomerBox.getItems().setAll(customers.listAll());
+        } catch (DataAccessException e) {
+            alerts.showError(e);
+        }
+        promoProductColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue().productName()));
+        promoRegularColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(CurrencyFormatter.format(row.getValue().regularPrice())));
+        promoDiscountColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(String.format("%.0f %%", row.getValue().discountPercentage())));
+        promoPriceColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(CurrencyFormatter.format(row.getValue().promotionalPrice())));
+        promotionsCustomerBox.valueProperty().addListener((observable, before, customer) -> showPromotions(customer));
+    }
+
+    /** Lists the products that sold least in the window of the settings, and what the business can tell the administrator. */
+    void refreshLowRotation() {
+        try {
+            List<ProductSales> low = lowRotation.lowRotationProducts(LocalDate.now(clock));
+            lowRotationTable.getItems().setAll(low);
+            notifyButton.setDisable(low.isEmpty());
+            lowRotationHint.setText("Los que menos se vendieron en los últimos " + settings.lowRotationWindowDays() + " días.");
+        } catch (ValidationException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private void notifyAdministrator() {
+        try {
+            lowRotation.notifyAdministrator(notifier, LocalDate.now(clock));
+            alerts.toast("Aviso enviado al administrador (simulado).");
+        } catch (ValidationException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    /** Suggests, for the chosen customer, the products of low rotation that customer has not bought yet. */
+    private void showPromotions(Customer customer) {
+        promotionsTable.getItems().clear();
+        if (customer == null) {
+            promotionsTable.setPlaceholder(notice("Elige un cliente para ver sus promociones"));
+            return;
+        }
+        try {
+            promotionsTable.getItems().setAll(promotions.suggestPromotions(customer.getId(), LocalDate.now(clock)));
+            promotionsTable.setPlaceholder(notice("Este cliente ya compró todos los productos de baja rotación"));
+        } catch (ValidationException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    private static Label notice(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("placeholder-notice");
+        return label;
     }
 
     private void setUpRange() {
