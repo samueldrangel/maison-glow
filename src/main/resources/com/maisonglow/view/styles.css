@@ -1221,3 +1221,90 @@
 .weekday-chart .chart-vertical-grid-lines {
     -fx-stroke: transparent;
 }
+
+/* ---- Chat del asistente: burbujas, hora y tarjeta de confirmacion ---- */
+.chat-scroll, .chat-scroll > .viewport, .chat-messages {
+    -fx-background-color: transparent;
+}
+
+.chat-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.chat-messages {
+    -fx-padding: 4 8 4 4;
+}
+
+.bubble-user, .bubble-assistant {
+    -fx-padding: 10 16 10 16;
+    -fx-max-width: 560;
+    -fx-font-size: 14px;
+}
+
+.bubble-user {
+    -fx-background-color: -mg-rose;
+    -fx-background-radius: 18 4 18 18;
+    -fx-text-fill: white;
+}
+
+.bubble-assistant {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 4 18 18 18;
+    -fx-text-fill: -mg-text;
+}
+
+.bubble-time {
+    -fx-font-size: 11px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.confirm-card {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -mg-gold;
+    -fx-border-radius: 16;
+    -fx-padding: 16;
+    -fx-spacing: 8;
+    -fx-max-width: 460;
+}
+
+.confirm-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 18px;
+    -fx-text-fill: -mg-text;
+}
+
+.confirm-row {
+    -fx-padding: 5 0 5 0;
+    -fx-border-color: transparent transparent -mg-border transparent;
+}
+
+/* ---- Probador virtual: marco de las fotos y tonos para elegir ---- */
+.photo-frame {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 16;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 16;
+    -fx-border-style: segments(6, 5);
+}
+
+.tone-chip {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-text-fill: -mg-chip-rose;
+    -fx-background-radius: 16 4 16 4;
+    -fx-padding: 8 16 8 12;
+    -fx-graphic-text-gap: 8;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.tone-chip:hover {
+    -fx-background-color: derive(-mg-chip-rose-bg, -6%);
+}
+
+.tone-chip:selected {
+    -fx-background-color: -mg-rose;
+    -fx-text-fill: white;
+}
+
