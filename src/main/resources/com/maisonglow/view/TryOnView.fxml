@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Pantalla del Probador virtual (mockup M8). Arriba el cliente (obligatorio) y, debajo del titulo, el aviso de que el
+     probador es simulado; en tres tarjetas: la foto de referencia, que se quiere probar y el resultado, que siempre
+     lleva el rotulo de que es una simulacion y no una garantia. Las opciones de tono las arma TryOnController con las
+     que ofrece el servicio; aqui se ven dos de ejemplo. Los textos "Mensaje de error" se ven aqui para disenar.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.TryOnController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="700">
+    <top>
+        <VBox spacing="8">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <StackPane minWidth="26" prefWidth="26" maxWidth="26" minHeight="26" prefHeight="26" maxHeight="26">
+                    <SVGPath styleClass="line-icon" style="-fx-stroke: -mg-gold;" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>
+                </StackPane>
+                <Label text="Probador virtual" styleClass="view-title"/>
+                <Label text="IA" styleClass="chip-gold"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox spacing="4" prefWidth="300">
+                    <Label text="Cliente *" styleClass="form-label"/>
+                    <ComboBox fx:id="customerBox" promptText="Seleccionar cliente..." maxWidth="Infinity"/>
+                    <Label fx:id="customerMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+            </HBox>
+            <HBox fx:id="simulatedBanner" styleClass="banner-warning">
+                <Label text="Probador simulado: el resultado es una imagen de ejemplo con el tono elegido, no una simulación real de inteligencia artificial." styleClass="banner-text" wrapText="true"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <HBox spacing="16">
+            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
+                <Label text="Foto de referencia" styleClass="form-title"/>
+                <StackPane styleClass="photo-frame" minHeight="320" prefHeight="360">
+                    <ImageView fx:id="photoView" fitWidth="300" fitHeight="340" preserveRatio="true"/>
+                    <Label fx:id="photoPlaceholder" text="Aún no hay foto" styleClass="placeholder-notice"/>
+                </StackPane>
+                <Button fx:id="uploadButton" text="Subir foto" styleClass="button-secondary" maxWidth="Infinity"/>
+                <Label text="Formatos JPG o PNG • Máx. 10 MB" styleClass="form-hint"/>
+                <Label fx:id="photoMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            </VBox>
+            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
+                <Label text="¿Qué quieres probar?" styleClass="form-title"/>
+                <Label text="Elige el tono de cabello que se quiere simular." styleClass="form-hint" wrapText="true"/>
+                <FlowPane fx:id="transformationChips" hgap="8" vgap="8">
+                    <Label text="Rojo cobrizo" styleClass="chip-rose"/>
+                    <Label text="Rubio dorado" styleClass="chip-rose"/>
+                </FlowPane>
+                <Label fx:id="transformationMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            </VBox>
+            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
+                <Label text="Resultado" styleClass="form-title"/>
+                <StackPane styleClass="photo-frame" minHeight="320" prefHeight="360">
+                    <ImageView fx:id="resultView" fitWidth="300" fitHeight="340" preserveRatio="true"/>
+                    <Label fx:id="resultPlaceholder" text="Aquí aparece el resultado" styleClass="placeholder-notice"/>
+                </StackPane>
+                <Label fx:id="disclaimerLabel" text="Simulación, no garantía" styleClass="form-hint" wrapText="true"/>
+                <HBox spacing="10">
+                    <Button fx:id="generateButton" text="Generar simulación" styleClass="button-gold" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button fx:id="saveButton" text="Guardar" styleClass="button-secondary"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

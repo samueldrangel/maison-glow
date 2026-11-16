@@ -1280,3 +1280,31 @@
     -fx-border-color: transparent transparent -mg-border transparent;
 }
 
+/* ---- Probador virtual: marco de las fotos y tonos para elegir ---- */
+.photo-frame {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 16;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 16;
+    -fx-border-style: segments(6, 5);
+}
+
+.tone-chip {
+    -fx-background-color: -mg-chip-rose-bg;
+    -fx-text-fill: -mg-chip-rose;
+    -fx-background-radius: 16 4 16 4;
+    -fx-padding: 8 16 8 12;
+    -fx-graphic-text-gap: 8;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.tone-chip:hover {
+    -fx-background-color: derive(-mg-chip-rose-bg, -6%);
+}
+
+.tone-chip:selected {
+    -fx-background-color: -mg-rose;
+    -fx-text-fill: white;
+}
+
