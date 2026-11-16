@@ -20,6 +20,7 @@ import com.maisonglow.service.StatisticsService;
 import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.appointment.AppointmentLook;
+import com.maisonglow.view.statistics.IncomeSummary;
 import com.maisonglow.view.statistics.RangeSummary;
 import com.maisonglow.view.FieldValidator;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -40,6 +41,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.util.StringConverter;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -104,6 +106,30 @@ public final class StatisticsController {
     private Label noShowValue;
     @FXML
     private Label newCustomersValue;
+    @FXML
+    private Label totalIncomeValue;
+    @FXML
+    private Label totalIncomeNote;
+    @FXML
+    private Label treatmentIncomeValue;
+    @FXML
+    private Label treatmentIncomeNote;
+    @FXML
+    private Label pendingDepositsValue;
+    @FXML
+    private Label pendingDepositsNote;
+    @FXML
+    private Label lostIncomeValue;
+    @FXML
+    private Label lostIncomeNote;
+    @FXML
+    private BarChart<Number, String> professionalIncomeChart;
+    @FXML
+    private Label professionalIncomeEmpty;
+    @FXML
+    private BarChart<Number, String> treatmentIncomeChart;
+    @FXML
+    private Label treatmentIncomeEmpty;
     @FXML
     private BarChart<Number, String> statusChart;
     @FXML
@@ -196,6 +222,8 @@ public final class StatisticsController {
         wholeNumbers(treatmentsChart.getXAxis());
         wholeNumbers(statusChart.getXAxis());
         wholeNumbers(weekdayChart.getYAxis());
+        inThousands(professionalIncomeChart.getXAxis());
+        inThousands(treatmentIncomeChart.getXAxis());
         setUpCustomers();
         setUpRange();
         setUpInsights();
@@ -214,6 +242,21 @@ public final class StatisticsController {
             @Override
             public Number fromString(String text) {
                 return text == null || text.isBlank() ? 0 : Integer.valueOf(text);
+            }
+        });
+    }
+
+    /** Money on an axis is read in thousands of pesos ("120 mil"), so the labels stay short. */
+    private static void inThousands(javafx.scene.chart.Axis<?> axis) {
+        ((NumberAxis) axis).setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return value.doubleValue() == 0 ? "0" : Math.round(value.doubleValue() / 1000) + " mil";
+            }
+
+            @Override
+            public Number fromString(String text) {
+                return 0;
             }
         });
     }
@@ -392,6 +435,18 @@ public final class StatisticsController {
         appointmentsValue.setText(String.valueOf(summary.appointments()));
         noShowValue.setText(summary.noShowRate().isPresent() ? Math.round(summary.noShowRate().getAsDouble() * 100) + " %" : "—");
         newCustomersValue.setText(String.valueOf(summary.newCustomers()));
+        IncomeSummary income = IncomeSummary.of(inTheRange, booked);
+        totalIncomeValue.setText(CurrencyFormatter.format(income.totalIncome()));
+        totalIncomeNote.setText("Productos " + CurrencyFormatter.format(income.salesIncome()) + " · Tratamientos "
+            + CurrencyFormatter.format(income.treatmentIncome()));
+        treatmentIncomeValue.setText(CurrencyFormatter.format(income.treatmentIncome()));
+        treatmentIncomeNote.setText("Citas completadas");
+        pendingDepositsValue.setText(CurrencyFormatter.format(income.pendingDeposits()));
+        pendingDepositsNote.setText("De citas pendientes o confirmadas");
+        lostIncomeValue.setText(CurrencyFormatter.format(income.lostIncome()));
+        lostIncomeNote.setText(income.lostAppointments() + (income.lostAppointments() == 1 ? " cita" : " citas") + " con inasistencia o canceladas");
+        show(professionalIncomeChart, professionalIncomeEmpty, first(income.byProfessional()));
+        show(treatmentIncomeChart, treatmentIncomeEmpty, first(income.byTreatment()));
         Map<String, Integer> states = new LinkedHashMap<>();
         summary.byStatus().forEach((status, count) -> states.put(AppointmentLook.of(status).label(), count));
         show(statusChart, statusEmpty, summary.appointments() == 0 ? Map.of() : states);
@@ -406,10 +461,17 @@ public final class StatisticsController {
         weekdayEmpty.setVisible(none);
     }
 
+    /** The first entries of a ranking, as many as each ranking shows. */
+    private static Map<String, BigDecimal> first(Map<String, BigDecimal> ranking) {
+        Map<String, BigDecimal> top = new LinkedHashMap<>();
+        ranking.entrySet().stream().limit(TOP).forEach(entry -> top.put(entry.getKey(), entry.getValue()));
+        return top;
+    }
+
     /** Draws a ranking as horizontal bars, the first on top, or shows the message when there is nothing to draw. */
-    private static void show(BarChart<Number, String> chart, Label empty, Map<String, Integer> ranking) {
+    private static void show(BarChart<Number, String> chart, Label empty, Map<String, ? extends Number> ranking) {
         XYChart.Series<Number, String> series = new XYChart.Series<>();
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(ranking.entrySet());
+        List<? extends Map.Entry<String, ? extends Number>> entries = new ArrayList<>(ranking.entrySet());
         Collections.reverse(entries);
         entries.forEach(entry -> series.getData().add(new XYChart.Data<>(entry.getValue(), entry.getKey())));
         chart.getData().setAll(List.of(series));
