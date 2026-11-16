@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de Estadisticas y BI (mockup M7). Arriba el rango de fechas (tres atajos o dos fechas a mano) que
+     gobierna las graficas de productos y de tratamientos; debajo, los clientes frecuentes. Cada grafica tiene un
+     mensaje que ocupa su lugar cuando no hay datos en el rango. Las graficas salen vacias aqui; StatisticsController
+     las llena al arrancar. Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.StatisticsController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="700">
+    <top>
+        <VBox spacing="4">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label text="Estadísticas" styleClass="view-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ToggleButton fx:id="last7Chip" text="7 días" styleClass="filter-chip">
+                    <toggleGroup><ToggleGroup fx:id="rangeChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="last30Chip" text="30 días" styleClass="filter-chip" selected="true">
+                    <toggleGroup><fx:reference source="rangeChips"/></toggleGroup>
+                </ToggleButton>
+                <ToggleButton fx:id="last90Chip" text="90 días" styleClass="filter-chip">
+                    <toggleGroup><fx:reference source="rangeChips"/></toggleGroup>
+                </ToggleButton>
+                <Label text="Desde" styleClass="stat-caption"><padding><Insets left="10"/></padding></Label>
+                <DatePicker fx:id="fromPicker" prefWidth="150"/>
+                <Label text="Hasta" styleClass="stat-caption"/>
+                <DatePicker fx:id="toPicker" prefWidth="150"/>
+            </HBox>
+            <Label fx:id="rangeMessage" text="Mensaje de error" styleClass="field-error-message"/>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="settings-scroll">
+            <VBox spacing="16" styleClass="settings-column">
+                <HBox spacing="16">
+                    <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Productos más vendidos" styleClass="form-title"/>
+                        <Label text="Unidades vendidas en el rango de fechas." styleClass="form-hint"/>
+                        <StackPane>
+                            <BarChart fx:id="productsChart" legendVisible="false" animated="false" categoryGap="10" prefHeight="260">
+                                <xAxis><NumberAxis side="BOTTOM" tickUnit="1" minorTickVisible="false"/></xAxis>
+                                <yAxis><CategoryAxis side="LEFT"/></yAxis>
+                            </BarChart>
+                            <Label fx:id="productsEmpty" text="Sin ventas de productos en este rango" styleClass="placeholder-notice" visible="false"/>
+                        </StackPane>
+                    </VBox>
+                    <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Tratamientos más agendados" styleClass="form-title"/>
+                        <Label text="Citas no canceladas en el rango de fechas." styleClass="form-hint"/>
+                        <StackPane>
+                            <BarChart fx:id="treatmentsChart" legendVisible="false" animated="false" categoryGap="10" prefHeight="260">
+                                <xAxis><NumberAxis side="BOTTOM" tickUnit="1" minorTickVisible="false"/></xAxis>
+                                <yAxis><CategoryAxis side="LEFT"/></yAxis>
+                            </BarChart>
+                            <Label fx:id="treatmentsEmpty" text="Sin citas en este rango" styleClass="placeholder-notice" visible="false"/>
+                        </StackPane>
+                    </VBox>
+                </HBox>
+                <VBox styleClass="card, form-card" spacing="6">
+                    <Label text="Clientes frecuentes" styleClass="form-title"/>
+                    <Label text="Por número de compras, de toda la historia." styleClass="form-hint"/>
+                    <TableView fx:id="customersTable" styleClass="compact-table" prefHeight="230">
+                        <columns>
+                            <TableColumn fx:id="rankColumn" text="#" prefWidth="50" sortable="false"/>
+                            <TableColumn fx:id="customerNameColumn" text="Cliente" prefWidth="320" sortable="false"/>
+                            <TableColumn fx:id="purchasesColumn" text="Compras" prefWidth="100" sortable="false"/>
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                        <placeholder><Label text="Aún no hay compras registradas" styleClass="placeholder-notice"/></placeholder>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

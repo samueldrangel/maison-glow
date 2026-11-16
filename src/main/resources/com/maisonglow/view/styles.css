@@ -1178,3 +1178,35 @@
     -fx-background-radius: 14;
     -fx-padding: 12 14 12 14;
 }
+
+/* ---- Graficas de Estadisticas: barras rosas, rejilla fina y sin marcas ---- */
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: -mg-border;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: transparent;
+}
+
+.chart .axis {
+    -fx-tick-label-fill: -mg-text-muted;
+    -fx-tick-label-font-size: 12px;
+}
+
+.chart .axis-tick-mark, .chart .axis-minor-tick-mark {
+    -fx-stroke: transparent;
+}
+
+.chart-bar {
+    -fx-bar-fill: -mg-rose;
+    -fx-background-radius: 0 6 6 0;
+}
+
+.chart-bar:hover {
+    -fx-bar-fill: -mg-rose-dark;
+}
+
