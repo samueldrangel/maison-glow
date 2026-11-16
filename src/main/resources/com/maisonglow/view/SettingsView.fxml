@@ -8,10 +8,13 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
-<!-- Pantalla de Configuracion del negocio. Los textos "Mensaje de error" se ven aqui para disenar;
-     FieldValidator los oculta al arrancar y solo muestra el del campo que falla.
+<!-- Pantalla de Configuracion del negocio: tres tarjetas (Negocio, Citas y anticipos, Productos de baja rotacion).
+     Cada parametro lleva su unidad y una linea que explica para que sirve. Los textos "Mensaje de error" se ven
+     aqui para disenar; FieldValidator los oculta al arrancar y solo muestra el del campo que falla.
      SettingsController llena los campos con los valores guardados en data/settings.txt.
      Colores: View > Scene Style Sheets > styles.css. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -22,73 +25,129 @@
             <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
             <Label text="Configuración" styleClass="view-title"/>
             <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="unsavedNote" text="Tienes cambios sin guardar" styleClass="unsaved-note"/>
             <Button fx:id="discardButton" text="Descartar cambios" styleClass="button-secondary"/>
             <Button fx:id="saveButton" text="Guardar cambios" styleClass="button-primary"/>
         </HBox>
     </top>
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="settings-scroll">
-            <VBox spacing="16" styleClass="settings-column" maxWidth="760">
-            <VBox styleClass="card, form-card" spacing="6">
-                <Label text="Negocio" styleClass="form-title"/>
-                <Label text="El nombre aparece en las facturas y en las pantallas." styleClass="form-hint" wrapText="true"/>
-                <HBox spacing="14">
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Nombre del negocio" styleClass="form-label"/>
-                        <TextField fx:id="businessField" promptText="Maison Glow"/>
-                        <Label fx:id="businessMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            <VBox spacing="16" styleClass="settings-column">
+        <VBox styleClass="card, form-card" spacing="10">
+            <HBox alignment="CENTER_LEFT" spacing="24">
+                <HBox alignment="CENTER_LEFT" spacing="14" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <StackPane styleClass="settings-medallion" minWidth="44" prefWidth="44" maxWidth="44" minHeight="44" prefHeight="44" maxHeight="44">
+                        <SVGPath styleClass="line-icon" scaleX="0.85" scaleY="0.85" content="M3 9l1.5-5h15L21 9 M4 9v11h16V9 M9 20v-6h6v6 M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>
+                    </StackPane>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="Negocio" styleClass="form-title"/>
+                        <Label text="Cómo se llama tu negocio en las facturas y en las pantallas." styleClass="form-hint" wrapText="true"/>
                     </VBox>
                 </HBox>
-            </VBox>
-            <VBox styleClass="card, form-card" spacing="6">
-                <Label text="Citas y anticipos" styleClass="form-title"/>
-                <Label text="Reglas que se aplican al agendar: anticipo, anticipación mínima, recordatorio y penalización por inasistencias." styleClass="form-hint" wrapText="true"/>
-                <HBox spacing="14">
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Anticipo (% del precio)" styleClass="form-label"/>
-                        <TextField fx:id="depositField" promptText="30"/>
-                        <Label fx:id="depositMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Anticipación mínima (horas)" styleClass="form-label"/>
-                        <TextField fx:id="noticeField" promptText="2"/>
-                        <Label fx:id="noticeMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Nombre del negocio" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="businessField" promptText="Maison Glow" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <Label text="Aparece en el encabezado de cada factura que se envía al cliente." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="businessMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+            </HBox>
+        </VBox>
+                <HBox spacing="16">
+        <VBox styleClass="card, form-card" spacing="10" HBox.hgrow="ALWAYS" prefWidth="0">
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <StackPane styleClass="settings-medallion" minWidth="44" prefWidth="44" maxWidth="44" minHeight="44" prefHeight="44" maxHeight="44">
+                    <SVGPath styleClass="line-icon" scaleX="0.85" scaleY="0.85" content="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18"/>
+                </StackPane>
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label text="Citas y anticipos" styleClass="form-title"/>
+                    <Label text="Reglas que se aplican al agendar una cita." styleClass="form-hint" wrapText="true"/>
+                </VBox>
+            </HBox>
+            <HBox spacing="16">
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Anticipo" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="depositField" promptText="30" HBox.hgrow="ALWAYS"/>
+                        <Label text="\%" styleClass="unit-label"/>
+                    </HBox>
+                    <Label text="Parte del precio que se cobra al agendar." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="depositMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Anticipación mínima" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="noticeField" promptText="2" HBox.hgrow="ALWAYS"/>
+                        <Label text="horas" styleClass="unit-label"/>
+                    </HBox>
+                    <Label text="Tiempo mínimo entre agendar y la cita." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="noticeMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+            </HBox>
+            <HBox spacing="16">
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Recordatorio" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="reminderField" promptText="24" HBox.hgrow="ALWAYS"/>
+                        <Label text="horas" styleClass="unit-label"/>
+                    </HBox>
+                    <Label text="Cuánto antes se genera el recordatorio." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="reminderMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Inasistencias para pago total" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="noShowField" promptText="3" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <Label text="Desde cuántas se pide pagar por adelantado." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="noShowMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+            </HBox>
+        </VBox>
+        <VBox styleClass="card, form-card" spacing="10" HBox.hgrow="ALWAYS" prefWidth="0">
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <StackPane styleClass="settings-medallion" minWidth="44" prefWidth="44" maxWidth="44" minHeight="44" prefHeight="44" maxHeight="44">
+                    <SVGPath styleClass="line-icon" scaleX="0.85" scaleY="0.85" content="M16.5 9.4l-9-5.19 M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/>
+                </StackPane>
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label text="Productos de baja rotación" styleClass="form-title"/>
+                    <Label text="Qué productos se consideran poco vendidos." styleClass="form-hint" wrapText="true"/>
+                </VBox>
+            </HBox>
+            <HBox spacing="16">
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Ventana de ventas" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="windowField" promptText="30" HBox.hgrow="ALWAYS"/>
+                        <Label text="días" styleClass="unit-label"/>
+                    </HBox>
+                    <Label text="Días de historial que se revisan." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="windowMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Cuántos se reportan" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="topField" promptText="5" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <Label text="Productos que se avisan al administrador." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="topMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+            </HBox>
+            <HBox spacing="16">
+                <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <Label text="Descuento" styleClass="form-label"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="discountField" promptText="15" HBox.hgrow="ALWAYS"/>
+                        <Label text="\%" styleClass="unit-label"/>
+                    </HBox>
+                    <Label text="Descuento sugerido para moverlos." styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="discountMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                </VBox>
+                <Region prefWidth="0" HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
                 </HBox>
-                <HBox spacing="14">
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Recordatorio (horas antes)" styleClass="form-label"/>
-                        <TextField fx:id="reminderField" promptText="24"/>
-                        <Label fx:id="reminderMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Inasistencias para exigir pago total" styleClass="form-label"/>
-                        <TextField fx:id="noShowField" promptText="3"/>
-                        <Label fx:id="noShowMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                </HBox>
-            </VBox>
-            <VBox styleClass="card, form-card" spacing="6">
-                <Label text="Productos de baja rotación" styleClass="form-title"/>
-                <Label text="Qué productos se consideran poco vendidos y qué descuento se ofrece para moverlos." styleClass="form-hint" wrapText="true"/>
-                <HBox spacing="14">
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Ventana de ventas (días)" styleClass="form-label"/>
-                        <TextField fx:id="windowField" promptText="30"/>
-                        <Label fx:id="windowMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Cuántos se reportan" styleClass="form-label"/>
-                        <TextField fx:id="topField" promptText="5"/>
-                        <Label fx:id="topMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                    <VBox spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
-                        <Label text="Descuento (%)" styleClass="form-label"/>
-                        <TextField fx:id="discountField" promptText="15"/>
-                        <Label fx:id="discountMessage" text="Mensaje de error" styleClass="field-error-message"/>
-                    </VBox>
-                </HBox>
-            </VBox>
             </VBox>
         </ScrollPane>
     </center>

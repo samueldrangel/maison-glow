@@ -92,6 +92,7 @@ class SettingsViewTest {
         assertThat(field(root, "discountField").getText()).isEqualTo("15");
         assertThat(root.lookup("#saveButton").isDisabled()).isTrue();
         assertThat(root.lookup("#discardButton").isDisabled()).isTrue();
+        assertThat(root.lookup("#unsavedNote").isVisible()).isFalse();
     }
 
     @Test
@@ -102,11 +103,13 @@ class SettingsViewTest {
         type(root, "depositField", "40");
         type(root, "windowField", "60");
         assertThat(root.lookup("#saveButton").isDisabled()).isFalse();
+        assertThat(root.lookup("#unsavedNote").isVisible()).isTrue();
         press(root, "saveButton");
 
         assertThat(file()).contains("deposit_percentage|40|").contains("low_rotation_window_days|60|");
         assertThat(context.settings().depositPercentage()).isEqualTo(40);
         assertThat(root.lookup("#saveButton").isDisabled()).isTrue();
+        assertThat(root.lookup("#unsavedNote").isVisible()).isFalse();
     }
 
     @Test

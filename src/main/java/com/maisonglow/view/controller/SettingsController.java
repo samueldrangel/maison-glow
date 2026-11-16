@@ -65,6 +65,8 @@ public final class SettingsController {
     @FXML
     private Label discountMessage;
     @FXML
+    private Label unsavedNote;
+    @FXML
     private Button saveButton;
     @FXML
     private Button discardButton;
@@ -180,6 +182,8 @@ public final class SettingsController {
         boolean changed = byKey.entrySet().stream()
             .anyMatch(entry -> !typed(entry.getKey(), entry.getValue()).equals(loaded.getOrDefault(entry.getKey(), "")));
         saveButton.setDisable(!changed);
+        unsavedNote.setVisible(changed);
+        unsavedNote.setManaged(changed);
         discardButton.setDisable(!changed);
     }
 
