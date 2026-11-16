@@ -107,6 +107,35 @@ public class StatisticsService {
     }
 
     /**
+     * Ranks the most requested treatments among the appointments of a range of days, ignoring the cancelled
+     * ones, so the statistics can follow the same dates as the ranking of products.
+     *
+     * @param limit how many treatments to return, at least one
+     * @param from  the first day, included
+     * @param to    the last day, included
+     * @return treatment name to appointments, highest first
+     * @throws ValidationException if the limit or the dates are invalid
+     * @throws DataAccessException if the appointments cannot be read
+     */
+    public Map<String, Integer> topTreatments(int limit, LocalDate from, LocalDate to)
+        throws ValidationException, DataAccessException {
+        requireLimit(limit);
+        Validator.requirePresent(from, "fecha inicial");
+        Validator.requirePresent(to, "fecha final");
+        if (from.isAfter(to)) {
+            throw new ValidationException("La fecha inicial no puede ser posterior a la final.");
+        }
+        Map<String, Integer> bookings = new HashMap<>();
+        for (Appointment appointment : appointmentDao.findAll()) {
+            LocalDate day = appointment.getStart().toLocalDate();
+            if (appointment.getStatus() != AppointmentStatus.CANCELLED && !day.isBefore(from) && !day.isAfter(to)) {
+                bookings.merge(appointment.getTreatment().getName(), 1, Integer::sum);
+            }
+        }
+        return top(bookings, limit);
+    }
+
+    /**
      * Ranks the customers who buy most often (RF-28).
      *
      * @param limit how many customers to return, at least one
