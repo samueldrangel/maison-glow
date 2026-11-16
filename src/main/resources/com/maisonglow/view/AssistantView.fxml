@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- Pantalla del Asistente IA (mockup M9): un chat. Los mensajes del usuario van a la derecha y los del asistente a
+     la izquierda; cuando el asistente pide confirmar una accion, aparece una tarjeta con sus datos y los botones
+     Confirmar y Cancelar (nada se hace antes). A la derecha hay atajos para las consultas mas comunes. Los mensajes de
+     ejemplo se ven aqui para disenar; AssistantController los reemplaza al arrancar.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.AssistantController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="700">
+    <top>
+        <VBox spacing="8">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <StackPane minWidth="26" prefWidth="26" maxWidth="26" minHeight="26" prefHeight="26" maxHeight="26">
+                    <SVGPath styleClass="line-icon" style="-fx-stroke: -mg-gold;" scaleX="1.0" scaleY="1.0" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>
+                </StackPane>
+                <Label text="Asistente IA" styleClass="view-title"/>
+            </HBox>
+            <Label text="Tu asistente para gestionar Maison Glow" styleClass="form-hint"/>
+            <HBox fx:id="simulatedBanner" styleClass="banner-warning">
+                <Label fx:id="bannerText" text="Asistente simulado: responde con reglas fijas, no con inteligencia artificial real. Escribe «ayuda» para ver cómo usarlo." styleClass="banner-text" wrapText="true"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <VBox styleClass="card, form-card" spacing="10">
+            <ScrollPane fx:id="chatScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="chat-scroll" VBox.vgrow="ALWAYS">
+                <VBox fx:id="messagesBox" spacing="12" styleClass="chat-messages">
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label text="¿Hay citas mañana a las 10:00?" styleClass="bubble-user" wrapText="true"/>
+                        <Label text="10:24" styleClass="bubble-time"/>
+                    </VBox>
+                    <VBox alignment="CENTER_LEFT" spacing="2">
+                        <Label text="Sí, Camila Ruiz está disponible. ¿Quieres agendar?" styleClass="bubble-assistant" wrapText="true"/>
+                        <Label text="10:24" styleClass="bubble-time"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="messageField" promptText="Escribe un mensaje..." HBox.hgrow="ALWAYS"/>
+                <Button fx:id="sendButton" text="Enviar" styleClass="button-primary"/>
+            </HBox>
+            <Label text="La IA puede cometer errores. Revisa las acciones antes de confirmar." styleClass="form-hint"/>
+        </VBox>
+    </center>
+    <right>
+        <VBox styleClass="card, form-card" spacing="8" prefWidth="250" minWidth="250">
+            <BorderPane.margin><Insets left="16"/></BorderPane.margin>
+            <Label text="Atajos" styleClass="form-title"/>
+            <Label text="Consultas frecuentes con un clic." styleClass="form-hint"/>
+            <Button fx:id="lowStockShortcut" text="Stock bajo" styleClass="button-secondary" maxWidth="Infinity"/>
+            <Button fx:id="todayShortcut" text="Citas de hoy" styleClass="button-secondary" maxWidth="Infinity"/>
+            <Button fx:id="customerShortcut" text="Buscar cliente..." styleClass="button-secondary" maxWidth="Infinity"/>
+            <Button fx:id="helpShortcut" text="Ayuda" styleClass="button-secondary" maxWidth="Infinity"/>
+        </VBox>
+    </right>
+</BorderPane>
