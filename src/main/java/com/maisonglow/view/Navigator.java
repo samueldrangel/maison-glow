@@ -9,18 +9,22 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Shows one {@link View} at a time in the central area of the main window.
  * Screens that are not built yet appear as an "En construcción" notice, so the
- * whole menu can be walked from the first day.
+ * whole menu can be walked from the first day. A screen that keeps what the user was doing (the chat, the try-on)
+ * is loaded once and shown again as it was left.
  */
 public final class Navigator {
 
     private final StackPane content;
     private final AppContext context;
+    private final Map<View, Node> kept = new EnumMap<>(View.class);
     private View current;
 
     /**
@@ -41,12 +45,18 @@ public final class Navigator {
      */
     public void show(View view) {
         Objects.requireNonNull(view, "view");
-        URL fxml = Navigator.class.getResource(view.resource());
-        Node screen = fxml == null ? underConstruction(view) : ViewLoader.load(fxml, context);
-        content.getChildren().setAll(screen);
-        if (screen instanceof Parent parent) {
-            Animations.installButtonMotion(parent);
+        Node screen = kept.get(view);
+        if (screen == null) {
+            URL fxml = Navigator.class.getResource(view.resource());
+            screen = fxml == null ? underConstruction(view) : ViewLoader.load(fxml, context);
+            if (screen instanceof Parent parent) {
+                Animations.installButtonMotion(parent);
+            }
+            if (view.keepsState()) {
+                kept.put(view, screen);
+            }
         }
+        content.getChildren().setAll(screen);
         Animations.enter(screen);
         current = view;
     }
