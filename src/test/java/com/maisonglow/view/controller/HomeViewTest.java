@@ -132,6 +132,26 @@ class HomeViewTest {
     }
 
     @Test
+    @DisplayName("the header says what today holds and what waits for an answer")
+    void summaryOfTheDay() throws Exception {
+        assertThat(HomeController.summary(0, 0)).isEqualTo("Hoy no tienes citas agendadas.");
+        assertThat(HomeController.summary(1, 0)).isEqualTo("Hoy tienes 1 cita, todas confirmadas o atendidas.");
+        assertThat(HomeController.summary(4, 2)).isEqualTo("Hoy tienes 4 citas y 2 esperan tu confirmación.");
+        context.appointments().book(ana, camila, cut, today.atTime(10, 0), 16500);
+        assertThat(text(open(), "summaryLabel")).isEqualTo("Hoy tienes 1 cita y 1 espera tu confirmación.");
+    }
+
+    @Test
+    @DisplayName("the stock tile is marked when there is something to restock")
+    void marksTheStockTile() throws Exception {
+        Parent calm = open();
+        assertThat(FxTest.onFxThread(() -> calm.lookup("#stockTile").getStyleClass())).doesNotContain("needs-attention");
+        context.products().register(new ProductData("Mascarilla Reparadora", 1, 35000, 5), 1);
+        Parent attention = open();
+        assertThat(FxTest.onFxThread(() -> attention.lookup("#stockTile").getStyleClass())).contains("needs-attention");
+    }
+
+    @Test
     @DisplayName("an appointment of another day is not counted")
     void ignoresOtherDays() throws Exception {
         context.appointments().book(ana, camila, cut, today.plusDays(1).atTime(10, 0), 16500);
@@ -148,7 +168,7 @@ class HomeViewTest {
 
         assertThat(text(root, "lowStockValue")).isEqualTo("1");
         assertThat(visible(root, "restockEmpty")).isFalse();
-        assertThat(rows(root, "restockBox")).singleElement().asString().contains("Mascarilla Reparadora").contains("quedan 1 de 5");
+        assertThat(rows(root, "restockBox")).singleElement().asString().contains("Mascarilla Reparadora").contains("Mínimo 5").contains("Reponer");
     }
 
     @Test

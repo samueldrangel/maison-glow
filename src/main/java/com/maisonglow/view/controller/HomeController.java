@@ -43,6 +43,14 @@ public final class HomeController {
     @FXML
     private Label dateLabel;
     @FXML
+    private Label summaryLabel;
+    @FXML
+    private Label agendaCount;
+    @FXML
+    private Label restockCount;
+    @FXML
+    private HBox stockTile;
+    @FXML
     private Label todayValue;
     @FXML
     private Label todayNote;
@@ -111,10 +119,25 @@ public final class HomeController {
         long toAttend = ofToday.stream().filter(HomeController::isOpen).count();
         todayValue.setText(String.valueOf(ofToday.size()));
         todayNote.setText(toAttend + " por atender");
-        pendingValue.setText(String.valueOf(ofToday.stream().filter(a -> a.getStatus() == AppointmentStatus.PENDING).count()));
+        long pending = ofToday.stream().filter(a -> a.getStatus() == AppointmentStatus.PENDING).count();
+        pendingValue.setText(String.valueOf(pending));
+        agendaCount.setText(ofToday.size() + (ofToday.size() == 1 ? " cita" : " citas"));
+        summaryLabel.setText(summary(ofToday.size(), pending));
         agendaBox.getChildren().setAll(ofToday.stream().map(HomeController::appointmentRow).toList());
         agendaEmpty.setVisible(ofToday.isEmpty());
         agendaEmpty.setManaged(ofToday.isEmpty());
+    }
+
+    /** @return the sentence of the header: what today holds and what waits for an answer */
+    static String summary(int appointments, long pending) {
+        if (appointments == 0) {
+            return "Hoy no tienes citas agendadas.";
+        }
+        String today = appointments == 1 ? "Hoy tienes 1 cita" : "Hoy tienes " + appointments + " citas";
+        if (pending == 0) {
+            return today + ", todas confirmadas o atendidas.";
+        }
+        return today + (pending == 1 ? " y 1 espera tu confirmación." : " y " + pending + " esperan tu confirmación.");
     }
 
     private static boolean isOpen(Appointment appointment) {
@@ -123,19 +146,22 @@ public final class HomeController {
 
     private static Node appointmentRow(Appointment appointment) {
         Label time = new Label(DateFormats.time(appointment.getStart().toLocalTime()));
-        time.getStyleClass().add("stat-value");
-        time.setMinWidth(52);
-        Label what = new Label(appointment.getCustomer().getName() + " · " + appointment.getTreatment().getName());
-        what.getStyleClass().add("form-hint");
-        Label who = new Label(appointment.getProfessional().getName());
-        who.getStyleClass().add("stat-caption");
-        VBox text = new VBox(2, what, who);
+        time.getStyleClass().add("home-time");
+        Label who = new Label(appointment.getCustomer().getName());
+        who.getStyleClass().add("home-row-title");
+        Label what = new Label(appointment.getTreatment().getName() + " · " + appointment.getProfessional().getName());
+        what.getStyleClass().add("home-row-detail");
         AppointmentLook look = AppointmentLook.of(appointment.getStatus());
         Label chip = new Label(look.label());
         chip.getStyleClass().add(look.chipStyle());
+        return row(time, new VBox(2, who, what), chip);
+    }
+
+    private static HBox row(Node first, Node text, Node last) {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox row = new HBox(12, time, text, spacer, chip);
+        HBox row = new HBox(14, first, text, spacer, last);
+        row.getStyleClass().add("home-row");
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
@@ -155,14 +181,27 @@ public final class HomeController {
         salesNote.setText(count + (count == 1 ? " venta" : " ventas"));
     }
 
+    private static Node stockRow(Product product) {
+        Label name = new Label(product.getName());
+        name.getStyleClass().add("home-row-title");
+        Label detail = new Label("Mínimo " + product.getMinimumStock() + " unidades");
+        detail.getStyleClass().add("home-row-detail");
+        Label left = new Label(product.getStock() == 0 ? "Agotado" : "Reponer");
+        left.getStyleClass().add(product.getStock() == 0 ? "chip-warning" : "chip-gold");
+        Label icon = new Label(String.valueOf(product.getStock()));
+        icon.getStyleClass().add("home-time");
+        return row(icon, new VBox(2, name, detail), left);
+    }
+
     private void showStock() throws DataAccessException {
         List<Product> low = context.products().listLowStock();
         lowStockValue.setText(String.valueOf(low.size()));
-        restockBox.getChildren().setAll(low.stream().map(product -> {
-            Label row = new Label(product.getName() + " · quedan " + product.getStock() + " de " + product.getMinimumStock());
-            row.getStyleClass().add("form-hint");
-            return (Node) row;
-        }).toList());
+        restockBox.getChildren().setAll(low.stream().map(HomeController::stockRow).toList());
+        restockCount.setText(low.size() + (low.size() == 1 ? " producto" : " productos"));
+        stockTile.getStyleClass().remove("needs-attention");
+        if (!low.isEmpty()) {
+            stockTile.getStyleClass().add("needs-attention");
+        }
         restockEmpty.setVisible(low.isEmpty());
         restockEmpty.setManaged(low.isEmpty());
     }
