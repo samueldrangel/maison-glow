@@ -4,23 +4,31 @@ import com.maisonglow.AppContext;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Customer;
+import com.maisonglow.model.Appointment;
+import com.maisonglow.model.Sale;
 import com.maisonglow.service.AdminNotifier;
+import com.maisonglow.service.AppointmentService;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.LowRotationService;
 import com.maisonglow.service.ProductSales;
 import com.maisonglow.service.PromotionService;
 import com.maisonglow.service.PromotionSuggestion;
+import com.maisonglow.service.SaleService;
 import com.maisonglow.service.SettingsService;
 import com.maisonglow.service.SimulatedAdminNotifier;
 import com.maisonglow.service.StatisticsService;
 import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.view.AlertPresenter;
+import com.maisonglow.view.appointment.AppointmentLook;
+import com.maisonglow.view.statistics.IncomeSummary;
+import com.maisonglow.view.statistics.RangeSummary;
 import com.maisonglow.view.FieldValidator;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -33,13 +41,18 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.util.StringConverter;
 
+import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -56,6 +69,8 @@ public final class StatisticsController {
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final StatisticsService statistics;
+    private final AppointmentService appointments;
+    private final SaleService sales;
     private final LowRotationService lowRotation;
     private final PromotionService promotions;
     private final CustomerService customers;
@@ -81,6 +96,48 @@ public final class StatisticsController {
     private DatePicker toPicker;
     @FXML
     private Label rangeMessage;
+    @FXML
+    private Label revenueValue;
+    @FXML
+    private Label revenueNote;
+    @FXML
+    private Label appointmentsValue;
+    @FXML
+    private Label noShowValue;
+    @FXML
+    private Label newCustomersValue;
+    @FXML
+    private Label totalIncomeValue;
+    @FXML
+    private Label totalIncomeNote;
+    @FXML
+    private Label treatmentIncomeValue;
+    @FXML
+    private Label treatmentIncomeNote;
+    @FXML
+    private Label pendingDepositsValue;
+    @FXML
+    private Label pendingDepositsNote;
+    @FXML
+    private Label lostIncomeValue;
+    @FXML
+    private Label lostIncomeNote;
+    @FXML
+    private BarChart<Number, String> professionalIncomeChart;
+    @FXML
+    private Label professionalIncomeEmpty;
+    @FXML
+    private BarChart<Number, String> treatmentIncomeChart;
+    @FXML
+    private Label treatmentIncomeEmpty;
+    @FXML
+    private BarChart<Number, String> statusChart;
+    @FXML
+    private Label statusEmpty;
+    @FXML
+    private BarChart<String, Number> weekdayChart;
+    @FXML
+    private Label weekdayEmpty;
     @FXML
     private BarChart<Number, String> productsChart;
     @FXML
@@ -130,6 +187,8 @@ public final class StatisticsController {
     public StatisticsController(AppContext context) {
         Objects.requireNonNull(context, "context");
         this.statistics = context.statistics();
+        this.appointments = context.appointments();
+        this.sales = context.sales();
         this.lowRotation = context.lowRotation();
         this.promotions = context.promotions();
         this.customers = context.customers();
@@ -159,11 +218,47 @@ public final class StatisticsController {
     private void initialize() {
         alerts = new AlertPresenter(customersTable);
         rangeFields.field(toPicker, rangeMessage, "fecha");
+        wholeNumbers(productsChart.getXAxis());
+        wholeNumbers(treatmentsChart.getXAxis());
+        wholeNumbers(statusChart.getXAxis());
+        wholeNumbers(weekdayChart.getYAxis());
+        inThousands(professionalIncomeChart.getXAxis());
+        inThousands(treatmentIncomeChart.getXAxis());
         setUpCustomers();
         setUpRange();
         setUpInsights();
         refresh();
         refreshLowRotation();
+    }
+
+    /** The counts are whole numbers, so an axis never labels 0,5 or 2,25: those marks stay unlabelled. */
+    private static void wholeNumbers(javafx.scene.chart.Axis<?> axis) {
+        ((NumberAxis) axis).setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return value.doubleValue() == Math.rint(value.doubleValue()) ? String.valueOf(value.intValue()) : "";
+            }
+
+            @Override
+            public Number fromString(String text) {
+                return text == null || text.isBlank() ? 0 : Integer.valueOf(text);
+            }
+        });
+    }
+
+    /** Money on an axis is read in thousands of pesos ("120 mil"), so the labels stay short. */
+    private static void inThousands(javafx.scene.chart.Axis<?> axis) {
+        ((NumberAxis) axis).setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return value.doubleValue() == 0 ? "0" : Math.round(value.doubleValue() / 1000) + " mil";
+            }
+
+            @Override
+            public Number fromString(String text) {
+                return 0;
+            }
+        });
     }
 
     private void setUpCustomers() {
@@ -309,6 +404,7 @@ public final class StatisticsController {
             if (from != null && to != null) {
                 show(productsChart, productsEmpty, statistics.topProducts(TOP, from, to));
                 show(treatmentsChart, treatmentsEmpty, statistics.topTreatments(TOP, from, to));
+                showSummary(from, to);
             }
             frequent.setAll(new ArrayList<>(statistics.frequentCustomers(TOP).entrySet()));
         } catch (ValidationException e) {
@@ -320,10 +416,62 @@ public final class StatisticsController {
         }
     }
 
+    /** Works out the summary of the range and draws how the appointments ended and on which days they fall. */
+    private void showSummary(LocalDate from, LocalDate to) throws ValidationException, DataAccessException {
+        List<Customer> everyone = customers.listAll();
+        List<Sale> inTheRange = new ArrayList<>();
+        for (Customer customer : everyone) {
+            for (Sale sale : sales.listByCustomer(customer.getId())) {
+                LocalDate day = sale.getSoldAt().toLocalDate();
+                if (!day.isBefore(from) && !day.isAfter(to)) {
+                    inTheRange.add(sale);
+                }
+            }
+        }
+        List<Appointment> booked = appointments.listBetween(from, to);
+        RangeSummary summary = RangeSummary.of(inTheRange, booked, everyone, from, to);
+        revenueValue.setText(CurrencyFormatter.format(summary.revenue()));
+        revenueNote.setText(summary.sales() + (summary.sales() == 1 ? " venta" : " ventas"));
+        appointmentsValue.setText(String.valueOf(summary.appointments()));
+        noShowValue.setText(summary.noShowRate().isPresent() ? Math.round(summary.noShowRate().getAsDouble() * 100) + " %" : "—");
+        newCustomersValue.setText(String.valueOf(summary.newCustomers()));
+        IncomeSummary income = IncomeSummary.of(inTheRange, booked);
+        totalIncomeValue.setText(CurrencyFormatter.format(income.totalIncome()));
+        totalIncomeNote.setText("Productos " + CurrencyFormatter.format(income.salesIncome()) + " · Tratamientos "
+            + CurrencyFormatter.format(income.treatmentIncome()));
+        treatmentIncomeValue.setText(CurrencyFormatter.format(income.treatmentIncome()));
+        treatmentIncomeNote.setText("Citas completadas");
+        pendingDepositsValue.setText(CurrencyFormatter.format(income.pendingDeposits()));
+        pendingDepositsNote.setText("De citas pendientes o confirmadas");
+        lostIncomeValue.setText(CurrencyFormatter.format(income.lostIncome()));
+        lostIncomeNote.setText(income.lostAppointments() + (income.lostAppointments() == 1 ? " cita" : " citas") + " con inasistencia o canceladas");
+        show(professionalIncomeChart, professionalIncomeEmpty, first(income.byProfessional()));
+        show(treatmentIncomeChart, treatmentIncomeEmpty, first(income.byTreatment()));
+        Map<String, Integer> states = new LinkedHashMap<>();
+        summary.byStatus().forEach((status, count) -> states.put(AppointmentLook.of(status).label(), count));
+        show(statusChart, statusEmpty, summary.appointments() == 0 ? Map.of() : states);
+        XYChart.Series<String, Number> weekdays = new XYChart.Series<>();
+        for (DayOfWeek day : DayOfWeek.values()) {
+            String name = day.getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("es-CO"));
+            weekdays.getData().add(new XYChart.Data<>(name.substring(0, 1).toUpperCase() + name.substring(1), summary.byWeekday().get(day)));
+        }
+        boolean none = summary.byWeekday().values().stream().mapToInt(Integer::intValue).sum() == 0;
+        weekdayChart.getData().setAll(List.of(weekdays));
+        weekdayChart.setVisible(!none);
+        weekdayEmpty.setVisible(none);
+    }
+
+    /** The first entries of a ranking, as many as each ranking shows. */
+    private static Map<String, BigDecimal> first(Map<String, BigDecimal> ranking) {
+        Map<String, BigDecimal> top = new LinkedHashMap<>();
+        ranking.entrySet().stream().limit(TOP).forEach(entry -> top.put(entry.getKey(), entry.getValue()));
+        return top;
+    }
+
     /** Draws a ranking as horizontal bars, the first on top, or shows the message when there is nothing to draw. */
-    private static void show(BarChart<Number, String> chart, Label empty, Map<String, Integer> ranking) {
+    private static void show(BarChart<Number, String> chart, Label empty, Map<String, ? extends Number> ranking) {
         XYChart.Series<Number, String> series = new XYChart.Series<>();
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(ranking.entrySet());
+        List<? extends Map.Entry<String, ? extends Number>> entries = new ArrayList<>(ranking.entrySet());
         Collections.reverse(entries);
         entries.forEach(entry -> series.getData().add(new XYChart.Data<>(entry.getValue(), entry.getKey())));
         chart.getData().setAll(List.of(series));

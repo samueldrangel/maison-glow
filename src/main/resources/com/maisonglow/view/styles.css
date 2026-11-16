@@ -1210,3 +1210,14 @@
     -fx-bar-fill: -mg-rose-dark;
 }
 
+.weekday-chart .chart-bar {
+    -fx-background-radius: 6 6 0 0;
+}
+
+.weekday-chart .chart-horizontal-grid-lines {
+    -fx-stroke: -mg-border;
+}
+
+.weekday-chart .chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}

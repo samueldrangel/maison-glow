@@ -2,12 +2,14 @@ package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.ai.AiConfig;
+import com.maisonglow.model.AppointmentStatus;
 import com.maisonglow.model.Customer;
 import com.maisonglow.model.Product;
 import com.maisonglow.model.Professional;
 import com.maisonglow.model.Sale;
 import com.maisonglow.model.Treatment;
 import com.maisonglow.service.ContactData;
+import com.maisonglow.util.CurrencyFormatter;
 import com.maisonglow.service.ProductSales;
 import com.maisonglow.service.PromotionSuggestion;
 import com.maisonglow.service.SimulatedAdminNotifier;
@@ -38,6 +40,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -356,5 +359,146 @@ class StatisticsViewTest {
         assertThat(rows(root, "promotionsTable")).isEmpty();
         assertThat(FxTest.onFxThread(() -> ((Label) ((TableView<?>) root.lookup("#promotionsTable")).getPlaceholder()).getText()))
             .contains("ya compró todos");
+    }
+
+    /** Books an appointment some days ago, with the clock of those days so the rules accept it, and leaves it in that state. */
+    private void bookInThePast(int daysAgo, int hour, Customer customer, AppointmentStatus status) throws Exception {
+        LocalDate day = LocalDate.now().minusDays(daysAgo);
+        AppContext past = new AppContext(data, Clock.fixed(day.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
+            ZoneId.systemDefault()), AiConfig.simulated());
+        var appointment = past.appointments().book(past.customers().findById(customer.getId()), past.professionals().findById(camila.getId()),
+            past.treatments().findById(cut.getId()), day.atTime(hour, 0), 16500);
+        switch (status) {
+            case COMPLETED -> past.appointments().complete(appointment.getId());
+            case NO_SHOW -> past.appointments().markNoShow(appointment.getId());
+            case CANCELLED -> past.appointments().cancel(appointment.getId());
+            default -> { }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Number> weekdayBars(Parent root) throws Exception {
+        BarChart<String, Number> chart = (BarChart<String, Number>) root.lookup("#weekdayChart");
+        return FxTest.onFxThread(() -> {
+            Map<String, Number> drawn = new java.util.LinkedHashMap<>();
+            chart.getData().get(0).getData().forEach(point -> drawn.put(point.getXValue(), point.getYValue()));
+            return drawn;
+        });
+    }
+
+    private static String text(Parent root, String id) throws Exception {
+        return FxTest.onFxThread(() -> ((Label) root.lookup("#" + id)).getText());
+    }
+
+    @Test
+    @DisplayName("the summary shows the revenue, the appointments, the no-show rate and the new customers of the range")
+    void summaryTiles() throws Exception {
+        sellSomething();
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        bookInThePast(2, 10, laura, AppointmentStatus.CANCELLED);
+        Parent root = open();
+
+        assertThat(text(root, "revenueValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("175000")));
+        assertThat(text(root, "revenueNote")).isEqualTo("3 ventas");
+        assertThat(text(root, "appointmentsValue")).isEqualTo("4");
+        assertThat(text(root, "noShowValue")).isEqualTo("33 %");
+        assertThat(text(root, "newCustomersValue")).isEqualTo("2");
+    }
+
+    @Test
+    @DisplayName("the state chart counts how the appointments ended and the weekday chart leaves the cancelled ones out")
+    void stateAndWeekdayCharts() throws Exception {
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        bookInThePast(2, 10, laura, AppointmentStatus.CANCELLED);
+        Parent root = open();
+
+        assertThat(bars(root, "statusChart")).containsExactly(Map.entry("Pendiente", 0), Map.entry("Confirmada", 0),
+            Map.entry("Completada", 2), Map.entry("Cancelada", 1), Map.entry("Inasistencia", 1));
+        Map<String, Number> weekdays = weekdayBars(root);
+        assertThat(weekdays).hasSize(7);
+        assertThat(weekdays.values().stream().mapToInt(Number::intValue).sum()).isEqualTo(3);
+        LocalDate completedDay = LocalDate.now().minusDays(5);
+        String name = completedDay.getDayOfWeek().getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.forLanguageTag("es-CO"));
+        assertThat(weekdays.get(name.substring(0, 1).toUpperCase() + name.substring(1)).intValue()).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("with no appointments the summary shows dashes and zeros, and both charts give way to a message")
+    void summaryWithoutAppointments() throws Exception {
+        Parent root = open();
+
+        assertThat(text(root, "appointmentsValue")).isEqualTo("0");
+        assertThat(text(root, "noShowValue")).isEqualTo("—");
+        assertThat(text(root, "revenueNote")).isEqualTo("0 ventas");
+        assertThat(visible(root, "statusChart")).isFalse();
+        assertThat(visible(root, "statusEmpty")).isTrue();
+        assertThat(visible(root, "weekdayChart")).isFalse();
+        assertThat(visible(root, "weekdayEmpty")).isTrue();
+    }
+
+    @Test
+    @DisplayName("changing the dates updates the summary too")
+    void summaryFollowsTheRange() throws Exception {
+        sellSomething();
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        Parent root = open();
+        assertThat(text(root, "appointmentsValue")).isEqualTo("1");
+
+        setRange(root, LocalDate.now().minusDays(100), LocalDate.now().minusDays(50));
+
+        assertThat(text(root, "appointmentsValue")).isEqualTo("0");
+        assertThat(text(root, "revenueValue")).isEqualTo(CurrencyFormatter.format(BigDecimal.ZERO));
+        assertThat(text(root, "newCustomersValue")).isEqualTo("0");
+    }
+
+    @Test
+    @DisplayName("the income block adds the sales and the completed treatments, and shows the deposits held and the income lost")
+    void incomeBlock() throws Exception {
+        sellSomething();
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        bookInThePast(2, 10, laura, AppointmentStatus.CANCELLED);
+        bookAhead();
+        Parent root = open();
+
+        setRange(root, LocalDate.now().minusDays(30), LocalDate.now().plusDays(7));
+
+        assertThat(text(root, "totalIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("285000")));
+        assertThat(text(root, "totalIncomeNote")).contains(CurrencyFormatter.format(new BigDecimal("175000")), CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "treatmentIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "pendingDepositsValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("43500")));
+        assertThat(text(root, "lostIncomeValue")).isEqualTo(CurrencyFormatter.format(new BigDecimal("110000")));
+        assertThat(text(root, "lostIncomeNote")).startsWith("2 citas");
+    }
+
+    @Test
+    @DisplayName("the income charts rank the completed appointments by professional and by treatment")
+    void incomeCharts() throws Exception {
+        bookInThePast(5, 10, ana, AppointmentStatus.COMPLETED);
+        bookInThePast(4, 10, laura, AppointmentStatus.COMPLETED);
+        bookInThePast(3, 10, ana, AppointmentStatus.NO_SHOW);
+        Parent root = open();
+
+        assertThat(bars(root, "professionalIncomeChart")).hasSize(1);
+        assertThat(bars(root, "professionalIncomeChart").get("Camila Ruiz").doubleValue()).isEqualTo(110000.0);
+        assertThat(bars(root, "treatmentIncomeChart").get("Corte y peinado").doubleValue()).isEqualTo(110000.0);
+        assertThat(visible(root, "professionalIncomeEmpty")).isFalse();
+    }
+
+    @Test
+    @DisplayName("without income the block shows zeros and the charts give way to a message")
+    void incomeWithoutData() throws Exception {
+        Parent root = open();
+
+        assertThat(text(root, "totalIncomeValue")).isEqualTo(CurrencyFormatter.format(BigDecimal.ZERO));
+        assertThat(text(root, "lostIncomeNote")).startsWith("0 citas");
+        assertThat(visible(root, "professionalIncomeChart")).isFalse();
+        assertThat(visible(root, "professionalIncomeEmpty")).isTrue();
+        assertThat(visible(root, "treatmentIncomeEmpty")).isTrue();
     }
 }
