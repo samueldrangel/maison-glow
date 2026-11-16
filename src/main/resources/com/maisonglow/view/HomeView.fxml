@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de Inicio: el saludo con la fecha de hoy, cuatro indicadores del dia (citas de hoy, citas por confirmar,
+     ventas de hoy y productos con poco stock) y dos listas: la agenda de hoy y los productos por reponer. Las filas de
+     las listas las arma HomeController; aqui se ven dos de ejemplo para disenar. Solo muestra datos que ya existen.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.HomeController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="700">
+    <top>
+        <VBox spacing="2">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <Label fx:id="greetingLabel" text="Buenos días" styleClass="view-title"/>
+            <Label fx:id="dateLabel" text="Lunes, 16 de noviembre de 2026" styleClass="form-hint"/>
+        </VBox>
+    </top>
+    <center>
+        <VBox spacing="16">
+                <HBox spacing="12">
+                    <VBox styleClass="stat-tile, stat-tile-gold" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Citas de hoy" styleClass="stat-caption"/><Label fx:id="todayValue" text="5" styleClass="stat-number"/><Label fx:id="todayNote" text="2 por atender" styleClass="stat-caption"/></VBox>
+                    <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Por confirmar" styleClass="stat-caption"/><Label fx:id="pendingValue" text="3" styleClass="stat-number"/><Label text="Citas pendientes" styleClass="stat-caption"/></VBox>
+                    <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Ventas de hoy" styleClass="stat-caption"/><Label fx:id="salesValue" text="\$ 120.000" styleClass="stat-number"/><Label fx:id="salesNote" text="2 ventas" styleClass="stat-caption"/></VBox>
+                    <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Poco stock" styleClass="stat-caption"/><Label fx:id="lowStockValue" text="4" styleClass="stat-number"/><Label text="Productos por reponer" styleClass="stat-caption"/></VBox>
+                </HBox>
+                <HBox spacing="16">
+                    <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Agenda de hoy" styleClass="form-title"/>
+                        <VBox fx:id="agendaBox" spacing="8">
+                            <Label text="09:00 · Ana García · Corte y peinado" styleClass="form-hint"/>
+                            <Label text="11:30 · Laura Pérez · Manicure" styleClass="form-hint"/>
+                        </VBox>
+                        <Label fx:id="agendaEmpty" text="No hay citas para hoy." styleClass="placeholder-notice"/>
+                    </VBox>
+                    <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Por reponer" styleClass="form-title"/>
+                        <VBox fx:id="restockBox" spacing="8">
+                            <Label text="Mascarilla Reparadora · quedan 1 de 5" styleClass="form-hint"/>
+                        </VBox>
+                        <Label fx:id="restockEmpty" text="Todo el inventario está al día." styleClass="placeholder-notice"/>
+                    </VBox>
+                </HBox>
+        </VBox>
+    </center>
+</BorderPane>
