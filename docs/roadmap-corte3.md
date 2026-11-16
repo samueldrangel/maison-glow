@@ -10,7 +10,7 @@
 | Integrante | Qué hace en este corte | Cómo se ordena |
 |---|---|---|
 | **Isabella Celedón** | **Solo frontend:** base JavaFX, ventana principal, estilos, componentes comunes, Productos, Configuración y Ventas | **Bloque 1:** sus 6 tareas **seguidas**, una tras otra (Días 1–7) |
-| **Nicoll Gómez** | **Solo frontend:** Clientes, Profesionales y Tratamientos, Agenda, Estadísticas y las vistas de IA | **Bloque 2:** sus 5 tareas **seguidas**, al terminar el bloque de Isabella (Días 8–14) |
+| **Nicoll Gómez** | **Solo frontend:** Clientes, Profesionales y Tratamientos, Agenda, Estadísticas, las vistas de IA y la pantalla de Inicio | **Bloque 2:** sus 6 tareas **seguidas**, al terminar el bloque de Isabella (Días 8–14) |
 | **Samuel David Rangel** | **Solo backend de IA** (y la integración final) | **En paralelo**, a su ritmo, durante todo el corte. Única fecha fija: S-12, S-13 y S-14 fusionadas antes de que Nicoll abra N-16 |
 
 **Por qué este orden:** Isabella construye primero la base sobre la que se montan todas las vistas (arranque, navegación, estilos y componentes). Cuando Nicoll empieza, todo eso ya está en `develop` y sus vistas solo reutilizan piezas existentes. Como cada una trabaja en su bloque, nunca editan los mismos `.fxml` a la vez (ADR-0009). Samuel no bloquea a nadie salvo en N-16, por eso puede avanzar cuando quiera.
@@ -22,22 +22,23 @@
 | Orden | ID | Tarea | Responsable | Pri. | Inicia | Depende de | Estado |
 |:--:|---|---|---|:--:|:--:|---|:--:|
 | 1 | I-12 | Arranque JavaFX y `AppContext` (armado de servicios) | Isabella | 🔴 | Día 1 | — | ✅ Hecha |
-| 2 | I-13 | Ventana principal, navegación y `styles.css` (M1) | Isabella | 🔴 | Día 2 | I-12 | ⬜ Pendiente |
-| 3 | I-14 | Componentes comunes de UI (alertas, validación, formatos) | Isabella | 🔴 | Día 3 | I-13 | ⬜ Pendiente |
-| 4 | I-15 | Vista de Productos e Inventario (M4) | Isabella | 🔴 | Día 4 | I-14 | ⬜ Pendiente |
-| 5 | I-16 | Vista de Configuración del negocio | Isabella | 🟠 | Día 5 | I-14 | ⬜ Pendiente |
-| 6 | I-17 | Vista de Nueva venta con carrito y factura (M6) | Isabella | 🔴 | Día 6 | I-15 | ⬜ Pendiente |
-| 7 | N-12 | Vista de Clientes y sus estadísticas (M2) | Nicoll | 🔴 | Día 8 | I-17 (fin del bloque 1) | ⬜ Pendiente |
-| 8 | N-13 | Vista de Profesionales y Tratamientos (M3) | Nicoll | 🔴 | Día 9 | N-12 | ⬜ Pendiente |
-| 9 | N-14 | Vista de Agenda de citas (M5) | Nicoll | 🔴 | Día 10 | N-13 | ⬜ Pendiente |
-| 10 | N-15 | Vista de Estadísticas y BI (M7) | Nicoll | 🟠 | Día 12 | N-14 | ⬜ Pendiente |
-| 11 | N-16 | Vistas de IA: Asistente (M9) y Probador virtual (M8) | Nicoll | 🟢 | Día 13 | N-15, S-12, S-13, S-14 | ⬜ Pendiente |
+| 2 | I-13 | Ventana principal, navegación y `styles.css` (M1) | Isabella | 🔴 | Día 2 | I-12 | ✅ Hecha |
+| 3 | I-14 | Componentes comunes de UI (alertas, validación, formatos) | Isabella | 🔴 | Día 3 | I-13 | ✅ Hecha |
+| 4 | I-15 | Vista de Productos e Inventario (M4) | Isabella | 🔴 | Día 4 | I-14 | ✅ Hecha |
+| 5 | I-16 | Vista de Configuración del negocio | Isabella | 🟠 | Día 5 | I-14 | ✅ Hecha |
+| 6 | I-17 | Vista de Nueva venta con carrito y factura (M6) | Isabella | 🔴 | Día 6 | I-15 | ✅ Hecha |
+| 7 | N-12 | Vista de Clientes y sus estadísticas (M2) | Nicoll | 🔴 | Día 8 | I-17 (fin del bloque 1) | ✅ Hecha |
+| 8 | N-13 | Vista de Profesionales y Tratamientos (M3) | Nicoll | 🔴 | Día 9 | N-12 | ✅ Hecha |
+| 9 | N-14 | Vista de Agenda de citas (M5) | Nicoll | 🔴 | Día 10 | N-13 | ✅ Hecha |
+| 10 | N-15 | Vista de Estadísticas y BI (M7) | Nicoll | 🟠 | Día 12 | N-14 | ✅ Hecha |
+| 11 | N-16 | Vistas de IA: Asistente (M9) y Probador virtual (M8) | Nicoll | 🟢 | Día 13 | N-15, S-12, S-13, S-14 | 🟨 En progreso |
+| 12 | N-17 | Pantalla de Inicio (panel del día) | Nicoll | 🟠 | Día 14 | N-16 | 🟨 En progreso |
 | — | S-12 | **IA:** asistente con herramientas (simulado) | Samuel | 🔴 | libre | — | ✅ Hecha |
 | — | S-13 | **IA:** probador virtual (simulado) | Samuel | 🔴 | libre | — | ✅ Hecha |
 | — | S-14 | **IA:** `AiConfig` y fábrica de proveedores (simulado/API) | Samuel | 🔴 | libre | S-12, S-13 | ✅ Hecha |
 | — | S-15 | **IA:** adaptador por API del asistente | Samuel | 🟠 | libre | S-14 | ✅ Hecha |
 | — | S-16 | **IA:** adaptador por API del probador virtual | Samuel | 🟢 | libre | S-14 | 🟨 En progreso |
-| — | S-17 | **IA:** persistencia de conversaciones y sesiones de prueba | Samuel | 🟢 | libre | S-12, S-13 | 🟨 En progreso |
+| — | S-17 | **IA:** persistencia de conversaciones y sesiones de prueba | Samuel | 🟢 | libre | S-12, S-13 | ✅ Hecha |
 | — | S-18 | Integración final y entrega del corte | Samuel | 🔴 | Día 14 | todas las 🔴 | ⬜ Pendiente |
 
 **Estados:** ⬜ Pendiente · 🟨 En progreso · ✅ Hecha (fusionada en `develop`).
@@ -45,7 +46,7 @@
 ### Cómo usar la tabla
 
 1. **Isabella** sigue el orden 1 → 6 sin saltar: no abre una tarea hasta que la anterior esté ✅.
-2. **Nicoll** empieza su bloque cuando I-17 esté ✅ y sigue el orden 7 → 11. Mientras espera, revisa los PR de Isabella y prepara sus vistas en Scene Builder **sin abrir rama**.
+2. **Nicoll** empieza su bloque cuando I-17 esté ✅ y sigue el orden 7 → 12. Mientras espera, revisa los PR de Isabella y prepara sus vistas en Scene Builder **sin abrir rama**.
 3. **Samuel** toma sus tareas (filas "—") en el orden que quiera, respetando la columna "Depende de". Lo único con fecha es tener S-12, S-13 y S-14 ✅ **antes del Día 13** (desbloquean N-16).
 4. Si una dependencia se atrasa, se trabaja contra el **contrato** de la sección 3 y se avisa en el canal del equipo.
 5. El estado se actualiza **en el mismo PR** de la tarea: 🟨 al primer commit y ✅ al fusionar.
@@ -54,7 +55,7 @@
 
 `I-12 → I-13 → I-14 → I-15 → I-17` (base y Ventas) `→ N-12 → N-13 → N-14` (Clientes, Profesionales y Agenda). Sin estas tareas no hay aplicación navegable: son todas 🔴.
 
-**La IA va en paralelo y no bloquea la entrega** (RNF-13). S-12/S-13/S-14 son 🔴 para Samuel porque son el entregable de IA del corte, pero la app debe funcionar aunque falten S-15, S-16 y S-17. Si N-16 no está lista el Día 14, el menú de IA muestra "Próximamente" y se documenta.
+**La IA va en paralelo y no bloquea la entrega** (RNF-13). S-12/S-13/S-14 son 🔴 para Samuel porque son el entregable de IA del corte, pero la app debe funcionar aunque falten S-15, S-16 y S-17. Si N-16 no está lista el Día 14, el menú de IA muestra "Próximamente" y se documenta. N-17 (Inicio) cierra el bloque de Nicoll y no bloquea la entrega.
 
 ## 3. Contratos a congelar el Día 1
 
@@ -64,7 +65,7 @@ Se acuerdan en una reunión de 30 min y no cambian sin avisar.
 |---|---|---|
 | `MaisonGlowApp` | `extends javafx.application.Application`; en `start(Stage)` crea `AppContext` y abre `MainView`. Pasa a ser el `mainClass` de `javafx-maven-plugin` (`mvn javafx:run`). La demo de consola `Main` sigue con `exec-maven-plugin` | Isabella |
 | `AppContext` | Único lugar donde se crean DAO, servicios, reglas y notificadores (DIP). Getters: `customers()`, `professionals()`, `treatments()`, `products()`, `appointments()`, `sales()`, `settings()`, `statistics()`, `lowRotation()`, `promotions()`, `ai()` | Isabella (Samuel agrega `ai()` en S-14) |
-| `Navigator` | `show(View view)`; enum `View` con una constante por pantalla (`CUSTOMERS`, `PROFESSIONALS`, `APPOINTMENTS`, `PRODUCTS`, `SALES`, `STATISTICS`, `SETTINGS`, `ASSISTANT`, `TRY_ON`) y la ruta de su `.fxml` | Isabella |
+| `Navigator` | `show(View view)`; enum `View` con una constante por pantalla (`CUSTOMERS`, `PROFESSIONALS`, `APPOINTMENTS`, `PRODUCTS`, `SALES`, `STATISTICS`, `SETTINGS`, `ASSISTANT`, `TRY_ON`, `HOME`) y la ruta de su `.fxml` | Isabella |
 | Controladores | Paquete `com.maisonglow.view.controller`, uno por `.fxml`; reciben `AppContext` por constructor mediante `FXMLLoader.setControllerFactory`. **Solo llaman a servicios**, nunca a DAO | Quien hace la vista |
 | Recursos | `src/main/resources/com/maisonglow/view/*.fxml` y `.../view/styles.css` | Quien hace la vista |
 | `AlertPresenter` | `showError(Exception)`, `showInfo(String)`, `confirm(String): boolean`. Traduce `ValidationException`, `BusinessRuleException` y `DataAccessException` a mensajes claros | Isabella |
@@ -75,6 +76,8 @@ Se acuerdan en una reunión de 30 min y no cambian sin avisar.
 ## 4. Tareas por integrante
 
 ### 4.1 Isabella Celedón — Bloque 1 (frontend base y módulos de Productos y Ventas)
+
+> **Estado: bloque completo (I-12 a I-17 ✅, PR #35–#38, #40–#43).** I-15 se entregó en dos PR (formulario y tabla; ajuste de stock y filtro). El rediseño de la ventana de Configuración (I-16) se terminó dentro de los PR de Nicoll (#47).
 
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
@@ -87,15 +90,18 @@ Se acuerdan en una reunión de 30 min y no cambian sin avisar.
 
 ### 4.2 Nicoll Gómez — Bloque 2 (módulos de Clientes, Agenda, Estadísticas e IA)
 
+> **Estado:** N-12 a N-15 ✅ fusionadas (PR #44–#52). N-16 y N-17 en progreso, aún sin PR.
+
 > Empieza cuando I-17 está ✅. Reutiliza `Navigator`, `AlertPresenter`, los formateadores y `styles.css` de Isabella: **no** crea estilos ni utilidades paralelas.
 
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
 | N-12 | 🔴 | 8 | Vista de Clientes y sus estadísticas (M2) | I-17 | `feature/customers-view` | `CustomersView.fxml` + `CustomersController`: tabla, búsqueda por nombre, registrar/editar/eliminar y panel lateral con `customerStatistics` del cliente seleccionado (compras, citas, inasistencias) (RF-01, 02, 18). **Listo cuando** un documento repetido o un correo inválido muestra el error en el campo correspondiente. |
-| N-13 | 🔴 | 9 | Vista de Profesionales y Tratamientos (M3) | N-12 | `feature/professionals-view` | `ProfessionalsView.fxml` con dos pestañas: **Tratamientos** (registrar, editar, activar/desactivar, precio y duración) y **Profesionales** (registrar con jornada, asignar tratamientos, filtrar por tratamiento) (RF-06 a 09). **Listo cuando** asignar un tratamiento inactivo o una jornada con inicio ≥ fin muestra el error. |
-| N-14 | 🔴 | 10–11 | Vista de Agenda de citas (M5) | N-13 | `feature/appointments-view` | `AppointmentsView.fxml` + `AppointmentsController`: `DatePicker` del día y tabla de citas (`listByDate`), formulario de agendar (cliente, profesional filtrado por tratamiento, hora) con verificación de disponibilidad antes de guardar, y botones confirmar, reprogramar, cancelar, completar e inasistencia; muestra anticipo y recordatorio calculados por las reglas (RF-10 a 13, 26). **Listo cuando** agendar una cita cruzada muestra el rechazo y el estado de la cita cambia en la tabla al usar cada botón. |
-| N-15 | 🟠 | 12 | Vista de Estadísticas y BI (M7) | N-14 | `feature/statistics-view` | `StatisticsView.fxml`: `BarChart` de productos y tratamientos más vendidos (con rango de fechas), clientes frecuentes, tabla de baja rotación con "Avisar al administrador" y promociones sugeridas por cliente (RF-28 a 31). **Listo cuando** cambiar el rango de fechas actualiza las gráficas y las listas vacías muestran un mensaje en vez de una gráfica en blanco. |
-| N-16 | 🟢 | 13–14 | Vistas de IA: Asistente (M9) y Probador (M8) | N-15, S-12, S-13, S-14 | `feature/ai-views` | **Asistente:** `AssistantView.fxml` tipo chat que llama a `AppContext.ai().assistant()`; cuando la respuesta trae `pendingConfirmation` muestra "Confirmar / Cancelar" antes de ejecutar (ADR-0006). **Probador:** `TryOnView.fxml` con selección de cliente, `FileChooser` de foto, tipo de transformación y el resultado con el rótulo "simulación, no garantía". Ambas muestran un aviso si `isSimulated()` es verdadero (RF-21 a 23). **Listo cuando** el asistente no agenda una cita sin pulsar "Confirmar" y el probador rechaza una solicitud sin cliente. |
+| N-13 | 🔴 | 9 | Vista de Profesionales y Tratamientos (M3) | N-12 | `feature/treatments-view`, `feature/professionals-view` | `ProfessionalsView.fxml` con dos pestañas: **Tratamientos** (registrar, editar, activar/desactivar, precio y duración) y **Profesionales** (registrar con jornada, asignar tratamientos, filtrar por tratamiento) (RF-06 a 09). **Listo cuando** asignar un tratamiento inactivo o una jornada con inicio ≥ fin muestra el error. |
+| N-14 | 🔴 | 10–11 | Vista de Agenda de citas (M5) | N-13 | `feature/appointments-view`, `feature/appointments-booking` | `AppointmentsView.fxml` + `AppointmentsController`: `DatePicker` del día y tabla de citas (`listByDate`), formulario de agendar (cliente, profesional filtrado por tratamiento, hora) con verificación de disponibilidad antes de guardar, y botones confirmar, reprogramar, cancelar, completar e inasistencia; muestra anticipo y recordatorio calculados por las reglas (RF-10 a 13, 26). **Listo cuando** agendar una cita cruzada muestra el rechazo y el estado de la cita cambia en la tabla al usar cada botón. |
+| N-15 | 🟠 | 12 | Vista de Estadísticas y BI (M7) | N-14 | `feature/statistics-view`, `feature/statistics-income` | `StatisticsView.fxml`: `BarChart` de productos y tratamientos más vendidos (con rango de fechas), clientes frecuentes, tabla de baja rotación con "Avisar al administrador" y promociones sugeridas por cliente (RF-28 a 31). **Listo cuando** cambiar el rango de fechas actualiza las gráficas y las listas vacías muestran un mensaje en vez de una gráfica en blanco. |
+| N-16 | 🟢 | 13–14 | Vistas de IA: Asistente (M9) y Probador (M8) | N-15, S-12, S-13, S-14 | `feature/assistant-tryon` | **Asistente:** `AssistantView.fxml` tipo chat que llama a `AppContext.ai().assistant()`; cuando la respuesta trae `pendingConfirmation` muestra "Confirmar / Cancelar" antes de ejecutar (ADR-0006). **Probador:** `TryOnView.fxml` con selección de cliente, `FileChooser` de foto, tipo de transformación y el resultado con el rótulo "simulación, no garantía". Ambas muestran un aviso si `isSimulated()` es verdadero (RF-21 a 23) y conservan su contenido (chat, foto) al navegar a otra pantalla y volver. **Listo cuando** el asistente no agenda una cita sin pulsar "Confirmar" y el probador rechaza una solicitud sin cliente. |
+| N-17 | 🟠 | 14 | Pantalla de Inicio (panel del día) | N-16 | `feature/home-view` | `HomeView.fxml` + `HomeController` (`View.HOME`, hoy «En construcción»): saludo según la hora y fecha, frase con las citas del día y las que esperan confirmación, cuatro indicadores (citas de hoy, por confirmar, ventas de hoy, productos con poco stock), agenda de hoy con estado y lista de productos por reponer. Solo lee datos que ya existen (`AppointmentService`, `SaleService`, `ProductService`); no crea datos. **Listo cuando** con datos vacíos los indicadores muestran 0 y las listas un mensaje, y con datos la agenda y el stock bajo coinciden con las pantallas de Agenda y Productos. |
 
 ### 4.3 Samuel David Rangel — Backend de IA (en paralelo)
 
@@ -142,7 +148,7 @@ El mismo de la Entrega 1 ([`roadmap.md`](roadmap.md), sección 5): una rama por 
 
 ## 8. Criterio de aceptación del Corte 3
 
-1. `mvn javafx:run` abre Maison Glow y se puede navegar por todos los módulos.
+1. `mvn javafx:run` abre Maison Glow en la pantalla de Inicio y se puede navegar por todos los módulos.
 2. Desde la interfaz se registra cliente, profesional, tratamiento y producto; se agenda una cita (y se ve el rechazo de un cruce); se vende con carrito y se ve el stock descontado y la factura; se consultan estadísticas y baja rotación.
 3. El asistente responde en modo simulado, usa solo herramientas de la lista blanca y pide confirmación antes de agendar.
 4. El probador devuelve un resultado rotulado "simulación, no garantía".
