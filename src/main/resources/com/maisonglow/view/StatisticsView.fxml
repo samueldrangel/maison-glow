@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <!-- Pantalla de Estadisticas y BI (mockup M7). Arriba el rango de fechas (tres atajos o dos fechas a mano) que
-     gobierna un resumen (ingresos, citas, inasistencias y clientes nuevos), las graficas de productos, de tratamientos,
+     gobierna un resumen (ingresos, citas, inasistencias y clientes nuevos), las graficas de productos, de tratamientos, el bloque de ingresos,
      del estado de las citas y de las citas por dia de la semana; debajo, los clientes frecuentes, los productos de baja
      rotacion (con el aviso al administrador) y las promociones sugeridas para el cliente que se elija. Cada grafica tiene un
      mensaje que ocupa su lugar cuando no hay datos en el rango. Las graficas salen vacias aqui; StatisticsController
@@ -60,6 +60,15 @@
                     <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Inasistencias" styleClass="stat-caption"/><Label fx:id="noShowValue" text="10 %" styleClass="stat-number"/></VBox>
                     <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Clientes nuevos" styleClass="stat-caption"/><Label fx:id="newCustomersValue" text="4" styleClass="stat-number"/></VBox>
                 </HBox>
+                <VBox styleClass="card, form-card" spacing="6">
+                    <Label text="Ingresos" styleClass="form-title"/>
+                    <HBox spacing="12">
+                        <VBox styleClass="stat-tile, stat-tile-gold" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Total de ingresos" styleClass="stat-caption"/><Label fx:id="totalIncomeValue" text="\$ 285.000" styleClass="stat-number"/><Label fx:id="totalIncomeNote" text="" styleClass="stat-caption" wrapText="true"/></VBox>
+                        <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Por tratamientos" styleClass="stat-caption"/><Label fx:id="treatmentIncomeValue" text="\$ 110.000" styleClass="stat-number"/><Label fx:id="treatmentIncomeNote" text="" styleClass="stat-caption" wrapText="true"/></VBox>
+                        <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Anticipos por aplicar" styleClass="stat-caption"/><Label fx:id="pendingDepositsValue" text="\$ 16.500" styleClass="stat-number"/><Label fx:id="pendingDepositsNote" text="" styleClass="stat-caption" wrapText="true"/></VBox>
+                        <VBox styleClass="stat-tile" prefWidth="0" HBox.hgrow="ALWAYS"><Label text="Ingreso perdido" styleClass="stat-caption"/><Label fx:id="lostIncomeValue" text="\$ 110.000" styleClass="stat-number"/><Label fx:id="lostIncomeNote" text="" styleClass="stat-caption" wrapText="true"/></VBox>
+                    </HBox>
+                </VBox>
                 <HBox spacing="16">
                     <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
                         <Label text="Productos más vendidos" styleClass="form-title"/>
@@ -105,6 +114,30 @@
                                 <yAxis><NumberAxis side="LEFT" tickUnit="1" minorTickVisible="false"/></yAxis>
                             </BarChart>
                             <Label fx:id="weekdayEmpty" text="Sin citas en este rango" styleClass="placeholder-notice" visible="false"/>
+                        </StackPane>
+                    </VBox>
+                </HBox>
+                <HBox spacing="16">
+                    <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Ingresos por profesional" styleClass="form-title"/>
+                        <Label text="Precio de las citas completadas de cada una." styleClass="form-hint"/>
+                        <StackPane>
+                            <BarChart fx:id="professionalIncomeChart" legendVisible="false" animated="false" categoryGap="10" prefHeight="230">
+                                <xAxis><NumberAxis side="BOTTOM" minorTickVisible="false"/></xAxis>
+                                <yAxis><CategoryAxis side="LEFT"/></yAxis>
+                            </BarChart>
+                            <Label fx:id="professionalIncomeEmpty" text="Sin citas completadas en este rango" styleClass="placeholder-notice" visible="false"/>
+                        </StackPane>
+                    </VBox>
+                    <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Ingresos por tratamiento" styleClass="form-title"/>
+                        <Label text="Precio de las citas completadas de cada tratamiento." styleClass="form-hint"/>
+                        <StackPane>
+                            <BarChart fx:id="treatmentIncomeChart" legendVisible="false" animated="false" categoryGap="10" prefHeight="230">
+                                <xAxis><NumberAxis side="BOTTOM" minorTickVisible="false"/></xAxis>
+                                <yAxis><CategoryAxis side="LEFT"/></yAxis>
+                            </BarChart>
+                            <Label fx:id="treatmentIncomeEmpty" text="Sin citas completadas en este rango" styleClass="placeholder-notice" visible="false"/>
                         </StackPane>
                     </VBox>
                 </HBox>
