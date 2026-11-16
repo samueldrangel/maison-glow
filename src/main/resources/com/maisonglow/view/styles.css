@@ -1308,3 +1308,127 @@
     -fx-text-fill: white;
 }
 
+/* ---- Inicio: cabecera, indicadores con icono y filas de las listas ---- */
+.home-hero {
+    -fx-background-color: linear-gradient(to bottom right, -mg-rose-dark, -mg-rose 60%, -mg-gold);
+    -fx-background-radius: 26 6 26 6;
+    -fx-padding: 24 30 24 30;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.22), 26, 0.05, 0, 10);
+}
+
+.home-eyebrow {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+}
+
+.home-greeting {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 36px;
+    -fx-text-fill: white;
+}
+
+.home-date {
+    -fx-font-size: 14px;
+    -fx-text-fill: rgba(255, 255, 255, 0.88);
+}
+
+.home-summary {
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+    -fx-padding: 8 0 0 0;
+}
+
+.home-hero-star {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 32;
+}
+
+.home-hero-star-icon {
+    -fx-fill: rgba(255, 255, 255, 0.92);
+}
+
+.home-kpi {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 20 5 20 5;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 20 5 20 5;
+    -fx-padding: 16 18 16 16;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.10), 18, 0.05, 0, 6);
+}
+
+.home-kpi-icon {
+    -fx-background-radius: 22;
+}
+
+.home-kpi-gold .home-kpi-icon { -fx-background-color: -mg-chip-gold-bg; }
+.home-kpi-gold .line-icon { -fx-stroke: -mg-chip-gold; }
+.home-kpi-rose .home-kpi-icon { -fx-background-color: -mg-chip-rose-bg; }
+.home-kpi-rose .line-icon { -fx-stroke: -mg-chip-rose; }
+.home-kpi-green .home-kpi-icon { -fx-background-color: -mg-chip-ok-bg; }
+.home-kpi-green .line-icon { -fx-stroke: -mg-chip-ok; }
+.home-kpi-alert .home-kpi-icon { -fx-background-color: -mg-chip-neutral-bg; }
+.home-kpi-alert .line-icon { -fx-stroke: -mg-chip-neutral; }
+.home-kpi-alert.needs-attention .home-kpi-icon { -fx-background-color: -mg-chip-alert-bg; }
+.home-kpi-alert.needs-attention .line-icon { -fx-stroke: -mg-chip-alert; }
+.home-kpi-alert.needs-attention .home-kpi-number { -fx-text-fill: -mg-chip-alert; }
+
+.home-kpi-number {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 30px;
+    -fx-text-fill: -mg-text;
+}
+
+.home-kpi-note {
+    -fx-font-size: 12px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.home-card-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 22px;
+    -fx-text-fill: -mg-text;
+}
+
+.home-row {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 14 4 14 4;
+    -fx-padding: 10 14 10 10;
+}
+
+.home-row:hover {
+    -fx-background-color: derive(-mg-active, -3%);
+}
+
+.home-time {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 10;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-gold-dark;
+    -fx-min-width: 62;
+    -fx-alignment: center;
+}
+
+.home-row-title {
+    -fx-font-size: 14.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text;
+}
+
+.home-row-detail {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.home-empty {
+    -fx-font-size: 14px;
+    -fx-text-fill: -mg-text-muted;
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
