@@ -8,6 +8,9 @@ import com.maisonglow.model.Professional;
 import com.maisonglow.model.Sale;
 import com.maisonglow.model.Treatment;
 import com.maisonglow.service.ContactData;
+import com.maisonglow.service.ProductSales;
+import com.maisonglow.service.PromotionSuggestion;
+import com.maisonglow.service.SimulatedAdminNotifier;
 import com.maisonglow.service.ProductData;
 import com.maisonglow.service.SaleService;
 import com.maisonglow.service.TreatmentData;
@@ -18,6 +21,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -28,6 +33,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -100,10 +107,18 @@ class StatisticsViewTest {
     }
 
     private Parent open() throws Exception {
+        return open(new SimulatedAdminNotifier(new PrintStream(OutputStream.nullOutputStream())));
+    }
+
+    /** Opens the screen; the notice to the administrator goes to the notifier given, so a test can read it. */
+    private Parent open(SimulatedAdminNotifier notifier) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         context = new AppContext(data);
         return FxTest.onFxThread(() -> {
-            Parent root = ViewLoader.load(StatisticsViewTest.class.getResource("/com/maisonglow/view/StatisticsView.fxml"), context);
+            ViewLoader.Loaded<StatisticsController> loaded = ViewLoader.loadWithController(
+                StatisticsViewTest.class.getResource("/com/maisonglow/view/StatisticsView.fxml"), context);
+            loaded.controller().useNotifier(notifier);
+            Parent root = loaded.root();
             new Scene(root, 1200, 800);
             root.applyCss();
             root.layout();
@@ -244,5 +259,102 @@ class StatisticsViewTest {
         Parent root = open();
 
         assertThat(bars(root, "treatmentsChart")).containsExactly(Map.entry("Manicura gel", 1));
+    }
+
+    /** A third product that nobody has bought: the one of lowest rotation. */
+    private Product unsoldProduct() throws Exception {
+        return context.products().register(new ProductData("Esmalte Rosa Nude", 1, 18000, 5), 20);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> rows(Parent root, String tableId) throws Exception {
+        TableView<T> table = (TableView<T>) root.lookup("#" + tableId);
+        return FxTest.onFxThread(() -> List.copyOf(table.getItems()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void chooseCustomer(Parent root, String document) throws Exception {
+        ComboBox<Customer> box = (ComboBox<Customer>) root.lookup("#promotionsCustomerBox");
+        FxTest.onFxThread(() -> {
+            box.getSelectionModel().select(box.getItems().stream().filter(c -> c.getDocument().equals(document)).findFirst().orElseThrow());
+            return null;
+        });
+    }
+
+    @Test
+    @DisplayName("low rotation lists the products that sold least first, with their stock and units sold")
+    void lowRotationListsTheLeastSoldFirst() throws Exception {
+        sellSomething();
+        unsoldProduct();
+        Parent root = open();
+
+        List<ProductSales> low = rows(root, "lowRotationTable");
+
+        assertThat(low).extracting(sales -> sales.product().getName() + " " + sales.unitsSold())
+            .containsExactly("Esmalte Rosa Nude 0", "Mascarilla Reparadora 1", "Champú Nutritivo 5");
+        assertThat(FxTest.onFxThread(() -> ((Label) root.lookup("#lowRotationHint")).getText())).contains("30 días");
+    }
+
+    @Test
+    @DisplayName("Avisar al administrador sends the notice with the products of low rotation")
+    void notifiesTheAdministrator() throws Exception {
+        sellSomething();
+        unsoldProduct();
+        SimulatedAdminNotifier notifier = new SimulatedAdminNotifier(new PrintStream(OutputStream.nullOutputStream()));
+        Parent root = open(notifier);
+
+        FxTest.onFxThread(() -> {
+            ((Button) root.lookup("#notifyButton")).fire();
+            return null;
+        });
+
+        assertThat(notifier.getNotifications()).singleElement().asString()
+            .contains("Esmalte Rosa Nude", "Mascarilla Reparadora", "30 días");
+    }
+
+    @Test
+    @DisplayName("with no product of low rotation the notice button is off and the table says so")
+    void noLowRotationNoNotice() throws Exception {
+        context.products().deactivate(shampoo.getId());
+        context.products().deactivate(mask.getId());
+        Parent root = open();
+
+        assertThat(rows(root, "lowRotationTable")).isEmpty();
+        assertThat(FxTest.onFxThread(() -> root.lookup("#notifyButton").isDisabled())).isTrue();
+    }
+
+    @Test
+    @DisplayName("promotions suggest the products of low rotation that the customer has not bought, with the discount of the settings")
+    void suggestsPromotions() throws Exception {
+        sellSomething();
+        unsoldProduct();
+        Parent root = open();
+        assertThat(rows(root, "promotionsTable")).isEmpty();
+
+        chooseCustomer(root, "1001");
+
+        List<PromotionSuggestion> suggestions = rows(root, "promotionsTable");
+        assertThat(suggestions).extracting(PromotionSuggestion::productName).containsExactly("Esmalte Rosa Nude");
+        assertThat(suggestions.get(0).discountPercentage()).isEqualTo(15);
+        assertThat(suggestions.get(0).promotionalPrice()).isEqualByComparingTo("15300");
+
+        chooseCustomer(root, "1002");
+        assertThat(this.<PromotionSuggestion>rows(root, "promotionsTable")).extracting(PromotionSuggestion::productName)
+            .containsExactly("Esmalte Rosa Nude", "Mascarilla Reparadora");
+    }
+
+    @Test
+    @DisplayName("a customer who already bought every product of low rotation gets a message instead of an empty table")
+    void customerWithNothingToSuggest() throws Exception {
+        sellSomething();
+        Product unsold = unsoldProduct();
+        sell(ana, unsold, 1);
+        Parent root = open();
+
+        chooseCustomer(root, "1001");
+
+        assertThat(rows(root, "promotionsTable")).isEmpty();
+        assertThat(FxTest.onFxThread(() -> ((Label) ((TableView<?>) root.lookup("#promotionsTable")).getPlaceholder()).getText()))
+            .contains("ya compró todos");
     }
 }
