@@ -51,7 +51,31 @@ public final class SqliteDatabase {
     public void initialize() throws DataAccessException {
         try { Files.createDirectories(file.getParent()); }
         catch (IOException e) { throw new DataAccessException("No se pudo crear la carpeta de la base de datos.", e); }
-        transaction(c -> { script(c, "schema.sql"); return null; });
+        transaction(c -> {
+            script(c, "schema.sql");
+            migrateAccounts(c);
+            return null;
+        });
+    }
+
+    /** Additive versioned migration; a failed upgrade rolls back without removing existing data. */
+    private void migrateAccounts(Connection connection) throws SQLException, DataAccessException {
+        try (var statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE IF NOT EXISTS schema_migration (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)");
+            try (var rows = statement.executeQuery("SELECT COALESCE(MAX(version),0) FROM schema_migration")) {
+                rows.next();
+                int version = rows.getInt(1);
+                if (version > 1) throw new DataAccessException("La base requiere una versión más reciente de Maison Glow.");
+                if (version == 1) return;
+            }
+            boolean hasVersion = false;
+            try (var rows = statement.executeQuery("PRAGMA table_info(app_user)")) {
+                while (rows.next()) if ("auth_version".equals(rows.getString("name"))) hasVersion = true;
+            }
+            if (!hasVersion) statement.execute("ALTER TABLE app_user ADD COLUMN auth_version INTEGER NOT NULL DEFAULT 0 CHECK (auth_version >= 0)");
+            statement.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_app_user_normalized_username ON app_user(lower(trim(username)))");
+            statement.execute("INSERT INTO schema_migration VALUES(1, strftime('%Y-%m-%dT%H:%M:%S','now'))");
+        }
     }
 
     public void runScript(String resource) throws DataAccessException {

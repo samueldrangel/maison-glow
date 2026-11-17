@@ -22,3 +22,4 @@ Si una decisión cambia, no se borra el ADR: se crea uno nuevo y el anterior pas
 | [0013](0013-entidad-tratamiento.md) | La entidad `Servicio` se llama `Treatment` (Tratamiento) | Aceptado |
 | [0014](0014-modelos-de-datos-y-reglas-en-servicios.md) | Modelos de datos y reglas en servicios | Aceptado |
 | [0015](0015-seleccion-del-proveedor-de-ia.md) | Selección segura del proveedor de IA | Aceptado |
+| [0016](0016-cuentas-y-sesion-local.md) | Cuentas, sesión y migración aditiva de SQLite local | Aceptado (base de autenticación) |

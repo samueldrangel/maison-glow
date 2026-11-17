@@ -111,6 +111,10 @@ public final class Main {
      */
     public static void main(String[] args) {
         System.out.println("Maison Glow - Sistema de gestión para negocios de belleza");
+        if (args.length > 0 && "setup-admin".equalsIgnoreCase(args[0])) {
+            setupAdmin();
+            return;
+        }
         ConsoleIo console = ConsoleIo.system();
         if (args.length > 0 && DEMO_ARGUMENT.equalsIgnoreCase(args[0])) {
             runDemo();
@@ -119,6 +123,24 @@ public final class Main {
         } else {
             chooseMode(console);
         }
+    }
+
+    /** Explicit local setup; secrets come from the process environment, never command arguments or Git. */
+    private static void setupAdmin() {
+        String username = System.getenv("MAISON_GLOW_ADMIN_USERNAME");
+        String secret = System.getenv("MAISON_GLOW_ADMIN_PASSWORD");
+        if (username == null || secret == null) {
+            System.err.println("Configura MAISON_GLOW_ADMIN_USERNAME y MAISON_GLOW_ADMIN_PASSWORD para crear el primer administrador.");
+            return;
+        }
+        char[] password = secret.toCharArray();
+        try {
+            var context = new AppContext(AppContext.sessionFolder(), Clock.systemDefaultZone(), AiConfig.simulated());
+            context.auth().createFirstAdmin(username, password);
+            System.out.println("Primer administrador creado. Inicia sesión desde la pantalla de acceso cuando esté integrada.");
+        } catch (IOException | ValidationException | BusinessRuleException | DataAccessException e) {
+            System.err.println("No se pudo crear el administrador: " + e.getMessage());
+        } finally { java.util.Arrays.fill(password, '\0'); }
     }
 
     private static void chooseMode(ConsoleIo console) {

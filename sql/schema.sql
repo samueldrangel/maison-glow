@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS app_user (
     role           TEXT    NOT NULL CHECK (role IN ('ADMIN', 'CUSTOMER')),
     customer_id    INTEGER UNIQUE REFERENCES customer (id) ON DELETE CASCADE,
     active         INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+    auth_version   INTEGER NOT NULL DEFAULT 0 CHECK (auth_version >= 0),
     created_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now')),
     CHECK ((role = 'ADMIN' AND customer_id IS NULL) OR (role = 'CUSTOMER' AND customer_id IS NOT NULL))
 );

@@ -6,6 +6,8 @@ import com.maisonglow.ai.AiModule;
 import com.maisonglow.ai.AiProviderFactory;
 import com.maisonglow.dao.*;
 import com.maisonglow.service.AppointmentService;
+import com.maisonglow.service.AuthenticationService;
+import com.maisonglow.service.auth.PasswordHasher;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.LowRotationService;
 import com.maisonglow.service.ProductService;
@@ -57,6 +59,7 @@ public final class AppContext {
     private final AiModule ai;
     private final AiHistory aiHistory;
     private final SqliteDatabase database;
+    private final AuthenticationService auth;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -93,6 +96,8 @@ public final class AppContext {
 
         settings = new SettingsService(new SettingDaoSqlite(database));
         customers = new CustomerService(customerDao);
+        auth = new AuthenticationService(new AccountDaoSqlite(database), customerDao, customers,
+            new SqliteTransactions(database), new PasswordHasher(), clock);
         treatments = new TreatmentService(treatmentDao);
         professionals = new ProfessionalService(professionalDao, treatmentDao);
         products = new ProductService(productDao, categoryDao);
@@ -156,6 +161,9 @@ public final class AppContext {
     public Clock clock() {
         return clock;
     }
+
+    /** @return account lifecycle and the current desktop session; initially unauthenticated */
+    public AuthenticationService auth() { return auth; }
 
     /** @return the customer service */
     public CustomerService customers() {
