@@ -105,4 +105,17 @@ class SimulatedTryOnServiceTest {
         assertThatThrownBy(() -> service.generate(new TryOnRequest(1, original, "rojo cobrizo")))
             .isInstanceOf(DataAccessException.class).hasMessageContaining("falló almacenamiento");
     }
+
+    @Test
+    void everyPaletteToneGeneratesAndIntensityChangesThePixels() throws Exception {
+        Path original=photo("png");
+        when(customers.findById(1)).thenReturn(new Customer(1,"123","Ana","3001234567","ana@example.com"));
+        for(String name:HairTones.names()) {
+            assertThat(ImageIO.read(service.generate(new TryOnRequest(1,original,name)).image().toFile())).isNotNull();
+        }
+        var soft=ImageIO.read(service.generate(new TryOnRequest(1,original,"rojo cobrizo",0)).image().toFile());
+        var strong=ImageIO.read(service.generate(new TryOnRequest(1,original,"rojo cobrizo",1)).image().toFile());
+        assertThat(soft.getRGB(10,10)).isNotEqualTo(strong.getRGB(10,10));
+        assertThatThrownBy(() -> service.generate(new TryOnRequest(1,original,"rojo cobrizo",Double.NaN))).isInstanceOf(ValidationException.class);
+    }
 }

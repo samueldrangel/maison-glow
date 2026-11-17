@@ -1,314 +1,195 @@
 # Maison Glow
 
-A management system for a beauty business in Valledupar, Cesar (Colombia). It centralizes customers, professionals, treatments, products and inventory, appointments, sales and statistics in a single local application, and it is designed to add AI tools (a virtual try-on and a tool-based assistant) behind interfaces.
+Aplicación de escritorio para la gestión de un negocio de belleza: clientes, profesionales, tratamientos, productos, inventario, citas, ventas, estadísticas, asistente IA y probador virtual. Proyecto de Programación de Computadores III, Universidad Popular del Cesar.
 
-This is a course project for **Computer Programming III (SS462)**, Systems Engineering, Universidad Popular del Cesar. Instructor: Ing. Esp. Alfredo Bautista.
+La interfaz usa JavaFX y la persistencia del negocio usa SQLite. La base se crea automáticamente: **no hay que instalar un servidor de base de datos ni ejecutar scripts SQL manualmente**.
 
-> **Status: Delivery 1.** The business logic is complete and tested, persistence uses plain text files, and the system is shown through a console (an automatic demo and an interactive menu). The JavaFX interface, the SQLite persistence and the AI adapters belong to Delivery 2. See [Roadmap](#roadmap).
+## 1. Qué necesita cada integrante
 
-User-facing messages are in Spanish; code, identifiers and Javadoc are in English.
+Los comandos de esta guía se muestran para PowerShell en Windows.
 
-## Table of contents
-
-1. [Features](#features)
-2. [Architecture](#architecture)
-3. [Tech stack](#tech-stack)
-4. [Getting started](#getting-started)
-5. [Using the interactive console](#using-the-interactive-console)
-6. [Project structure](#project-structure)
-7. [Data storage](#data-storage)
-8. [Testing](#testing)
-9. [Documentation](#documentation)
-10. [Development workflow](#development-workflow)
-11. [Team](#team)
-12. [Roadmap](#roadmap)
-13. [License](#license)
-
-## Features
-
-| Area | What the system does |
+| Requisito | Para qué sirve |
 |---|---|
-| Customers | Register, search by name or document, update, delete; track no-shows |
-| Treatments | Catalog with price and duration; activate and deactivate |
-| Professionals | Working hours, the treatments each one offers, activate and deactivate |
-| Products and inventory | Categories, stock control, minimum-stock alerts, stock adjustments |
-| Appointments | Booking with schedule-conflict detection, reschedule, confirm, cancel, complete, no-show |
-| Appointment rules | Deposit, minimum notice, reminder and no-show penalty, read from business settings |
-| Sales | Mixed carts of products and treatments, all-or-nothing stock deduction, simulated invoice email |
-| Statistics | Per-customer history, best-selling products and treatments, frequent customers |
-| Business intelligence | Low-rotation products, administrator notice, promotion suggestions |
-| Settings | Business parameters changed without touching the code |
+| Git | Descargar y actualizar el proyecto |
+| JDK 21 o superior, de 64 bits | Compilar y ejecutar Java; se recomienda JDK 21 para una instalación uniforme |
+| Maven 3.9 o superior | Descargar dependencias, ejecutar pruebas y abrir la aplicación |
+| Internet en la primera compilación | Maven descarga JavaFX, SQLite JDBC y el controlador de cámara |
+| Cámara integrada o USB, opcional | Usar **Tomar foto**; también se puede subir un archivo |
+| `config.properties`, enviado por Samuel en privado | Seleccionar el proveedor IA |
+| Clave API válida, entregada por un canal privado | Solo para IA real; se configura en una variable de entorno, no en Git |
 
-## Architecture
+No se necesita instalar JavaFX, SQLite, FFmpeg ni una librería de cámara por separado: Maven trae las dependencias Java. Una instalación de Maven necesita `JAVA_HOME` apuntando al **JDK** y sus comandos disponibles en `PATH`.
 
-Maison Glow follows a layered architecture. Dependencies point downward only: the presentation layer calls services, services use DAO interfaces, and DAOs know nothing about the layers above them. Only `Main` creates concrete objects (composition root), so every service receives its dependencies through its constructor. Models hold data and structural invariants; business operations and calculations belong to services ([ADR-0014](docs/adr/0014-modelos-de-datos-y-reglas-en-servicios.md)).
+Sin archivo de configuración o sin clave, el negocio funciona y la IA entra en **modo simulado**. Para usar la API real, la cuenta de la clave debe tener acceso a los modelos configurados en el código y facturación disponible. Los adaptadores actuales usan `gpt-5.4` y `gpt-image-1.5`.
 
-```mermaid
-flowchart TB
-    subgraph PRES["Presentation layer"]
-        MAIN["Main<br/>composition root"]
-        CONSOLE["ui.console<br/>menus, modules, console I/O"]
-    end
+## 2. Descargar esta entrega
 
-    subgraph BIZ["Business layer"]
-        SERVICE["service<br/>use cases, DTOs, notifiers"]
-        RULE["service.rule<br/>AppointmentRule strategies"]
-    end
+Esta entrega se publica en **`feature/probar-nicoll`**. Hasta que se integre en `develop`, usar esa rama; la rama `main` conserva una versión anterior.
 
-    subgraph DATA["Data access layer"]
-        DAO["dao<br/>CrudDao and text-file DAOs"]
-    end
-
-    STORE[("data/*.txt<br/>text files")]
-
-    subgraph CROSS["Shared data and utilities"]
-        MODEL["model<br/>data entities and relationships"]
-        UTIL["util<br/>Validator, InvoiceFormatter"]
-        EXC["exception<br/>Validation, BusinessRule, DataAccess"]
-    end
-
-    subgraph NEXT["Planned for Delivery 2"]
-        JFX["JavaFX views"]
-        SQL["SQLite DAOs (JDBC)"]
-        AI["ai package<br/>assistant and virtual try-on"]
-    end
-
-    MAIN --> CONSOLE
-    MAIN -. "creates and wires" .-> SERVICE
-    CONSOLE --> SERVICE
-    SERVICE --> RULE
-    RULE --> SERVICE
-    SERVICE --> MODEL
-    SERVICE --> DAO
-    DAO --> MODEL
-    DAO --> STORE
-    SERVICE --> UTIL
-    SERVICE --> EXC
-    DAO --> EXC
-
-    JFX -.-> SERVICE
-    AI -.-> SERVICE
-    SQL -.-> DAO
-
-    classDef planned stroke-dasharray: 5 5
-    class JFX,SQL,AI planned
+```powershell
+git clone --branch feature/probar-nicoll https://github.com/samueldrangel/maison-glow.git
+cd maison-glow
 ```
 
-| Layer | Package | Responsibility |
-|---|---|---|
-| Presentation | `com.maisonglow.ui.console`, `Main` | Read input, show results and errors. No business rules |
-| Business | `service`, `service.rule` | Use cases, validation, business rules, inventory operations and sale calculations |
-| Shared data | `model` | Entity data, identity and relationships; no business operations |
-| Data access | `dao` | `CrudDao<T>` contract and its text-file implementations over a generic `TextFileDao<T>` |
-| Cross-cutting | `util`, `exception` | Input validation, invoice text, a three-exception hierarchy |
+Si ya tienen el repositorio, guardar primero cualquier trabajo local propio y ejecutar:
 
-Design decisions and their alternatives are recorded as Architecture Decision Records in [`docs/adr/`](docs/adr/README.md). Key points:
+```powershell
+git fetch origin
+git switch feature/probar-nicoll
+git pull --ff-only
+```
 
-- **Persistence behind an interface.** Services depend on `CrudDao<T>`, so replacing text files with SQLite does not change business code ([ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md)).
-- **Open for extension.** Appointment rules are strategies injected into `AppointmentService`; new rules are added as new classes ([ADR-0007](docs/adr/0007-reglas-de-cita-como-estrategias.md)).
-- **AI never blocks the business.** The AI features sit behind interfaces with a simulated implementation, and their tools call services, never DAOs ([ADR-0005](docs/adr/0005-ia-desacoplada-por-interfaces.md), [ADR-0006](docs/adr/0006-herramientas-del-asistente-tipo-mcp.md)).
+Si la rama todavía no existe localmente, `git switch` la creará a partir de la rama remota cuando solo haya una coincidencia.
 
-Class and package diagrams from the original implementation (see ADR-0014 for the current responsibility split): [`docs/fase2/diagramas.md`](docs/fase2/diagramas.md).
+## 3. Verificar Java y Maven
 
-## Tech stack
+En una terminal nueva, desde la raíz del proyecto:
 
-| Concern | Technology |
-|---|---|
-| Language | Java 21 |
-| Build | Maven 3.9+ |
-| Persistence (Delivery 1) | Plain text files with `\|` as field separator |
-| Persistence (Delivery 2) | SQLite through JDBC, DAO pattern (schema already designed in [`sql/schema.sql`](sql/schema.sql)) |
-| UI (Delivery 2) | JavaFX with FXML and CSS |
-| Tests | JUnit 5, AssertJ, Mockito |
-| Coverage | JaCoCo, with a 70 % line-coverage gate on the `service` package |
-
-## Getting started
-
-### Prerequisites
-
-- JDK 21 or newer
-- Maven 3.9 or newer
-- Git
-
-Verify your setup:
-
-```bash
+```powershell
 java -version
 mvn -version
 ```
 
-### Clone and build
+Ambos deben usar el JDK correcto. Si `java` muestra una versión antigua, revisar `JAVA_HOME` y `PATH` antes de continuar.
 
-```bash
-git clone https://github.com/samueldrangel/maison-glow.git
-cd maison-glow
+## 4. Compilar y probar antes de configurar la IA
+
+```powershell
 mvn clean verify
 ```
 
-`mvn clean verify` compiles the code, runs every test and checks the coverage gate.
+La primera vez puede tardar mientras descarga dependencias. El resultado esperado es **BUILD SUCCESS**. Se ejecutan pruebas de negocio, SQLite y vistas JavaFX, además del control de cobertura de servicios. Las pruebas de cámara usan una cámara de prueba y no fotografían a nadie. Las pruebas del proveedor API usan respuestas HTTP controladas.
 
-### Run
+## 5. Colocar el archivo privado de configuración
 
-```bash
-# Ask which mode to run
-mvn -q exec:java
-
-# Automatic demo: runs the complete business scenario and prints it
-mvn -q exec:java -Dexec.args=demo
-
-# Interactive console: menus to register, list, update and query data
-mvn -q exec:java -Dexec.args=menu
-```
-
-| Mode | Data | Purpose |
-|---|---|---|
-| `demo` | A clean copy in a temporary folder on every run | Show the whole scenario in one go; can be repeated without limit |
-| `menu` | `data/session/`, kept between runs and ignored by Git | Explore the system by hand. Delete the folder to start over |
-
-The demo walks through four steps: registering customers, treatments, professionals and products; booking with business rules and conflict rejection; a mixed sale with stock deduction and a simulated invoice; inventory, statistics, the low-rotation notice and promotion suggestions.
-
-On Windows, if accents look garbled, switch the terminal to UTF-8 before running (`chcp 65001`).
-
-## Using the interactive console
-
-The main menu opens one module per business area. Type the number of an option and press Enter; `0` goes back.
-
-```text
-=== Maison Glow - Menú principal ===
-  1. Clientes
-  2. Tratamientos
-  3. Profesionales
-  4. Productos e inventario
-  5. Citas
-  6. Ventas
-  7. Estadísticas y promociones
-  8. Configuración del negocio
-  0. Salir
-```
-
-Conventions:
-
-- Dates are typed as `yyyy-MM-dd`, times as `hh:mm`, date and time as `yyyy-MM-dd hh:mm`.
-- Prices are typed without thousands separators (`28000`).
-- Records are picked by the id shown in brackets, for example `[3] Corte de cabello`.
-- A rejected operation (invalid data, schedule conflict, insufficient stock) shows its reason and returns to the menu.
-
-A minimal first session, in order:
-
-1. Treatments: register a treatment.
-2. Customers: register a customer.
-3. Professionals: register a professional and assign the treatment.
-4. Products: register a product with an initial stock.
-5. Appointments: book the treatment. With a deposit of `0` the system reports the minimum required.
-6. Sales: build a cart, confirm it and read the simulated invoice.
-7. Statistics: review the customer and the stock alerts.
-
-## Project structure
+Samuel comparte **`config.properties` por privado**. Guardarlo directamente en la raíz, al lado de `pom.xml`, conservando exactamente el nombre. En Windows, comprobar que no haya quedado como `config.properties.txt`.
 
 ```text
 maison-glow/
-├── data/                       Preloaded settings and categories; runtime data is ignored by Git
-├── docs/
-│   ├── adr/                    Architecture Decision Records
-│   ├── fase1/                  Problem identification and specification
-│   ├── fase2/                  Class design, diagrams and UI mockups
-│   ├── fase4/                  ER model and data dictionary
-│   ├── roadmap.md              Delivery 1 plan by team member
-│   └── version-control.md      Commits and pull requests per member
-├── sql/
-│   ├── schema.sql              Relational schema (22 tables, 4 views, 3 triggers)
-│   └── seed.sql                Initial data
-├── src/
-│   ├── main/java/com/maisonglow/
-│   │   ├── Main.java           Entry point and composition root
-│   │   ├── dao/                CrudDao, TextFileDao and the text-file DAOs
-│   │   ├── exception/          ValidationException, BusinessRuleException, DataAccessException
-│   │   ├── model/              Entities: Person, Customer, Professional, Product, Treatment,
-│   │   │                       Appointment, Sale and related types
-│   │   ├── service/            Use cases, DTOs and notifiers
-│   │   │   └── rule/           AppointmentRule and its implementations
-│   │   ├── ui/console/         Interactive console: menus and modules
-│   │   └── util/               Validator, InvoiceFormatter
-│   └── test/java/              Unit and integration tests
-├── PLANIFICACION.md            Project plan
-├── TEAM.md                     Roles, class distribution and reassignments
-└── pom.xml
+  pom.xml
+  config.properties    <- archivo privado
+  src/
+  sql/
 ```
 
-## Data storage
+El archivo indica el proveedor y el nombre de la variable de entorno. El formato esperado es:
 
-In Delivery 1 every entity is stored in a text file, one record per line, with `|` as the separator (and escaping for values that contain it). Each file mirrors a table of [`sql/schema.sql`](sql/schema.sql), so moving to SQLite changes only the DAO implementations.
-
-| File | Table |
-|---|---|
-| `customers.txt` | `customer` |
-| `professionals.txt`, `professional_treatments.txt` | `professional`, `professional_treatment` |
-| `treatments.txt` | `treatment` |
-| `categories.txt` | `product_category` |
-| `products.txt` | `product` |
-| `appointments.txt` | `appointment` |
-| `sales.txt`, `sale_lines.txt` | `sale`, `sale_line` |
-| `settings.txt` | `app_setting` |
-
-A sale checks current stored stock before writing. DAOs retain serialized snapshots and return detached objects, so editing a result cannot silently alter stored data. Money uses `BigDecimal` throughout input, calculation and storage.
-
-Failed sale or no-show writes trigger compensating updates. Text files do not provide transactions across files after an abrupt shutdown or if compensation also fails; see [ADR-0012](docs/adr/0012-persistencia-en-archivos-de-texto.md).
-
-## Testing
-
-```bash
-mvn clean verify                    # build, run all tests, enforce the coverage gate
-mvn test                            # run the tests only
-mvn test -Dtest=SaleServiceTest     # run one test class
+```properties
+ai.provider=api
+ai.api_key_env=MAISON_GLOW_AI_API_KEY
 ```
 
-The suite contains unit tests per layer, an end-to-end integration test over real text files in temporary folders, and scripted sessions of the interactive console. Coverage of the `service` package must stay at or above 70 %, and the build fails otherwise.
+**El archivo por sí solo no basta para IA real:** la aplicación busca la clave en la variable indicada. No reconoce una clave pegada como otra propiedad del archivo. `config.properties` está ignorado por Git; no subirlo ni pegar claves en commits, capturas o mensajes públicos.
 
-## Documentation
+Para ejecutar solamente la simulación se puede usar `ai.provider=simulated`, o ejecutar sin configuración privada.
 
-Project documents are written in Spanish, as required by the course.
+## 6. Configurar la clave y abrir la aplicación
 
-| Document | Content |
+En PowerShell, pedir la clave sin mostrarla en la pantalla ni incluirla como texto en el comando:
+
+```powershell
+$clavePrivada = Read-Host "Clave API recibida por privado" -AsSecureString
+$env:MAISON_GLOW_AI_API_KEY = [System.Net.NetworkCredential]::new("", $clavePrivada).Password
+Remove-Variable clavePrivada
+mvn javafx:run
+```
+
+Si el archivo privado indica otro nombre en `ai.api_key_env`, usar ese nombre en lugar de `MAISON_GLOW_AI_API_KEY`.
+
+La variable anterior dura lo que dure esa terminal. Al cerrarla, hay que configurarla de nuevo. Si ejecutan desde un IDE, establecer la variable en su configuración de ejecución; una terminal o un IDE que ya estaba abierto no incorpora automáticamente cambios hechos en otro proceso.
+
+Para abrir sin IA real:
+
+```powershell
+mvn javafx:run
+```
+
+La ventana abre en **Inicio**. La barra lateral se expande al pasar el cursor. **Probador virtual** está debajo de **Asistente IA**.
+
+## 7. Base de datos y datos de demostración
+
+El primer arranque crea `data/session/maison-glow.db` con las tablas, índices y reglas del esquema incluido en la aplicación. Importa una sola vez los archivos de texto del negocio que ya hubiera en esa carpeta, conservando IDs y relaciones. Los archivos originales no se borran ni se reescriben. Si la importación falla, se revierte y se muestra el error para poder corregirlo y reintentar.
+
+La semilla añade categorías, configuración, tres clientes ficticios identificados con `(demo)`, tres tratamientos, un profesional y tres productos. Los siguientes arranques no duplican la semilla ni restablecen los cambios del usuario. No incluye citas o ventas artificiales.
+
+Clientes, profesionales, tratamientos, productos, citas, ventas, líneas y configuración se guardan en SQLite. Los importes se conservan como decimales exactos. La venta y el descuento de inventario se confirman juntos. El historial de IA de la primera entrega conserva su formato de texto.
+
+Para respaldar, cerrar la aplicación y copiar **toda la carpeta `data/session/`**, incluidas las capturas. Para restaurar una copia, cerrar la aplicación antes de reemplazar esa carpeta. No borrar la base para actualizar el código.
+
+## 8. Probar el negocio
+
+1. Entrar en **Clientes**, crear un cliente y comprobar búsqueda y edición.
+2. Crear un tratamiento y un profesional; asignar el tratamiento al profesional.
+3. Registrar un producto con existencias y mínimo de inventario.
+4. Crear una cita con fecha futura, horario laboral y anticipo suficiente. Intentar otra en el mismo horario: debe rechazar el cruce.
+5. Registrar una venta y comprobar el descuento de inventario y las estadísticas.
+6. Volver a **Inicio** y revisar el resumen del día y los productos por reponer.
+7. Cerrar y abrir la aplicación: los datos deben mantenerse.
+
+El correo de factura sigue siendo simulado. Los archivos locales y las bases de datos no se suben a Git.
+
+## 9. Tomar una foto y usar el probador
+
+1. Crear primero el cliente en **Clientes**. Si el probador ya estaba abierto, volver a él: la lista se actualiza sin reiniciar. También se refresca al abrir el selector.
+2. En **Probador virtual**, buscar y seleccionar el cliente por nombre o documento.
+3. Pulsar **Tomar foto**. Se abre una ventana con el selector de cámara y la vista previa. Elegir la webcam física cuando aparezcan cámaras virtuales.
+4. Encuadrar al cliente y pulsar **Capturar**. Usar **Volver a tomar** si hace falta repetirla.
+5. Pulsar **Usar esta foto**: la imagen queda seleccionada directamente en el probador, sin buscar un archivo. **Cancelar** conserva la foto que ya estuviera seleccionada. La cámara se libera al cerrar la ventana.
+6. Elegir una de las 15 muestras circulares; el borde y el nombre inferior indican la selección. Ajustar **Intensidad**.
+7. Pulsar **Generar simulación** y esperar. Las entradas se bloquean durante la petición para no mezclar solicitudes.
+8. Revisar **Antes / Después**. Si las proporciones coinciden aparece un comparador deslizante; si la API devuelve otra proporción, comparar con la referencia del panel izquierdo.
+9. Pulsar **Guardar** y elegir dónde exportar el PNG. El archivo conserva el aviso de simulación.
+
+También está disponible **Subir foto** para JPG o PNG de hasta 10 MB y 4096 píxeles por lado. Cambiar cliente, foto, tono o intensidad invalida el resultado anterior hasta generar uno nuevo.
+
+Las fotos de cámara aceptadas se guardan localmente en `data/session/captures/`. Abrir la cámara y cancelar no guarda una foto. La vista previa y la captura no envían imágenes a Internet: la foto se envía al proveedor únicamente al solicitar una generación en modo API.
+
+En **modo simulado** se aplica un tinte de ejemplo a la imagen completa; no detecta ni recolorea exclusivamente el cabello. El aviso del modo permite distinguirlo de la generación con API. El selector actual ofrece color de cabello; corte, maquillaje y uñas no están implementados.
+
+## 10. Problemas habituales
+
+| Problema | Qué revisar |
 |---|---|
-| [Phase 1](docs/fase1/documento-fase1.md) | Problem statement, state of the art, objectives, functional and non-functional requirements |
-| [Class design](docs/fase2/diseno-clases.md) | Initial class design, relationships, GRASP and SOLID (historical; amended by ADR-0014) |
-| [Diagrams](docs/fase2/diagramas.md) | Original implementation diagrams; responsibility changes are recorded in ADR-0014 |
-| [UI mockups](docs/fase2/mockups/README.md) | Screens for the JavaFX interface |
-| [ER model](docs/fase4/modelo-entidad-relacion.md) and [data dictionary](docs/fase4/diccionario-de-datos.md) | Database design |
-| [ADRs](docs/adr/README.md) | Architecture decisions and alternatives |
-| [Current model/service boundary](docs/adr/0014-modelos-de-datos-y-reglas-en-servicios.md) | Refactored responsibilities, decimal money and recovery limits |
-| [Roadmap](docs/roadmap.md) | Delivery 1 tasks, owners and dependencies |
-| [Version control](docs/version-control.md) | Commits and pull requests per member |
-| [Project plan](PLANIFICACION.md) | Scope, schedule and risks |
+| `java` o `mvn` no se reconoce | JDK/Maven instalados, `JAVA_HOME` y `PATH`; abrir otra terminal |
+| Error al compilar por versión de Java | `mvn -version` debe mostrar JDK 21 o superior |
+| Aparece modo simulado aunque recibí el archivo | Nombre y ubicación de `config.properties`, proveedor `api`, variable de entorno en la misma terminal y acceso a Internet |
+| La API no genera | Clave válida, acceso a los modelos, facturación y conexión; el mensaje de error no debe incluir la clave |
+| No aparece el cliente | Guardarlo primero en Clientes y volver al probador o abrir de nuevo el selector |
+| No se encuentra la cámara | Conectar la webcam, elegir la fuente correcta, revisar permisos y cerrar otras aplicaciones que la estén usando; Subir foto sigue disponible |
+| La cámara abre sin imagen | Evitar una cámara virtual sin fuente; seleccionar otra cámara o cerrar y reabrir la ventana |
+| Error de base de datos al iniciar | Comprobar permiso de escritura en la carpeta del proyecto y que no haya otra herramienta bloqueando SQLite; conservar el respaldo antes de cambiar datos |
+| La ventana sigue mostrando código anterior | Cerrar la instancia anterior y volver a ejecutar `mvn javafx:run` |
 
-## Development workflow
+En Windows 11, revisar **Configuración → Privacidad y seguridad → Cámara** y el acceso de las aplicaciones de escritorio. Los controles pueden variar según la versión de Windows. Ver la [guía de permisos de Microsoft](https://support.microsoft.com/en-us/windows/privacy/manage-app-permissions-for-a-camera-in-windows).
 
-- Branches: `main` (stable, protected), `develop` (integration) and one short-lived branch per task: `feature/<name>`, `docs/<name>`, `refactor/<name>`, `chore/<name>`.
-- Every change enters through a pull request to `develop`, with a normal merge (no squash) so each commit stays visible. Nobody pushes directly to `main` or `develop`, and force pushes are not allowed on shared branches.
-- Commits follow [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, with a scope, for example `feat(customer): add duplicate document check`.
-- A task is done when it has Javadoc, input validation with the project exceptions, tests, and a green `mvn clean verify`.
-- Design checklist for each pull request: SRP, OCP, LSP, ISP, DIP, the GRASP patterns in use, and clean-code rules (intention-revealing names, no magic numbers, no duplicated code).
+## 11. Pruebas y consola
 
-Details: [ADR-0004](docs/adr/0004-estrategia-git.md) and the [roadmap](docs/roadmap.md#5-flujo-de-git-de-cada-integrante).
+```powershell
+mvn clean verify
+mvn "-Dtest=CameraCaptureDialogTest,TryOnViewTest,SqliteIntegrationTest" test
+mvn -q exec:java "-Dexec.args=demo"
+mvn -q exec:java "-Dexec.args=menu"
+```
 
-## Team
+La demo automática trabaja sobre una carpeta temporal. El menú de consola utiliza la misma carpeta de sesión que JavaFX. Las capturas de revisión visual se generan en `target/visual-qa/`.
 
-| Member | Role |
-|---|---|
-| Samuel David Rangel Martínez | Technical lead: core, appointments, sales, AI, documentation |
-| Nicoll Gómez | Developer: customers, professionals, treatments, statistics, integration and demo |
-| Isabella Celedón | Developer: products, settings, appointment rules, invoice |
+## 12. Estructura y documentación
 
-See [`TEAM.md`](TEAM.md) for the class distribution and task reassignments.
+- `src/main/java/com/maisonglow/AppContext.java`: composición de servicios y DAOs SQLite.
+- `src/main/java/com/maisonglow/dao/`: contratos, SQLite e importación compatible con archivos antiguos.
+- `src/main/java/com/maisonglow/service/`: reglas y operaciones del negocio.
+- `src/main/java/com/maisonglow/view/`: navegación, controladores, componentes y cámara.
+- `src/main/java/com/maisonglow/ai/`: proveedor simulado, adaptadores API y herramientas autorizadas.
+- `src/main/resources/`: vistas FXML, estilos e imágenes.
+- `sql/`: esquema, valores predeterminados y semilla de demostración.
+- [Pruebas de SQLite y probador](docs/fase3/pruebas-sqlite-probador.md).
+- [Revisión visual con Impeccable](docs/fase3/revision-probador-impeccable.md).
+- [Decisiones de arquitectura](docs/adr/README.md), [roadmap](docs/roadmap-corte3.md) y [equipo](TEAM.md).
 
-## Roadmap
+## Desarrollo
 
-| Delivery | Scope | Status |
-|---|---|---|
-| 1 | Business logic with text-file persistence, database design, UI mockups, console demo and interactive console | In progress |
-| 2 | SQLite persistence (JDBC DAOs), JavaFX interface, users and roles, promotions, payments, real invoice email | Planned |
-| 2 (AI) | Assistant with whitelisted tools and virtual try-on: backend first, then real API adapters and screens | Planned |
+Crear ramas con prefijos `feature/`, `fix/`, `chore/` o `docs/`. Usar commits convencionales (`feat`, `fix`, `docs`, `test`, etc.). Los cambios se revisan mediante pull request hacia `develop`; no subir directamente a `main` o `develop`. Antes de enviar, ejecutar `mvn clean verify` y revisar que no haya configuración privada, claves, bases de datos ni fotos de clientes en el commit.
 
-## License
+## Licencia
 
-Released under the [MIT License](LICENSE).
+[MIT](LICENSE).

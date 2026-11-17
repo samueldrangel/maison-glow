@@ -1,10 +1,14 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
-import com.maisonglow.ai.SimulatedTryOnService;
 import com.maisonglow.ai.TryOnRequest;
 import com.maisonglow.ai.TryOnResult;
 import com.maisonglow.ai.TryOnService;
+import com.maisonglow.ai.HairTones;
+import com.maisonglow.service.CustomerService;
+import com.maisonglow.view.RefreshableView;
+import com.maisonglow.view.camera.CameraCaptureDialog;
+import com.maisonglow.view.camera.WebcamPhotoCamera;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Customer;
@@ -16,12 +20,17 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.TilePane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.ImagePattern;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
@@ -33,7 +42,6 @@ import java.nio.file.StandardCopyOption;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -47,15 +55,12 @@ import java.util.function.Supplier;
  * guarantee. A request with no customer, no photo or no tone is rejected by the service and the reason is shown under
  * the field it is about. The result can take a while, so it is asked in the background.
  */
-public final class TryOnController {
-
-    private static final Map<String, Color> TONES = Map.of("rojo cobrizo", Color.web("#b5523b"),
-        "rubio dorado", Color.web("#d4a94f"), "castaño oscuro", Color.web("#4a2f23"));
-    private static final Color OTHER_TONE = Color.web("#b9a9ac");
+public final class TryOnController implements RefreshableView {
 
     private final TryOnService tryOn;
     private final boolean simulated;
-    private final List<Customer> customerList;
+    private final CustomerService customers;
+    private List<Customer> customerList = List.of();
     private final ToggleGroup tones = new ToggleGroup();
     private Executor executor = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "probador");
@@ -63,6 +68,7 @@ public final class TryOnController {
         return thread;
     });
     private Supplier<Path> photoPicker = () -> choose(false);
+    private Supplier<Path> cameraPicker;
     private Supplier<Path> savePicker = () -> choose(true);
     private AlertPresenter alerts;
     private Path photo;
@@ -80,10 +86,20 @@ public final class TryOnController {
     private Label photoPlaceholder;
     @FXML
     private Button uploadButton;
+    @FXML private Button cameraButton;
     @FXML
     private Label photoMessage;
     @FXML
-    private FlowPane transformationChips;
+    private TilePane transformationChips;
+    @FXML private Label selectedToneLabel;
+    @FXML private Slider intensitySlider;
+    @FXML private Label intensityValue;
+    @FXML private StackPane photoFrame;
+    @FXML private StackPane resultFrame;
+    private final ImageView beforeView = new ImageView();
+    @FXML private HBox comparisonBadges;
+    @FXML private Slider comparisonSlider;
+    @FXML private Label comparisonHint;
     @FXML
     private Label transformationMessage;
     @FXML
@@ -106,13 +122,9 @@ public final class TryOnController {
         Objects.requireNonNull(context, "context");
         this.tryOn = context.ai().tryOn();
         this.simulated = context.ai().isSimulated();
-        List<Customer> found;
-        try {
-            found = context.customers().listAll();
-        } catch (DataAccessException e) {
-            found = List.of();
-        }
-        this.customerList = found;
+        this.customers = context.customers();
+        cameraPicker = () -> new CameraCaptureDialog(new WebcamPhotoCamera(), context.dataFolder().resolve("captures"))
+            .show(cameraButton.getScene() == null ? null : cameraButton.getScene().getWindow());
     }
 
     /**
@@ -133,6 +145,11 @@ public final class TryOnController {
     public void useFilePickers(Supplier<Path> photos, Supplier<Path> saves) {
         this.photoPicker = Objects.requireNonNull(photos, "photos");
         this.savePicker = Objects.requireNonNull(saves, "saves");
+    }
+
+    /** Replaces camera acquisition for tests without using a physical camera. */
+    public void useCameraPicker(Supplier<Path> picker) {
+        cameraPicker = Objects.requireNonNull(picker, "picker");
     }
 
     /**
@@ -157,22 +174,86 @@ public final class TryOnController {
 
             @Override
             public Customer fromString(String text) {
-                return null;
+                return customerList.stream().filter(c -> toString(c).equals(text) || c.getDocument().equals(text)).findFirst().orElse(null);
             }
         });
-        customerBox.getItems().setAll(customerList);
-        transformationChips.getChildren().setAll(SimulatedTryOnService.supportedTransformations().stream().map(this::toneChip).toList());
+        customerBox.setOnShowing(event -> refresh());
+        customerBox.getEditor().setOnKeyReleased(event -> {
+            if (event.getCode().isNavigationKey() || event.getCode() == javafx.scene.input.KeyCode.ENTER || event.getCode() == javafx.scene.input.KeyCode.ESCAPE) return;
+            String typed = customerBox.getEditor().getText();
+            String wanted = normalized(typed);
+            if (!customerBox.isShowing()) customerBox.show();
+            customerBox.getItems().setAll(customerList.stream().filter(c -> normalized(c.getName() + " " + c.getDocument()).contains(wanted)).toList());
+            customerBox.getEditor().setText(typed);
+            customerBox.getEditor().positionCaret(typed.length());
+        });
+        transformationChips.getChildren().setAll(HairTones.ALL.stream().map(this::toneChip).toList());
+        intensityValue.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+            () -> Math.round(intensitySlider.getValue() * 100) + "%", intensitySlider.valueProperty()));
+        fit(photoView, photoFrame);
+        fit(resultView, resultFrame);
+        beforeView.setPreserveRatio(true);
+        beforeView.setId("beforeView");
+        fit(beforeView, resultFrame);
+        Rectangle beforeClip = new Rectangle();
+        beforeClip.widthProperty().bind(resultFrame.widthProperty().multiply(comparisonSlider.valueProperty()));
+        beforeClip.heightProperty().bind(resultFrame.heightProperty());
+        // Clip a full-size overlay so the dividing line stays in the frame's coordinates.
+        StackPane beforeLayer = new StackPane(beforeView);
+        beforeLayer.setMouseTransparent(true);
+        beforeLayer.setClip(beforeClip);
+        resultFrame.getChildren().add(1, beforeLayer);
         clearMessages();
         saveButton.setDisable(true);
         uploadButton.setOnAction(event -> chooseThePhoto());
+        cameraButton.setOnAction(event -> {
+            clearMessages();
+            try { loadPhoto(cameraPicker.get()); }
+            catch (RuntimeException e) { show(photoMessage, "No se pudo abrir la cámara. Inténtalo de nuevo o usa Subir foto."); }
+        });
         generateButton.setOnAction(event -> generate());
         saveButton.setOnAction(event -> saveTheResult());
+        refresh();
+        intensitySlider.valueProperty().addListener((o, before, value) -> invalidateResult());
+        customerBox.valueProperty().addListener((o, before, value) -> {
+            if (before != null && (value == null || before.getId() != value.getId())) invalidateResult();
+        });
     }
 
-    private ToggleButton toneChip(String name) {
+    /** Reloads live customers while preserving the selected customer, photo and tone. */
+    @Override public void refresh() {
+        Customer selected = customerBox.getValue();
+        try {
+            customerList = customers.listAll();
+            customerBox.getItems().setAll(customerList);
+            customerBox.setValue(selected == null ? null : customerList.stream().filter(c -> c.getId() == selected.getId()).findFirst().orElse(null));
+            customerBox.setPromptText(customerList.isEmpty() ? "Registra un cliente en Clientes" : "Buscar cliente...");
+        } catch (DataAccessException e) { show(customerMessage, "No se pudo cargar la lista de clientes. Vuelve a intentarlo."); }
+    }
+
+    private static String normalized(String value) {
+        return Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
+    }
+
+    private static void fit(ImageView image, StackPane frame) {
+        image.fitWidthProperty().bind(frame.widthProperty().subtract(16));
+        image.fitHeightProperty().bind(frame.heightProperty().subtract(16));
+    }
+
+    private ToggleButton toneChip(HairTones.Tone tone) {
+        String name = tone.name();
         ToggleButton chip = new ToggleButton(name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1));
         chip.getStyleClass().add("tone-chip");
-        chip.setGraphic(new Circle(7, TONES.getOrDefault(name, OTHER_TONE)));
+        Circle swatch = new Circle(22);
+        swatch.setFill(new ImagePattern(new Image(TryOnController.class.getResource("/com/maisonglow/view/images/tones/" + tone.swatch() + ".png").toExternalForm())));
+        chip.setGraphic(swatch);
+        chip.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        chip.setTooltip(new Tooltip(chip.getText()));
+        chip.setAccessibleText(chip.getText());
+        chip.setOnAction(event -> {
+            selectedToneLabel.setText(tones.getSelectedToggle() == null ? "Selecciona una tonalidad" : chip.getText());
+            invalidateResult();
+        });
         chip.setUserData(name);
         chip.setToggleGroup(tones);
         return chip;
@@ -180,10 +261,14 @@ public final class TryOnController {
 
     private void chooseThePhoto() {
         clearMessages();
-        Path chosen = photoPicker.get();
+        loadPhoto(photoPicker.get());
+    }
+
+    private void loadPhoto(Path chosen) {
         if (chosen == null) {
             return;
         }
+        invalidateResult();
         Image preview = new Image(chosen.toUri().toString(), 600, 680, true, true);
         if (preview.isError()) {
             photo = null;
@@ -197,14 +282,32 @@ public final class TryOnController {
         photoPlaceholder.setVisible(false);
     }
 
+    private void invalidateResult() {
+        result = null;
+        resultView.setImage(null);
+        beforeView.setImage(null);
+        resultPlaceholder.setVisible(true);
+        comparisonBadges.setVisible(false);
+        comparisonSlider.setVisible(false);
+        comparisonSlider.setManaged(false);
+        comparisonHint.setVisible(false);
+        comparisonHint.setManaged(false);
+        saveButton.setDisable(true);
+    }
+
     /** Asks for the simulation with what the user chose; a missing choice comes back from the service as an error under its field. */
     private void generate() {
         clearMessages();
         Customer customer = customerBox.getValue();
         var tone = tones.getSelectedToggle();
         TryOnRequest request = new TryOnRequest(customer == null ? 0 : customer.getId(), photo,
-            tone == null ? "" : (String) tone.getUserData());
+            tone == null ? "" : (String) tone.getUserData(), intensitySlider.getValue());
         generateButton.setDisable(true);
+        uploadButton.setDisable(true);
+        cameraButton.setDisable(true);
+        customerBox.setDisable(true);
+        transformationChips.setDisable(true);
+        intensitySlider.setDisable(true);
         generateButton.setText("Generando…");
         CompletableFuture.supplyAsync(() -> {
             try {
@@ -214,6 +317,11 @@ public final class TryOnController {
             }
         }, executor).whenComplete((generated, error) -> Platform.runLater(() -> {
             generateButton.setDisable(false);
+            uploadButton.setDisable(false);
+            cameraButton.setDisable(false);
+            customerBox.setDisable(false);
+            transformationChips.setDisable(false);
+            intensitySlider.setDisable(false);
             generateButton.setText("Generar simulación");
             if (error != null) {
                 showError(error.getCause() instanceof Exception cause ? cause : new IllegalStateException(error));
@@ -226,7 +334,22 @@ public final class TryOnController {
     private void showResult(TryOnResult generated) {
         result = generated.image();
         resultView.setImage(new Image(result.toUri().toString()));
+        resultView.setViewport(generated.contentWidth() > 0 && generated.contentHeight() > 0
+            ? new javafx.geometry.Rectangle2D(0, 0, generated.contentWidth(), generated.contentHeight()) : null);
         resultPlaceholder.setVisible(false);
+        beforeView.setImage(photoView.getImage());
+        Image source = photoView.getImage();
+        double generatedRatio = generated.contentWidth() > 0 && generated.contentHeight() > 0
+            ? (double) generated.contentWidth() / generated.contentHeight() : resultView.getImage().getWidth() / resultView.getImage().getHeight();
+        boolean aligned = source != null && Math.abs(source.getWidth() / source.getHeight() - generatedRatio) < 0.01;
+        beforeView.setVisible(aligned);
+        comparisonBadges.getChildren().getFirst().setVisible(aligned);
+        comparisonBadges.getChildren().getFirst().setManaged(aligned);
+        comparisonBadges.setVisible(true);
+        comparisonSlider.setVisible(aligned);
+        comparisonSlider.setManaged(aligned);
+        comparisonHint.setVisible(!aligned);
+        comparisonHint.setManaged(!aligned);
         disclaimerLabel.setText(generated.disclaimer().substring(0, 1).toUpperCase(Locale.ROOT) + generated.disclaimer().substring(1));
         saveButton.setDisable(false);
     }

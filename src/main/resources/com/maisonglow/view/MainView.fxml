@@ -123,6 +123,11 @@
                         <userData><String fx:value="ASSISTANT"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></StackPane></graphic>
                     </ToggleButton>
+                    <ToggleButton text="Probador virtual" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="TRY_ON"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h4"/></StackPane></graphic>
+                    </ToggleButton>
                 </VBox>
 
                 <Region VBox.vgrow="ALWAYS"/>

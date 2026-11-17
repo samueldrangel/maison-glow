@@ -41,6 +41,10 @@ build/
 ### Maison Glow ###
 .idea/
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/backups/
 .env
 config.properties
 

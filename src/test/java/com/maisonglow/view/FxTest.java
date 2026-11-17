@@ -32,7 +32,7 @@ public final class FxTest {
         Platform.runLater(() -> {
             try {
                 result.complete(action.get());
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | AssertionError e) {
                 result.completeExceptionally(e);
             }
         });

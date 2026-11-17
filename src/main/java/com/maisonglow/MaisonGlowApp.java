@@ -36,7 +36,7 @@ public final class MaisonGlowApp extends Application {
     public void start(Stage stage) {
         try {
             context = new AppContext(AppContext.sessionFolder());
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             new Alert(Alert.AlertType.ERROR, "No se pudo preparar la carpeta de datos: " + e.getMessage()).showAndWait();
             Platform.exit();
             return;

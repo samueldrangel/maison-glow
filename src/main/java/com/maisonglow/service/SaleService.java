@@ -26,10 +26,16 @@ import java.util.Objects;
 public class SaleService {
     private final SaleDao saleDao;
     private final ProductDao productDao;
+    private final TransactionRunner transactions;
 
     public SaleService(SaleDao saleDao, ProductDao productDao) {
+        this(saleDao, productDao, TransactionRunner.DIRECT);
+    }
+
+    public SaleService(SaleDao saleDao, ProductDao productDao, TransactionRunner transactions) {
         this.saleDao = Objects.requireNonNull(saleDao, "saleDao");
         this.productDao = Objects.requireNonNull(productDao, "productDao");
+        this.transactions = Objects.requireNonNull(transactions, "transactions");
     }
 
     public static SaleLine addLine(Sale sale, Sellable item, int quantity) throws BusinessRuleException {
@@ -73,6 +79,24 @@ public class SaleService {
     }
 
     public Sale register(Sale sale) throws ValidationException, BusinessRuleException, DataAccessException {
+        Validator.requirePresent(sale, "venta");
+        int originalId = sale.getId();
+        BigDecimal originalTotal = sale.getTotal();
+        Map<Product, Integer> originalStocks = new java.util.IdentityHashMap<>();
+        for (SaleLine line : sale.getLines()) {
+            if (line.getItem() instanceof Product product) originalStocks.put(product, product.getStock());
+        }
+        try {
+            return transactions.execute(() -> registerWithinTransaction(sale));
+        } catch (ValidationException | BusinessRuleException | DataAccessException | RuntimeException e) {
+            sale.setId(originalId);
+            sale.setTotal(originalTotal);
+            originalStocks.forEach(Product::setStock);
+            throw e;
+        }
+    }
+
+    private Sale registerWithinTransaction(Sale sale) throws ValidationException, BusinessRuleException, DataAccessException {
         Validator.requirePresent(sale, "venta");
         if (sale.getLines().isEmpty()) throw new ValidationException("La venta debe tener al menos una línea.");
         if (sale.getId() != 0) throw new BusinessRuleException("La venta ya fue registrada.");

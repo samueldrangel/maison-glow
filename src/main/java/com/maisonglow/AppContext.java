@@ -4,21 +4,7 @@ import com.maisonglow.ai.AiConfig;
 import com.maisonglow.ai.AiHistory;
 import com.maisonglow.ai.AiModule;
 import com.maisonglow.ai.AiProviderFactory;
-import com.maisonglow.dao.AppointmentDao;
-import com.maisonglow.dao.AppointmentDaoText;
-import com.maisonglow.dao.CategoryDao;
-import com.maisonglow.dao.CategoryDaoText;
-import com.maisonglow.dao.CustomerDao;
-import com.maisonglow.dao.CustomerDaoText;
-import com.maisonglow.dao.ProductDao;
-import com.maisonglow.dao.ProductDaoText;
-import com.maisonglow.dao.ProfessionalDao;
-import com.maisonglow.dao.ProfessionalDaoText;
-import com.maisonglow.dao.SaleDao;
-import com.maisonglow.dao.SaleDaoText;
-import com.maisonglow.dao.SettingDaoText;
-import com.maisonglow.dao.TreatmentDao;
-import com.maisonglow.dao.TreatmentDaoText;
+import com.maisonglow.dao.*;
 import com.maisonglow.service.AppointmentService;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.LowRotationService;
@@ -41,13 +27,13 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The only place where the text-file DAOs, the services, the appointment rules
+ * The composition root for SQLite DAOs, services, appointment rules
  * and the AI module are created (dependency inversion). The console
  * ({@link Main}) and the JavaFX application ({@link MaisonGlowApp}) both take
  * their services from here, so a view never builds or sees a DAO.
  *
- * <p>The data folder must already hold the preloaded {@code settings.txt} and
- * {@code categories.txt}; {@link #seed(Path)} copies them.
+ * <p>Missing SQLite tables and defaults are created automatically. Legacy text files
+ * are imported once without removing or rewriting them.
  */
 public final class AppContext {
 
@@ -70,12 +56,13 @@ public final class AppContext {
     private final PromotionService promotions;
     private final AiModule ai;
     private final AiHistory aiHistory;
+    private final SqliteDatabase database;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
      * provider chosen by {@code config.properties} (simulated when absent).
      *
-     * @param data folder that holds the text files
+     * @param data folder containing the SQLite database and optional legacy files
      */
     public AppContext(Path data) {
         this(data, Clock.systemDefaultZone(), AiConfig.load());
@@ -85,32 +72,33 @@ public final class AppContext {
      * Wires everything with an explicit clock and AI configuration, which
      * keeps tests independent from the real time and the real provider.
      *
-     * @param data folder that holds the text files
+     * @param data folder containing the SQLite database and optional legacy files
      * @param clock clock used by the appointment rules
      * @param aiConfig AI provider selection
      */
     public AppContext(Path data, Clock clock, AiConfig aiConfig) {
         this.data = Objects.requireNonNull(data, "data");
         this.clock = Objects.requireNonNull(clock, "clock");
-        CustomerDao customerDao = new CustomerDaoText(file("customers.txt"));
-        TreatmentDao treatmentDao = new TreatmentDaoText(file("treatments.txt"));
-        ProfessionalDao professionalDao = new ProfessionalDaoText(file("professionals.txt"),
-            file("professional_treatments.txt"), treatmentDao);
-        CategoryDao categoryDao = new CategoryDaoText(file(CATEGORIES_FILE));
-        ProductDao productDao = new ProductDaoText(file("products.txt"), categoryDao);
-        AppointmentDao appointmentDao = new AppointmentDaoText(file("appointments.txt"), customerDao,
-            professionalDao, treatmentDao);
-        SaleDao saleDao = new SaleDaoText(file("sales.txt"), file("sale_lines.txt"), customerDao, appointmentDao,
-            productDao, treatmentDao);
+        try { database = SqliteBootstrap.open(data); }
+        catch (com.maisonglow.exception.DataAccessException e) {
+            throw new IllegalStateException("No se pudo preparar SQLite: " + e.getMessage(), e);
+        }
+        CustomerDao customerDao = new CustomerDaoSqlite(database);
+        TreatmentDao treatmentDao = new TreatmentDaoSqlite(database);
+        ProfessionalDao professionalDao = new ProfessionalDaoSqlite(database, treatmentDao);
+        CategoryDao categoryDao = new CategoryDaoSqlite(database);
+        ProductDao productDao = new ProductDaoSqlite(database, categoryDao);
+        AppointmentDao appointmentDao = new AppointmentDaoSqlite(database, customerDao, professionalDao, treatmentDao);
+        SaleDao saleDao = new SaleDaoSqlite(database, customerDao, appointmentDao, productDao, treatmentDao);
 
-        settings = new SettingsService(new SettingDaoText(file(SETTINGS_FILE)));
+        settings = new SettingsService(new SettingDaoSqlite(database));
         customers = new CustomerService(customerDao);
         treatments = new TreatmentService(treatmentDao);
         professionals = new ProfessionalService(professionalDao, treatmentDao);
         products = new ProductService(productDao, categoryDao);
         appointments = new AppointmentService(appointmentDao, customerDao, List.of(new DepositRule(settings),
             new ConfirmationRule(settings, clock), new ReminderRule(settings)));
-        sales = new SaleService(saleDao, productDao);
+        sales = new SaleService(saleDao, productDao, new SqliteTransactions(database));
         statistics = new StatisticsService(saleDao, appointmentDao);
         lowRotation = new LowRotationService(saleDao, productDao, settings);
         promotions = new PromotionService(lowRotation, saleDao, settings);
@@ -127,11 +115,22 @@ public final class AppContext {
      */
     public static Path sessionFolder() throws IOException {
         Files.createDirectories(SESSION_DATA);
-        if (Files.notExists(SESSION_DATA.resolve(SETTINGS_FILE))) {
-            seed(SESSION_DATA);
-        }
+        try {
+            SqliteDatabase database = SqliteBootstrap.open(SESSION_DATA);
+            database.transaction(c -> {
+                try (var statement = c.createStatement(); var rows = statement.executeQuery("SELECT 1 FROM app_metadata WHERE key='demo_seed_v1'")) {
+                    if (rows.next()) return null;
+                }
+                database.runScript("demo-seed.sql");
+                try (var statement = c.createStatement()) { statement.executeUpdate("INSERT INTO app_metadata VALUES ('demo_seed_v1','complete')"); }
+                return null;
+            });
+        } catch (com.maisonglow.exception.DataAccessException e) { throw new IOException("No se pudo preparar SQLite: " + e.getMessage(), e); }
         return SESSION_DATA;
     }
+
+    /** @return the SQLite database shared by all business services */
+    public SqliteDatabase database() { return database; }
 
     /**
      * Copies the preloaded settings and categories into a data folder.
@@ -148,7 +147,7 @@ public final class AppContext {
         return data.resolve(name);
     }
 
-    /** @return the folder that holds the text files */
+    /** @return the folder containing the SQLite database and optional legacy files */
     public Path dataFolder() {
         return data;
     }

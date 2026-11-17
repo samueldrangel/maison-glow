@@ -1432,3 +1432,28 @@
     -fx-padding: 18;
 }
 
+
+/* Probador virtual: proporciones y paleta circular del mockup M8. */
+.tryon-root { -mg-text-muted: #736167; -mg-tryon-gold: #89632f; }
+.tryon-root .button-gold, .tryon-root .button-secondary { -fx-font-family: "Segoe UI"; -fx-font-size: 14px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-insets: 0; -fx-padding: 10 16; -fx-min-height: 44; -fx-effect: none; }
+.tryon-root .button-gold { -fx-background-color: -mg-tryon-gold; -fx-text-fill: white; -fx-border-color: -mg-tryon-gold; }
+.tryon-root .button-gold:hover { -fx-background-color: derive(-mg-tryon-gold, -10%); }
+.tryon-root .button-gold:focused, .tryon-root .button-secondary:focused { -fx-border-color: -mg-ink; -fx-border-width: 2; }
+.tryon-root .combo-box .text-field { -fx-prompt-text-fill: -mg-text-muted; }
+.tryon-scroll, .tryon-scroll > .viewport { -fx-background-color: transparent; -fx-padding: 0; }
+.tryon-card { -fx-padding: 20; -fx-background-radius: 18; -fx-border-radius: 18; -fx-min-width: 0; }
+.tryon-card-title { -fx-font-family: "Segoe UI"; -fx-font-size: 21px; -fx-text-fill: -mg-text; -fx-padding: 0 0 8 0; }
+.tryon-label { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -mg-text; }
+.tryon-category { -fx-background-color: -mg-rose-dark; -fx-text-fill: white; -fx-background-radius: 24; -fx-padding: 10 16; }
+.tryon-tone-name { -fx-font-size: 13px; -fx-text-fill: -mg-ink; }
+.tryon-root .tone-chip { -fx-background-color: transparent; -fx-background-radius: 28; -fx-border-radius: 28; -fx-border-color: transparent; -fx-border-width: 2; -fx-padding: 2; -fx-min-width: 50; -fx-min-height: 50; -fx-max-width: 50; -fx-max-height: 50; }
+.tryon-root .tone-chip:hover { -fx-background-color: -mg-gold-soft; }
+.tryon-root .tone-chip:selected { -fx-background-color: -mg-surface; -fx-border-color: -mg-gold-dark; }
+.tryon-root .tone-chip:focused { -fx-border-color: -mg-rose-dark; -fx-border-style: dashed; }
+.tryon-root .slider .track { -fx-background-color: -mg-chip-rose-bg; -fx-pref-height: 6; -fx-background-radius: 4; }
+.tryon-root .slider .thumb { -fx-background-color: -mg-rose; -fx-border-color: white; -fx-border-width: 3; -fx-border-radius: 12; -fx-background-radius: 12; -fx-pref-width: 22; -fx-pref-height: 22; }
+.tryon-root .slider:focused .thumb { -fx-border-color: -mg-gold-dark; }
+.tryon-root .photo-frame { -fx-background-radius: 12; -fx-border-radius: 12; }
+.tryon-comparison-badge { -fx-background-color: -mg-rose-dark; -fx-text-fill: white; -fx-background-radius: 18; -fx-padding: 5 12; -fx-font-size: 12px; }
+.camera-dialog { -fx-padding: 20; }
+.camera-dialog .button { -fx-min-height: 40; }

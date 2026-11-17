@@ -25,6 +25,7 @@ public final class Navigator {
     private final StackPane content;
     private final AppContext context;
     private final Map<View, Node> kept = new EnumMap<>(View.class);
+    private final Map<View, RefreshableView> refreshable = new EnumMap<>(View.class);
     private View current;
 
     /**
@@ -48,7 +49,13 @@ public final class Navigator {
         Node screen = kept.get(view);
         if (screen == null) {
             URL fxml = Navigator.class.getResource(view.resource());
-            screen = fxml == null ? underConstruction(view) : ViewLoader.load(fxml, context);
+            if (fxml == null) {
+                screen = underConstruction(view);
+            } else {
+                var loaded = ViewLoader.loadWithController(fxml, context);
+                screen = loaded.root();
+                if (loaded.controller() instanceof RefreshableView controller) refreshable.put(view, controller);
+            }
             if (screen instanceof Parent parent) {
                 Animations.installButtonMotion(parent);
             }
@@ -57,6 +64,7 @@ public final class Navigator {
             }
         }
         content.getChildren().setAll(screen);
+        if (refreshable.containsKey(view)) refreshable.get(view).refresh();
         Animations.enter(screen);
         current = view;
     }
