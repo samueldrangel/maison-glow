@@ -2,6 +2,8 @@
 
 Arquitectura vigente tras la sustentación: [modelos de datos y reglas en servicios](adr/0014-modelos-de-datos-y-reglas-en-servicios.md).
 
+Ampliación propuesta tras la reunión del 17 de noviembre: [roadmap de roles cliente y administrador](roadmap-roles.md). Incluye tabla inicial de seguimiento, frontend secuencial (Isabella → Nicoll), backend local de Samuel y semilla ampliada opcional. Se mantiene SQLite local; la nube queda aplazada hasta después de la presentación del 18 de noviembre.
+
 | Carpeta | Contenido |
 |---|---|
 | [`adr/`](adr/README.md) | Registros de Decisiones de Arquitectura (por qué elegimos cada tecnología/patrón) |

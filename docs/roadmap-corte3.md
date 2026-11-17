@@ -1,5 +1,7 @@
 # Roadmap de desarrollo — Corte 3 (IA + interfaz JavaFX)
 
+> **Ampliación posterior (17 de noviembre de 2026):** el nuevo alcance de cuentas, roles, compras del cliente, publicación de productos y fotos se planifica en [roadmap de roles](roadmap-roles.md). Este documento conserva el reparto y estado histórico del Corte 3.
+
 > Plan de trabajo por integrante para el **Corte 3** (≈ 14 días): **interfaz gráfica JavaFX** conectada a los servicios existentes
 > y **módulos de inteligencia artificial** (asistente con herramientas y probador virtual), simulados y por API.
 > Contexto: [`../PLANIFICACION.md`](../PLANIFICACION.md) · roadmap anterior: [`roadmap.md`](roadmap.md) · UI: [ADR-0009](adr/0009-ui-con-javafx.md) ·

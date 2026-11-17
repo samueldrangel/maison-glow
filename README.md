@@ -2,6 +2,8 @@
 
 Aplicación de escritorio para la gestión de un negocio de belleza: clientes, profesionales, tratamientos, productos, inventario, citas, ventas, estadísticas, asistente IA y probador virtual. Proyecto de Programación de Computadores III, Universidad Popular del Cesar.
 
+Ampliación planificada: [roles de cliente y administrador](docs/roadmap-roles.md), con tareas, responsables, dependencias y criterios de aceptación. Las funciones de ese roadmap están pendientes de implementación.
+
 La interfaz usa JavaFX y la persistencia del negocio usa SQLite. La base se crea automáticamente: **no hay que instalar un servidor de base de datos ni ejecutar scripts SQL manualmente**.
 
 ## 1. Qué necesita cada integrante
