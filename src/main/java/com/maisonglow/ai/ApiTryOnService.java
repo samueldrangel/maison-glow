@@ -58,6 +58,7 @@ public final class ApiTryOnService implements TryOnService {
             if (!ImageIO.write(source, "png", photo)) throw new IOException("PNG encoder unavailable");
             String boundary = "maison-glow-" + UUID.randomUUID();
             String prompt = "Edit only the hair color of the person to " + transformation
+                + ". Color intensity: " + Math.round(request.intensity() * 100) + "%"
                 + ". Preserve their identity, face, hairstyle, skin, clothing and background."
                 + " This is a cosmetic simulation, not a guarantee of a treatment result.";
             String fields = field(boundary, "model", model) + field(boundary, "prompt", prompt)

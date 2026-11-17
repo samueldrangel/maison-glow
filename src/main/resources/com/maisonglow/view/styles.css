@@ -1308,3 +1308,152 @@
     -fx-text-fill: white;
 }
 
+/* ---- Inicio: cabecera, indicadores con icono y filas de las listas ---- */
+.home-hero {
+    -fx-background-color: linear-gradient(to bottom right, -mg-rose-dark, -mg-rose 60%, -mg-gold);
+    -fx-background-radius: 26 6 26 6;
+    -fx-padding: 24 30 24 30;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.22), 26, 0.05, 0, 10);
+}
+
+.home-eyebrow {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+}
+
+.home-greeting {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 36px;
+    -fx-text-fill: white;
+}
+
+.home-date {
+    -fx-font-size: 14px;
+    -fx-text-fill: rgba(255, 255, 255, 0.88);
+}
+
+.home-summary {
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+    -fx-padding: 8 0 0 0;
+}
+
+.home-hero-star {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 32;
+}
+
+.home-hero-star-icon {
+    -fx-fill: rgba(255, 255, 255, 0.92);
+}
+
+.home-kpi {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 20 5 20 5;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 20 5 20 5;
+    -fx-padding: 16 18 16 16;
+    -fx-effect: dropshadow(gaussian, rgba(122, 80, 88, 0.10), 18, 0.05, 0, 6);
+}
+
+.home-kpi-icon {
+    -fx-background-radius: 22;
+}
+
+.home-kpi-gold .home-kpi-icon { -fx-background-color: -mg-chip-gold-bg; }
+.home-kpi-gold .line-icon { -fx-stroke: -mg-chip-gold; }
+.home-kpi-rose .home-kpi-icon { -fx-background-color: -mg-chip-rose-bg; }
+.home-kpi-rose .line-icon { -fx-stroke: -mg-chip-rose; }
+.home-kpi-green .home-kpi-icon { -fx-background-color: -mg-chip-ok-bg; }
+.home-kpi-green .line-icon { -fx-stroke: -mg-chip-ok; }
+.home-kpi-alert .home-kpi-icon { -fx-background-color: -mg-chip-neutral-bg; }
+.home-kpi-alert .line-icon { -fx-stroke: -mg-chip-neutral; }
+.home-kpi-alert.needs-attention .home-kpi-icon { -fx-background-color: -mg-chip-alert-bg; }
+.home-kpi-alert.needs-attention .line-icon { -fx-stroke: -mg-chip-alert; }
+.home-kpi-alert.needs-attention .home-kpi-number { -fx-text-fill: -mg-chip-alert; }
+
+.home-kpi-number {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 30px;
+    -fx-text-fill: -mg-text;
+}
+
+.home-kpi-note {
+    -fx-font-size: 12px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.home-card-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 22px;
+    -fx-text-fill: -mg-text;
+}
+
+.home-row {
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 14 4 14 4;
+    -fx-padding: 10 14 10 10;
+}
+
+.home-row:hover {
+    -fx-background-color: derive(-mg-active, -3%);
+}
+
+.home-time {
+    -fx-background-color: -mg-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -mg-border;
+    -fx-border-radius: 10;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-gold-dark;
+    -fx-min-width: 62;
+    -fx-alignment: center;
+}
+
+.home-row-title {
+    -fx-font-size: 14.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text;
+}
+
+.home-row-detail {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -mg-text-muted;
+}
+
+.home-empty {
+    -fx-font-size: 14px;
+    -fx-text-fill: -mg-text-muted;
+    -fx-background-color: -mg-active;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
+
+/* Probador virtual: proporciones y paleta circular del mockup M8. */
+.tryon-root { -mg-text-muted: #736167; -mg-tryon-gold: #89632f; }
+.tryon-root .button-gold, .tryon-root .button-secondary { -fx-font-family: "Segoe UI"; -fx-font-size: 14px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-insets: 0; -fx-padding: 10 16; -fx-min-height: 44; -fx-effect: none; }
+.tryon-root .button-gold { -fx-background-color: -mg-tryon-gold; -fx-text-fill: white; -fx-border-color: -mg-tryon-gold; }
+.tryon-root .button-gold:hover { -fx-background-color: derive(-mg-tryon-gold, -10%); }
+.tryon-root .button-gold:focused, .tryon-root .button-secondary:focused { -fx-border-color: -mg-ink; -fx-border-width: 2; }
+.tryon-root .combo-box .text-field { -fx-prompt-text-fill: -mg-text-muted; }
+.tryon-scroll, .tryon-scroll > .viewport { -fx-background-color: transparent; -fx-padding: 0; }
+.tryon-card { -fx-padding: 20; -fx-background-radius: 18; -fx-border-radius: 18; -fx-min-width: 0; }
+.tryon-card-title { -fx-font-family: "Segoe UI"; -fx-font-size: 21px; -fx-text-fill: -mg-text; -fx-padding: 0 0 8 0; }
+.tryon-label { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -mg-text; }
+.tryon-category { -fx-background-color: -mg-rose-dark; -fx-text-fill: white; -fx-background-radius: 24; -fx-padding: 10 16; }
+.tryon-tone-name { -fx-font-size: 13px; -fx-text-fill: -mg-ink; }
+.tryon-root .tone-chip { -fx-background-color: transparent; -fx-background-radius: 28; -fx-border-radius: 28; -fx-border-color: transparent; -fx-border-width: 2; -fx-padding: 2; -fx-min-width: 50; -fx-min-height: 50; -fx-max-width: 50; -fx-max-height: 50; }
+.tryon-root .tone-chip:hover { -fx-background-color: -mg-gold-soft; }
+.tryon-root .tone-chip:selected { -fx-background-color: -mg-surface; -fx-border-color: -mg-gold-dark; }
+.tryon-root .tone-chip:focused { -fx-border-color: -mg-rose-dark; -fx-border-style: dashed; }
+.tryon-root .slider .track { -fx-background-color: -mg-chip-rose-bg; -fx-pref-height: 6; -fx-background-radius: 4; }
+.tryon-root .slider .thumb { -fx-background-color: -mg-rose; -fx-border-color: white; -fx-border-width: 3; -fx-border-radius: 12; -fx-background-radius: 12; -fx-pref-width: 22; -fx-pref-height: 22; }
+.tryon-root .slider:focused .thumb { -fx-border-color: -mg-gold-dark; }
+.tryon-root .photo-frame { -fx-background-radius: 12; -fx-border-radius: 12; }
+.tryon-comparison-badge { -fx-background-color: -mg-rose-dark; -fx-text-fill: white; -fx-background-radius: 18; -fx-padding: 5 12; -fx-font-size: 12px; }
+.camera-dialog { -fx-padding: 20; }
+.camera-dialog .button { -fx-min-height: 40; }

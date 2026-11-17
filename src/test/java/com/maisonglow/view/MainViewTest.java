@@ -58,7 +58,7 @@ class MainViewTest {
         Platform.runLater(() -> {
             try {
                 result.complete(action.get());
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | AssertionError e) {
                 result.completeExceptionally(e);
             }
         });
@@ -307,6 +307,26 @@ class MainViewTest {
 
         assertThat(((ImageView) root.lookup("#logoFull")).getImage().isError()).isFalse();
         assertThat(((ImageView) root.lookup("#logoMark")).getImage().isError()).isFalse();
+    }
+
+    @Test
+    @DisplayName("opens the virtual try-on from the sidebar with photo and tone controls")
+    void opensTryOnFromSidebar() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        Parent root = shownMainView();
+
+        onFxThread(() -> {
+            entry(root, "Probador virtual").fire();
+            StackPane content = (StackPane) root.lookup(".content-area");
+            Parent screen = (Parent) content.getChildren().getFirst();
+            screen.applyCss();
+            screen.layout();
+            assertThat(screen.lookup("#customerBox")).isNotNull();
+            assertThat(screen.lookup("#uploadButton")).isNotNull();
+            assertThat(screen.lookup("#transformationChips")).isNotNull();
+            assertThat(screen.lookup("#generateButton")).isNotNull();
+            return null;
+        });
     }
 
     private Parent shownMainView() throws Exception {

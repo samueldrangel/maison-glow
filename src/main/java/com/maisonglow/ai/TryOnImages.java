@@ -39,12 +39,14 @@ final class TryOnImages {
 
     /** Returns the transformation names to offer in the future JavaFX selector. */
     public static List<String> supportedTransformations() {
-        return List.of("rojo cobrizo", "rubio dorado", "castaño oscuro");
+        return HairTones.names();
     }
 
     BufferedImage validate(TryOnRequest request) throws ValidationException, DataAccessException {
         Validator.requirePresent(request, "solicitud");
         if (request.customerId() <= 0) throw new ValidationException("Selecciona un cliente registrado.");
+        if (!Double.isFinite(request.intensity()) || request.intensity() < 0 || request.intensity() > 1)
+            throw new ValidationException("La intensidad debe estar entre suave e intensa.");
         Validator.requireText(request.transformation(), "transformación");
         String transformation = request.transformation().trim().toLowerCase(Locale.ROOT);
         if (!supportedTransformations().contains(transformation)) throw new ValidationException("Transformación no disponible. Elige una opción de la lista.");
@@ -105,6 +107,10 @@ final class TryOnImages {
     }
 
     static TryOnResult save(BufferedImage source, String transformation, Color tint) throws DataAccessException {
+        return save(source, transformation, tint, 0.5);
+    }
+
+    static TryOnResult save(BufferedImage source, String transformation, Color tint, double intensity) throws DataAccessException {
         int width = Math.max(source.getWidth(), 240);
         BufferedImage preview = new BufferedImage(width, source.getHeight() + LABEL_HEIGHT,
             BufferedImage.TYPE_INT_RGB);
@@ -115,7 +121,7 @@ final class TryOnImages {
             graphics.fillRect(0, 0, width, source.getHeight());
             graphics.drawImage(source, 0, 0, null);
             if (tint != null) {
-                graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.22f));
+                graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (0.44 * intensity)));
                 graphics.setColor(tint);
                 graphics.fillRect(0, 0, source.getWidth(), source.getHeight());
             }
@@ -136,7 +142,7 @@ final class TryOnImages {
             if (!ImageIO.write(preview, "png", image.toFile())) {
                 throw new IOException("No hay codificador PNG disponible.");
             }
-            return new TryOnResult(image, DISCLAIMER);
+            return new TryOnResult(image, DISCLAIMER, source.getWidth(), source.getHeight());
         } catch (IOException | SecurityException e) {
             throw new DataAccessException("No se pudo guardar la simulación.", e);
         }

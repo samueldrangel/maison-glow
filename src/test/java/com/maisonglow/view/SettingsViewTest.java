@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,12 +72,14 @@ class SettingsViewTest {
         return FxTest.onFxThread(() -> label.isVisible() ? label.getText() : "");
     }
 
-    private String file() throws Exception {
-        return Files.readString(data.resolve("settings.txt"));
+    private String storedValues() throws Exception {
+        return new com.maisonglow.dao.SettingDaoSqlite(new com.maisonglow.dao.SqliteDatabase(data.resolve("maison-glow.db")))
+            .loadAll().values().stream().map(setting -> setting.getKey()+"|"+setting.getValue()+"|"+setting.getDescription())
+            .collect(java.util.stream.Collectors.joining("\n"));
     }
 
     @Test
-    @DisplayName("shows the values saved in settings.txt and keeps the buttons off until something changes")
+    @DisplayName("shows the values saved in SQLite and keeps the buttons off until something changes")
     void showsSavedValues() throws Exception {
         Parent root = open();
 
@@ -96,8 +97,8 @@ class SettingsViewTest {
     }
 
     @Test
-    @DisplayName("a saved value is written to settings.txt and read back by the service")
-    void savesToTheFile() throws Exception {
+    @DisplayName("a saved value is written to SQLite and read back by the service")
+    void savesToSqlite() throws Exception {
         Parent root = open();
 
         type(root, "depositField", "40");
@@ -106,7 +107,7 @@ class SettingsViewTest {
         assertThat(root.lookup("#unsavedNote").isVisible()).isTrue();
         press(root, "saveButton");
 
-        assertThat(file()).contains("deposit_percentage|40|").contains("low_rotation_window_days|60|");
+        assertThat(storedValues()).contains("deposit_percentage|40|").contains("low_rotation_window_days|60|");
         assertThat(context.settings().depositPercentage()).isEqualTo(40);
         assertThat(root.lookup("#saveButton").isDisabled()).isTrue();
         assertThat(root.lookup("#unsavedNote").isVisible()).isFalse();
@@ -124,17 +125,17 @@ class SettingsViewTest {
     }
 
     @Test
-    @DisplayName("a percentage out of range is rejected under its field and the file does not change")
+    @DisplayName("a percentage out of range is rejected under its field and the database does not change")
     void rejectsPercentageOutOfRange() throws Exception {
         Parent root = open();
-        String before = file();
+        String before = storedValues();
 
         type(root, "depositField", "150");
         press(root, "saveButton");
 
         assertThat(message(root, "depositMessage")).isEqualTo("El parámetro «Anticipo» debe estar entre 0 y 100.");
         assertThat(field(root, "depositField").getStyleClass()).contains("field-error");
-        assertThat(file()).isEqualTo(before);
+        assertThat(storedValues()).isEqualTo(before);
     }
 
     @Test
@@ -153,14 +154,14 @@ class SettingsViewTest {
     @DisplayName("a rejected value leaves no half-saved screen: the valid ones are put back")
     void rollsBackWhenOneFails() throws Exception {
         Parent root = open();
-        String before = file();
+        String before = storedValues();
 
         type(root, "depositField", "40");
         type(root, "topField", "0");
         press(root, "saveButton");
 
         assertThat(message(root, "topMessage")).contains("al menos 1");
-        assertThat(file()).isEqualTo(before);
+        assertThat(storedValues()).isEqualTo(before);
         assertThat(context.settings().depositPercentage()).isEqualTo(30);
     }
 
@@ -173,7 +174,7 @@ class SettingsViewTest {
         press(root, "saveButton");
 
         assertThat(message(root, "businessMessage")).isNotEmpty();
-        assertThat(file()).contains("business_name|Maison Glow|");
+        assertThat(storedValues()).contains("business_name|Maison Glow|");
     }
 
     @Test

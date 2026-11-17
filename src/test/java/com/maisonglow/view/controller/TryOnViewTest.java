@@ -136,7 +136,8 @@ class TryOnViewTest {
 
         assertThat(FxTest.onFxThread(() -> ((ComboBox<?>) root.lookup("#customerBox")).getItems().size())).isEqualTo(1);
         assertThat(FxTest.onFxThread(() -> root.lookupAll(".tone-chip").stream().map(chip -> ((ToggleButton) chip).getText()).toList()))
-            .containsExactly("Rojo cobrizo", "Rubio dorado", "Castaño oscuro");
+            .containsExactlyElementsOf(com.maisonglow.ai.HairTones.names().stream()
+                .map(name -> name.substring(0, 1).toUpperCase(java.util.Locale.ROOT) + name.substring(1)).toList());
         assertThat(FxTest.onFxThread(() -> root.lookup("#simulatedBanner").isVisible())).isTrue();
         assertThat(FxTest.onFxThread(() -> root.lookup("#saveButton").isDisabled())).isTrue();
         assertThat(message(root, "customerMessage")).isEmpty();
@@ -151,6 +152,130 @@ class TryOnViewTest {
 
         assertThat(hasImage(root, "photoView")).isTrue();
         assertThat(FxTest.onFxThread(() -> root.lookup("#photoPlaceholder").isVisible())).isFalse();
+    }
+
+    @Test
+    void capturedPhotoCanBeSelectedGeneratedAndSaved() throws Exception {
+        assumeTrue(toolkit,"JavaFX toolkit needs a display");
+        Parent root=FxTest.onFxThread(() -> {
+            ViewLoader.Loaded<TryOnController> loaded=ViewLoader.loadWithController(
+                TryOnViewTest.class.getResource("/com/maisonglow/view/TryOnView.fxml"),context);
+            loaded.controller().useExecutor(Runnable::run);
+            loaded.controller().useCameraPicker(() -> photo);
+            loaded.controller().useFilePickers(() -> null,() -> saveTo);
+            new Scene(loaded.root(),1250,760);loaded.root().applyCss();loaded.root().layout();return loaded.root();
+        });
+        chooseCustomer(root);press(root,"cameraButton");chooseTone(root,"Rojo cobrizo");
+        assertThat(hasImage(root,"photoView")).isTrue();
+        press(root,"generateButton");waitForTheAnswer(root);press(root,"saveButton");
+        assertThat(saveTo).exists();assertThat(ImageIO.read(saveTo.toFile())).isNotNull();
+    }
+
+    @Test
+    void cancelingTheCameraKeepsThePreviousReferencePhoto() throws Exception {
+        assumeTrue(toolkit,"JavaFX toolkit needs a display");
+        Parent canceled=FxTest.onFxThread(() -> {
+            ViewLoader.Loaded<TryOnController> loaded=ViewLoader.loadWithController(
+                TryOnViewTest.class.getResource("/com/maisonglow/view/TryOnView.fxml"),context);
+            loaded.controller().useFilePickers(() -> photo,() -> saveTo);
+            loaded.controller().useCameraPicker(() -> null);
+            new Scene(loaded.root(),1250,760);loaded.root().applyCss();loaded.root().layout();return loaded.root();
+        });
+        press(canceled,"uploadButton");
+        var selected=FxTest.onFxThread(() -> ((ImageView)canceled.lookup("#photoView")).getImage());
+        press(canceled,"cameraButton");
+        assertThat(FxTest.onFxThread(() -> ((ImageView)canceled.lookup("#photoView")).getImage())).isSameAs(selected);
+    }
+
+    @Test
+    void refreshesCustomersCreatedAfterOpeningTheCachedScreen() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        var host = FxTest.onFxThread(() -> {
+            var pane = new javafx.scene.layout.StackPane();
+            new Scene(pane,1250,760);
+            return pane;
+        });
+        var navigator = new com.maisonglow.view.Navigator(host, context);
+        FxTest.onFxThread(() -> { navigator.show(com.maisonglow.view.View.TRY_ON); return null; });
+        Parent original = FxTest.onFxThread(() -> (Parent) host.getChildren().getFirst());
+        FxTest.onFxThread(() -> { navigator.show(com.maisonglow.view.View.CUSTOMERS); return null; });
+        Customer added = context.customers().register(new ContactData("1002", "Laura Martínez", "3002223344", "laura@example.com"));
+        FxTest.onFxThread(() -> {
+            navigator.show(com.maisonglow.view.View.TRY_ON);
+            original.applyCss(); original.layout();
+            assertThat(host.getChildren().getFirst()).isSameAs(original);
+            ComboBox<?> box = (ComboBox<?>) original.lookup("#customerBox");
+            assertThat(box.getItems().stream().map(c -> ((Customer)c).getId()).toList()).contains(added.getId());
+            return null;
+        });
+    }
+
+    @Test
+    void changingToneOrPhotoInvalidatesThePreviousResult() throws Exception {
+        Parent root = open(); chooseCustomer(root); press(root,"uploadButton"); chooseTone(root,"Rojo cobrizo");
+        press(root,"generateButton"); waitForTheAnswer(root);
+        assertThat(hasImage(root,"resultView")).isTrue();
+        chooseTone(root,"Rubio dorado");
+        assertThat(hasImage(root,"resultView")).isFalse();
+        assertThat(FxTest.onFxThread(() -> root.lookup("#saveButton").isDisabled())).isTrue();
+    }
+
+    @Test
+    void rendersPaletteWithoutClippingAtSupportedWindowSizes() throws Exception {
+        Path previewPhoto = Path.of(System.getProperty("maison.visualPhoto", photo.toString()));
+        Parent root = open(() -> previewPhoto);
+        chooseCustomer(root); press(root,"uploadButton"); chooseTone(root,"Castaño chocolate");
+        press(root,"generateButton"); waitForTheAnswer(root);
+        Path output = Path.of("target", "visual-qa"); Files.createDirectories(output);
+        for (int[] size : new int[][]{{836,520},{884,600},{1250,820},{1844,1000}}) {
+            FxTest.onFxThread(() -> {
+                root.resize(size[0],size[1]); root.applyCss(); root.layout();
+                var beforeImage = root.lookup("#beforeView");
+                var afterImage = root.lookup("#resultView");
+                var beforeBounds = beforeImage.localToScene(beforeImage.getBoundsInLocal());
+                var afterBounds = afterImage.localToScene(afterImage.getBoundsInLocal());
+                assertThat(afterBounds.getMinX()).as("comparison images share the same horizontal origin")
+                    .isCloseTo(beforeBounds.getMinX(), org.assertj.core.data.Offset.offset(1.0));
+                assertThat(afterBounds.getMinY()).as("comparison images share the same vertical origin")
+                    .isCloseTo(beforeBounds.getMinY(), org.assertj.core.data.Offset.offset(1.0));
+                var palette = (javafx.scene.layout.TilePane)root.lookup("#transformationChips");
+                for (String id : new String[]{"photoFrame", "resultFrame"}) {
+                    var frame = root.lookup("#"+id);
+                    assertThat(frame.getBoundsInParent().getMaxX()).isLessThanOrEqualTo(frame.getParent().getLayoutBounds().getWidth());
+                }
+                assertThat(palette.getChildren()).hasSize(15);
+                for (var chip : palette.getChildren()) {
+                    assertThat(chip.getBoundsInParent().getMaxX()).isLessThanOrEqualTo(palette.getWidth()+1);
+                    assertThat(chip.getBoundsInParent().getMaxY()).isLessThanOrEqualTo(palette.getHeight()+1);
+                }
+                javafx.scene.image.WritableImage snapshot = root.snapshot(null,null);
+                BufferedImage image = new BufferedImage((int)snapshot.getWidth(),(int)snapshot.getHeight(),BufferedImage.TYPE_INT_ARGB);
+                var pixels=snapshot.getPixelReader();
+                for(int y=0;y<image.getHeight();y++) for(int x=0;x<image.getWidth();x++) image.setRGB(x,y,pixels.getArgb(x,y));
+                try { ImageIO.write(image,"png",output.resolve("tryon-"+size[0]+".png").toFile()); }
+                catch (java.io.IOException e) { throw new java.io.UncheckedIOException(e); }
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void differentAspectRatiosUseTheReferencePhotoInsteadOfAMisalignedWipe() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        AppContext testContext = org.mockito.Mockito.mock(AppContext.class);
+        org.mockito.Mockito.when(testContext.customers()).thenReturn(context.customers());
+        org.mockito.Mockito.when(testContext.ai()).thenReturn(new com.maisonglow.ai.AiModule(context.ai().assistant(),
+            request -> new com.maisonglow.ai.TryOnResult(photo,"simulación, no garantía",160,160),false));
+        Parent root = FxTest.onFxThread(() -> {
+            ViewLoader.Loaded<TryOnController> loaded=ViewLoader.loadWithController(
+                TryOnViewTest.class.getResource("/com/maisonglow/view/TryOnView.fxml"),testContext);
+            loaded.controller().useExecutor(Runnable::run);loaded.controller().useFilePickers(() -> photo,() -> saveTo);
+            new Scene(loaded.root(),1250,760);loaded.root().applyCss();loaded.root().layout();return loaded.root();
+        });
+        chooseCustomer(root);press(root,"uploadButton");chooseTone(root,"Rojo cobrizo");press(root,"generateButton");waitForTheAnswer(root);
+        assertThat(FxTest.onFxThread(() -> root.lookup("#comparisonSlider").isVisible())).isFalse();
+        assertThat(FxTest.onFxThread(() -> root.lookup("#comparisonHint").isVisible())).isTrue();
+        assertThat(hasImage(root,"resultView")).isTrue();
     }
 
     @Test
@@ -222,6 +347,9 @@ class TryOnViewTest {
         waitForTheAnswer(root);
 
         assertThat(hasImage(root, "resultView")).isTrue();
+        var viewport = FxTest.onFxThread(() -> ((ImageView) root.lookup("#resultView")).getViewport());
+        assertThat(viewport.getWidth()).isEqualTo(160);
+        assertThat(viewport.getHeight()).isEqualTo(200);
         assertThat(FxTest.onFxThread(() -> ((Label) root.lookup("#disclaimerLabel")).getText()).toLowerCase()).contains("simulación, no garantía");
         assertThat(FxTest.onFxThread(() -> root.lookup("#resultPlaceholder").isVisible())).isFalse();
         assertThat(FxTest.onFxThread(() -> root.lookup("#saveButton").isDisabled())).isFalse();

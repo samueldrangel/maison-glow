@@ -1,12 +1,11 @@
 -- Maison Glow - complete database schema (SQLite)
 --
--- DESIGN DOCUMENT: this script is not applied in delivery 1, which persists in text files
--- (docs/adr/0012). It is validated against SQLite and connected in delivery 2.
+-- Applied automatically when the local SQLite database is opened.
 --
 -- Conventions
 --   * Dates and times are ISO-8601 text: date 'yyyy-MM-dd', date-time 'yyyy-MM-ddTHH:mm:ss', time 'HH:mm'.
 --   * Booleans are INTEGER 0 (false) or 1 (true).
---   * Money is REAL expressed in Colombian pesos.
+--   * Money is exact decimal TEXT in Colombian pesos, read as BigDecimal by JDBC DAOs.
 --   * Stock is only changed by inserting rows in stock_movement; a trigger applies them to product.stock.
 --   * Delivery in which each table is first used: [D1] business logic (in-memory DAO equivalent),
 --     [D2] JDBC persistence, [AI] artificial intelligence modules.
@@ -64,7 +63,7 @@ CREATE TABLE IF NOT EXISTS treatment (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     name              TEXT    NOT NULL UNIQUE,
     description       TEXT    NOT NULL DEFAULT '',
-    price             REAL    NOT NULL CHECK (price > 0),
+    price             TEXT    NOT NULL CHECK (CAST(price AS NUMERIC) > 0),
     duration_minutes  INTEGER NOT NULL CHECK (duration_minutes > 0),
     active            INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
 );
@@ -91,7 +90,7 @@ CREATE TABLE IF NOT EXISTS product (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     name           TEXT    NOT NULL UNIQUE,
     category_id    INTEGER NOT NULL REFERENCES product_category (id),
-    price          REAL    NOT NULL CHECK (price > 0),
+    price          TEXT    NOT NULL CHECK (CAST(price AS NUMERIC) > 0),
     stock          INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
     minimum_stock  INTEGER NOT NULL DEFAULT 0 CHECK (minimum_stock >= 0),
     active         INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
@@ -112,7 +111,7 @@ CREATE TABLE IF NOT EXISTS appointment (
     end_at           TEXT    NOT NULL,
     status           TEXT    NOT NULL DEFAULT 'PENDING'
                      CHECK (status IN ('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW')),
-    deposit          REAL    NOT NULL DEFAULT 0 CHECK (deposit >= 0),
+    deposit          TEXT    NOT NULL DEFAULT '0' CHECK (CAST(deposit AS NUMERIC) >= 0),
     reminder_at      TEXT,
     created_at       TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now')),
     CHECK (end_at > start_at)
@@ -128,7 +127,7 @@ CREATE TABLE IF NOT EXISTS sale (
     customer_id     INTEGER NOT NULL REFERENCES customer (id),
     appointment_id  INTEGER UNIQUE REFERENCES appointment (id),
     sold_at         TEXT    NOT NULL,
-    total           REAL    NOT NULL CHECK (total >= 0)
+    total           TEXT    NOT NULL CHECK (CAST(total AS NUMERIC) >= 0)
 );
 
 -- [D2] Promotions that can be applied to products (RF-31). origin says how it was created.
@@ -160,7 +159,7 @@ CREATE TABLE IF NOT EXISTS sale_line (
     treatment_id  INTEGER REFERENCES treatment (id),
     promotion_id  INTEGER REFERENCES promotion (id),
     quantity      INTEGER NOT NULL CHECK (quantity > 0),
-    unit_price    REAL    NOT NULL CHECK (unit_price > 0),
+    unit_price    TEXT    NOT NULL CHECK (CAST(unit_price AS NUMERIC) > 0),
     CHECK ((product_id IS NULL) <> (treatment_id IS NULL)),
     CHECK (promotion_id IS NULL OR product_id IS NOT NULL)
 );
@@ -185,7 +184,7 @@ CREATE TABLE IF NOT EXISTS payment (
     appointment_id  INTEGER REFERENCES appointment (id),
     kind            TEXT    NOT NULL CHECK (kind IN ('DEPOSIT', 'SALE_PAYMENT')),
     method          TEXT    NOT NULL CHECK (method IN ('CASH', 'CARD', 'TRANSFER')),
-    amount          REAL    NOT NULL CHECK (amount > 0),
+    amount          TEXT    NOT NULL CHECK (CAST(amount AS NUMERIC) > 0),
     paid_at         TEXT    NOT NULL,
     CHECK ((kind = 'DEPOSIT' AND appointment_id IS NOT NULL)
         OR (kind = 'SALE_PAYMENT' AND sale_id IS NOT NULL))
