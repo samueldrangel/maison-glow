@@ -9,6 +9,8 @@
 Este documento es el plan maestro. Las decisiones técnicas están justificadas en [`docs/adr/`](docs/adr/README.md).
 Las fechas se expresan en **semanas relativas**; ajústalas a las fechas de entrega que fije el docente.
 
+**Ampliación del 17 de noviembre de 2026:** [roadmap de roles cliente y administrador](docs/roadmap-roles.md). Para este alcance nuevo, Isabella realiza primero el frontend de acceso y administración, Nicoll continúa con el frontend del cliente y Samuel asume todo el backend. Ese reparto prevalece sobre las asignaciones históricas de este plan para las tareas nuevas.
+
 ---
 
 ## 1. Equipo y roles

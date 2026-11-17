@@ -1,5 +1,11 @@
 # Team
 
+## Nueva ampliación: roles (2026-11-17)
+
+La tabla inicial del roadmap reúne el estado de las 20 tareas locales planificadas (19 principales y una semilla opcional). Samuel mantiene SQLite local y asume el backend y la semilla S-R08; nube y conexión compartida quedan aplazadas hasta evaluar su necesidad después de la presentación del 18 de noviembre.
+
+El [roadmap de roles cliente y administrador](docs/roadmap-roles.md) asigna **todo el frontend en bloques consecutivos**: primero Isabella (acceso, navegación y administración), después Nicoll (área del cliente). **Samuel realiza todo el backend** de la ampliación: cuentas, permisos, pedidos, inventario reservado, citas propias, imágenes, historial e IA por cuenta. Esta distribución sustituye las asignaciones históricas únicamente para las tareas nuevas; las secciones siguientes conservan la autoría del trabajo previo.
+
 ## Members
 
 | Name | GitHub Username | Role | Modules | Feature Branches |
