@@ -18,6 +18,8 @@ import com.maisonglow.service.TreatmentService;
 import com.maisonglow.service.rule.ConfirmationRule;
 import com.maisonglow.service.rule.DepositRule;
 import com.maisonglow.service.rule.ReminderRule;
+import com.maisonglow.view.access.AccessGateway;
+import com.maisonglow.view.access.InMemoryAccessGateway;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,6 +59,7 @@ public final class AppContext {
     private final AiModule ai;
     private final AiHistory aiHistory;
     private final SqliteDatabase database;
+    private AccessGateway access = new InMemoryAccessGateway();
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -128,6 +131,18 @@ public final class AppContext {
         } catch (com.maisonglow.exception.DataAccessException e) { throw new IOException("No se pudo preparar SQLite: " + e.getMessage(), e); }
         return SESSION_DATA;
     }
+
+    /**
+     * @return the accounts and the session; for now an in-memory stand-in that S-R02 replaces
+     */
+    public AccessGateway access() { return access; }
+
+    /**
+     * Replaces the account service, which the real service (S-R02) and the tests use.
+     *
+     * @param gateway the service to use from now on
+     */
+    public void useAccess(AccessGateway gateway) { this.access = Objects.requireNonNull(gateway, "gateway"); }
 
     /** @return the SQLite database shared by all business services */
     public SqliteDatabase database() { return database; }
