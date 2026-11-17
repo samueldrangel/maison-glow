@@ -1457,3 +1457,72 @@
 .tryon-comparison-badge { -fx-background-color: -mg-rose-dark; -fx-text-fill: white; -fx-background-radius: 18; -fx-padding: 5 12; -fx-font-size: 12px; }
 .camera-dialog { -fx-padding: 20; }
 .camera-dialog .button { -fx-min-height: 40; }
+
+/* ---- Acceso: inicio de sesion y creacion de cuenta ---- */
+.auth-root {
+    -fx-background-color: -mg-cream;
+}
+
+.auth-brand {
+    -fx-background-color: linear-gradient(to bottom right, -mg-rose-dark, -mg-rose 65%, -mg-gold);
+    -fx-padding: 40;
+}
+
+.auth-tagline {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 22px;
+    -fx-text-fill: white;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}
+
+.auth-side {
+    -fx-padding: 28;
+}
+
+.auth-card {
+    -fx-padding: 32 34 28 34;
+    -fx-background-radius: 26 6 26 6;
+    -fx-border-radius: 26 6 26 6;
+}
+
+.auth-title {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 30px;
+    -fx-text-fill: -mg-text;
+}
+
+.auth-alert {
+    -fx-background-color: -mg-chip-alert-bg;
+    -fx-text-fill: -mg-chip-alert;
+    -fx-background-radius: 12;
+    -fx-padding: 10 14 10 14;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+}
+
+.auth-scroll, .auth-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.auth-scroll .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+}
+
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -mg-rose-dark;
+    -fx-font-weight: bold;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.link-button:hover {
+    -fx-underline: true;
+}
+
+.auth-pad {
+    -fx-padding: 8 24 24 24;
+}

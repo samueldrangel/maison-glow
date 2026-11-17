@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de creacion de cuenta. Mismo panel de marca que el inicio de sesion; la tarjeta pide nombre, documento,
+     telefono, correo, usuario y contrasena con su confirmacion. No hay selector de rol: una cuenta nueva siempre es de
+     cliente. Cada campo tiene debajo su mensaje de error ("Mensaje de error" se ve aqui solo para disenar).
+     Colores: View > Scene Style Sheets > styles.css (clases auth-*). -->
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.maisonglow.view.controller.RegisterController"
+      styleClass="view-root, auth-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="720">
+    <VBox styleClass="auth-brand" alignment="CENTER" spacing="18" prefWidth="0" HBox.hgrow="ALWAYS">
+        <ImageView fitWidth="260" preserveRatio="true" smooth="true">
+            <image><Image url="@images/logo-claro.png"/></image>
+        </ImageView>
+        <Label text="Reserva, compra y cuida tu imagen" styleClass="auth-tagline"/>
+    </VBox>
+    <StackPane styleClass="auth-side" minWidth="560" prefWidth="0" HBox.hgrow="ALWAYS">
+        <ScrollPane styleClass="auth-scroll" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" maxWidth="560">
+            <StackPane styleClass="auth-pad" alignment="CENTER">
+            <VBox styleClass="card, auth-card" spacing="4" prefWidth="500" maxWidth="500" maxHeight="-Infinity">
+                <Label text="Crea tu cuenta" styleClass="auth-title"/>
+                <Label text="Con ella reservas citas y compras en la tienda." styleClass="form-hint"/>
+                <Region minHeight="8"/>
+                <HBox spacing="12">
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Nombre completo" styleClass="form-label"/>
+                        <TextField fx:id="nameField" promptText="Ana García"/>
+                        <Label fx:id="nameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Documento" styleClass="form-label"/>
+                        <TextField fx:id="documentField" promptText="1001234567"/>
+                        <Label fx:id="documentMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                </HBox>
+                <HBox spacing="12">
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Teléfono" styleClass="form-label"/>
+                        <TextField fx:id="phoneField" promptText="3001112233"/>
+                        <Label fx:id="phoneMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Correo" styleClass="form-label"/>
+                        <TextField fx:id="emailField" promptText="ana@correo.com"/>
+                        <Label fx:id="emailMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                </HBox>
+                <Label text="Usuario" styleClass="form-label"/>
+                <TextField fx:id="usernameField" promptText="Con este usuario inicias sesión"/>
+                <Label fx:id="usernameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                <HBox spacing="12">
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Contraseña" styleClass="form-label"/>
+                        <PasswordField fx:id="passwordField" promptText="Mínimo 8"/>
+                        <Label fx:id="passwordMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                    <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
+                        <Label text="Repite la contraseña" styleClass="form-label"/>
+                        <PasswordField fx:id="confirmationField" promptText="Otra vez"/>
+                        <Label fx:id="confirmationMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    </VBox>
+                </HBox>
+                <Label fx:id="formMessage" text="Ya existe una cuenta con ese usuario." styleClass="auth-alert" wrapText="true"/>
+                <Region minHeight="8"/>
+                <HBox alignment="CENTER" spacing="10">
+                    <Button fx:id="registerButton" text="Crear cuenta" styleClass="button-gold" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <ProgressIndicator fx:id="waiting" prefWidth="26" prefHeight="26" maxWidth="26" maxHeight="26"/>
+                </HBox>
+                <HBox alignment="CENTER" spacing="6">
+                    <padding><Insets top="8"/></padding>
+                    <Label text="¿Ya tienes cuenta?" styleClass="form-hint"/>
+                    <Button fx:id="loginLink" text="Iniciar sesión" styleClass="link-button"/>
+                </HBox>
+            </VBox>
+            </StackPane>
+        </ScrollPane>
+    </StackPane>
+</HBox>
