@@ -59,13 +59,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Console entry point of Delivery 1. Wires the text-file DAOs and the
- * services (the only place where concrete classes are created) and offers two
- * ways to see the system working: the automatic demo (N-11), which runs the
- * complete business scenario over a fresh copy of the data folder so it can
- * be executed any number of times, and the interactive console, where the
- * user registers, lists and changes data through menus over a folder that
- * keeps its data between runs.
+ * Application entry point. Opens JavaFX by default and retains the console
+ * demonstration and interactive menu as explicit modes.
  */
 public final class Main {
 
@@ -108,13 +103,16 @@ public final class Main {
     }
 
     /**
-     * Starts the console. With the argument {@code demo} it runs the automatic
-     * demo, with {@code menu} it opens the interactive console, and without
-     * arguments it asks which of the two to run.
+     * Opens JavaFX without arguments. With {@code demo} it runs the automatic
+     * console demo; with {@code menu} it opens the interactive console.
      *
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        if (args.length == 0) {
+            MaisonGlowApp.main(args);
+            return;
+        }
         System.out.println("Maison Glow - Sistema de gestión para negocios de belleza");
         if(args.length>0&&"seed-local".equalsIgnoreCase(args[0])){seedLocal(args);return;}
         if (args.length > 0 && "setup-admin".equalsIgnoreCase(args[0])) {

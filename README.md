@@ -112,6 +112,8 @@ mvn javafx:run
 
 La ventana abre en **Acceso**. Para administrar el negocio, configurar primero una cuenta ADMIN con el [procedimiento de configuración local](docs/fase3/roles-contratos.md#configurar-el-primer-administrador-local) e iniciar sesión con ella. El registro público crea cuentas de cliente. La barra lateral muestra las opciones del rol y se expande al pasar el cursor.
 
+También se puede ejecutar `com.maisonglow.Main` sin argumentos desde el IDE o usar `mvn exec:java`: ambos abren la misma interfaz JavaFX. Los argumentos `demo` y `menu` conservan los modos de consola.
+
 ## 7. Base de datos y datos de demostración
 
 El primer arranque crea `data/session/maison-glow.db` con las tablas, índices y reglas del esquema incluido en la aplicación. Importa una sola vez los archivos de texto del negocio que ya hubiera en esa carpeta, conservando IDs y relaciones. Los archivos originales no se borran ni se reescriben. Si la importación falla, se revierte y se muestra el error para poder corregirlo y reintentar.
