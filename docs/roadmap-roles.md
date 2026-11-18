@@ -11,7 +11,7 @@
 
 | Integrante | Qué entrega | Orden de trabajo | Terminadas / total | Estado inicial | Próximo paso |
 |---|---|---|---|---|---|
-| **Isabella** | Frontend de acceso y administración | Primero I-R01 → I-R06 | 0 / 6 | Pendiente | Login y registro tras acordar S-R01 |
+| **Isabella** | Frontend de acceso y administración | Primero I-R01 → I-R06 | 0 / 6 | En curso: I-R01 hecha en local (falta integrar S-R02), I-R02 en curso | Que Samuel integre S-R02 en I-R01; cerrar I-R02 y seguir con I-R03 |
 | **Nicoll** | Frontend del cliente: perfil, tienda, compras, citas, fotos e IA | Después de I-R06: N-R01 → N-R06 | 0 / 6 | En espera del bloque 1 | Revisar contratos y casos de uso; programar al recibir el traspaso |
 | **Samuel** | Backend local completo y semilla opcional | S-R01 → S-R07; S-R08 después, si hay tiempo | 0 / 8 | Pendiente | Contratos, permisos y diseño de datos |
 
@@ -26,8 +26,8 @@
 | B5 | S-R05 | Perfil y citas propias | Samuel | S-R04 | Pendiente | — |
 | B6 | S-R06 | Fotos, historial e IA por cuenta | Samuel | S-R05 | Pendiente | — |
 | B8 | S-R08 | Semilla local ampliada (opcional) | Samuel | S-R07 | Pendiente, posterior al cierre | — |
-| F1 | I-R01 | Pantallas de acceso | Isabella | S-R01; integrar S-R02 | Pendiente | — |
-| F2 | I-R02 | Navegación por rol | Isabella | I-R01 | Pendiente | — |
+| F1 | I-R01 | Pantallas de acceso | Isabella | S-R01; integrar S-R02 | En curso: pantallas, sesión y pruebas hechas con un doble en memoria; falta conectar el servicio real (S-R02) | Ramas `feature/roles-i-r01-acceso` y `feature/roles-i-r01-sesion`; PR sin fusionar |
+| F2 | I-R02 | Navegación por rol | Isabella | I-R01 | En curso: navegación y menú por rol, cierre de sesión que descarta lo pendiente y componentes compartidos hechos en local | Rama `feature/roles-i-r02` (apilada sobre I-R01); PR sin abrir |
 | F3 | I-R03 | Productos y fotos del administrador | Isabella | I-R02, S-R03 | Pendiente | — |
 | F4 | I-R04 | Pedidos y ventas del administrador | Isabella | I-R03, S-R04 | Pendiente | — |
 | F5 | I-R05 | Agenda, clientes, historial y cuentas | Isabella | I-R04, S-R05, S-R06 | Pendiente | — |
@@ -119,8 +119,8 @@ Las pruebas de aislamiento incluyen dos clientes distintos, un administrador y u
 
 | ID | Pri. | Entregable de frontend | Depende de | Criterio de aceptación | Estado |
 |---|---|---|---|---|---|
-| I-R01 | P0 | Login, registro, logout y cambio de contraseña | S-R01; integración: S-R02 | Validación por campo, contraseña oculta, errores claros, espera durante petición y registro sin selector de rol. La pantalla inicial depende de la sesión. | Pendiente |
-| I-R02 | P0 | Navegación por rol y componentes compartidos | I-R01 | Menú administrativo y estructura del área cliente; acceso directo a vista prohibida rechazado; logout limpia pantallas y solicitudes pendientes. Componentes de carga, errores de archivo/base local y sesión vencida; las operaciones lentas de cámara e IA no bloquean JavaFX. Dejar rutas preparadas para Nicoll. | Pendiente |
+| I-R01 | P0 | Login, registro, logout y cambio de contraseña | S-R01; integración: S-R02 | Validación por campo, contraseña oculta, errores claros, espera durante petición y registro sin selector de rol. La pantalla inicial depende de la sesión. | En curso (sin fusionar; falta integrar S-R02) |
+| I-R02 | P0 | Navegación por rol y componentes compartidos | I-R01 | Menú administrativo y estructura del área cliente; acceso directo a vista prohibida rechazado; logout limpia pantallas y solicitudes pendientes. Componentes de carga, errores de archivo/base local y sesión vencida; las operaciones lentas de cámara e IA no bloquean JavaFX. Dejar rutas preparadas para Nicoll. | En curso (sin fusionar) |
 | I-R03 | P0 | Productos del administrador y portada | I-R02, S-R03 | Crear/editar, publicar/retirar y mostrar portada; Tomar foto/Subir foto, vista previa, repetir/cancelar y sustitución; funciona sin cámara mediante archivo. | Pendiente |
 | I-R04 | P0 | Gestión administrativa de pedidos y ventas | I-R03, S-R04 | Estados, detalle y reserva visibles; confirmar pago, cancelar y emitir comprobante de venta; no presentar pedido pendiente como pagado. | Pendiente |
 | I-R05 | P0 | Adaptar agenda, clientes, historial y cuentas del administrador | I-R04, S-R05, S-R06 | Agenda conserva operaciones actuales; ficha con historial autorizado y registro de atención; cuentas activables/desactivables sin exponer contraseñas; resumen administrativo y configuración accesibles. | Pendiente |
