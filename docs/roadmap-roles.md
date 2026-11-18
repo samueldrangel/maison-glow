@@ -25,7 +25,7 @@
 | B4 | S-R04 | Pedidos, reservas y ventas | Samuel | S-R03 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
 | B5 | S-R05 | Perfil y citas propias | Samuel | S-R04 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
 | B6 | S-R06 | Fotos, historial e IA por cuenta | Samuel | S-R05 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
-| B8 | S-R08 | Semilla local ampliada (opcional) | Samuel | S-R07 | Pendiente, posterior al cierre | — |
+| B8 | S-R08 | Semilla local ampliada (opcional) | Samuel | S-R07 | Lista para revisión técnica; cierre posterior a S-R07 | [Generador y uso](fase3/semilla-local.md); pendiente PR y recorrido final |
 | F1 | I-R01 | Pantallas de acceso | Isabella | S-R01; integrar S-R02 | Terminada | PR #57/#58 fusionados |
 | F2 | I-R02 | Navegación por rol | Isabella | I-R01 | Terminada | PR #59 fusionado |
 | F3 | I-R03 | Productos y fotos del administrador | Isabella | I-R02, S-R03 | Pendiente | — |
@@ -206,9 +206,9 @@ Las mejoras posteriores de frontend también se programan en bloques consecutivo
 
 | ID | Pri. | Tarea | Depende de | Criterio de aceptación | Estado |
 |---|---|---|---|---|---|
-| S-R08 | P1 | Generador de semilla local reproducible | S-R07 | Perfil pequeño para demo y grande para volumen; fecha base y semilla aleatoria fijas; solo sobre destino de pruebas explícito, nunca al arranque normal; segunda ejecución sin duplicados; relaciones, totales, stock y agenda coherentes; informe de conteos. No sobrescribir datos existentes ni usar información personal real. | Pendiente |
+| S-R08 | P1 | Generador de semilla local reproducible | S-R07 | Perfil pequeño para demo y grande para volumen; fecha base y semilla aleatoria fijas; solo sobre destino de pruebas explícito, nunca al arranque normal; segunda ejecución sin duplicados; relaciones, totales, stock y agenda coherentes; informe de conteos. No sobrescribir datos existentes ni usar información personal real. | Lista para revisión técnica; cierre posterior a S-R07 |
 
-Para mañana basta un conjunto pequeño que cubra dos clientes con cuentas distintas, un administrador, productos publicados/retirados, stock disponible/agotado, tratamientos, profesionales y citas en estados válidos. Las credenciales de prueba se entregan fuera de Git. La semilla actual sigue como está hasta implementar S-R08; este documento no carga datos.
+Para mañana basta un conjunto pequeño que cubra dos clientes con cuentas distintas, un administrador, productos publicados/retirados, stock disponible/agotado, tratamientos, profesionales y citas en estados válidos. Las credenciales de prueba se entregan fuera de Git. El generador está [preparado para revisión](fase3/semilla-local.md); este documento no carga datos.
 
 El perfil grande queda para después del cierre: hasta 1.000 clientes, 200 productos, 20 profesionales, 30 tratamientos, 5.000 citas, 3.000 ventas, 1.000 pedidos y 1.000 registros de historial. Ajustar el volumen a las pruebas necesarias; no generar cientos de imágenes mediante API ni enviar correos reales para poblar ejemplos. Debe incluir también cuentas sin actividad y listas vacías.
 

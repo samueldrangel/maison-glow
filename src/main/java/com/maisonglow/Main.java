@@ -116,6 +116,7 @@ public final class Main {
      */
     public static void main(String[] args) {
         System.out.println("Maison Glow - Sistema de gestión para negocios de belleza");
+        if(args.length>0&&"seed-local".equalsIgnoreCase(args[0])){seedLocal(args);return;}
         if (args.length > 0 && "setup-admin".equalsIgnoreCase(args[0])) {
             setupAdmin();
             return;
@@ -128,6 +129,21 @@ public final class Main {
         } else {
             chooseMode(console);
         }
+    }
+
+    private static void seedLocal(String[] args) {
+        if(args.length!=5){System.err.println("Uso: seed-local SMALL|LARGE carpeta-demo yyyy-MM-ddTHH:mm semilla-numerica");return;}
+        String secret=System.getenv("MAISON_GLOW_DEMO_PASSWORD");
+        if(secret==null){System.err.println("Configura MAISON_GLOW_DEMO_PASSWORD solo para las cuentas ficticias de demo.");return;}
+        char[] password=secret.toCharArray();
+        try {
+            var profile=com.maisonglow.service.LocalSeedService.Profile.valueOf(args[1].toUpperCase(Locale.ROOT));
+            var report=new com.maisonglow.service.LocalSeedService().generate(Path.of(args[2]),profile,LocalDateTime.parse(args[3]),Long.parseLong(args[4]),password);
+            System.out.println((report.reused()?"Demo existente; datos y contraseñas conservados: ":"Demo local generada: ")+report.folder());
+            report.counts().forEach((table,count) -> System.out.println(table+": "+count));
+            System.out.println("Tiempo: "+report.elapsedMillis()+" ms. Cuentas: demo-admin-1, demo-cliente-0001 y demo-cliente-0002. No se envían correos ni se llama a IA.");
+        }catch(IOException|ValidationException|DataAccessException|IllegalArgumentException e){System.err.println("No se pudo generar la demo: "+e.getMessage());}
+        finally{java.util.Arrays.fill(password,'\0');}
     }
 
     /** Explicit local setup; secrets come from the process environment, never command arguments or Git. */
