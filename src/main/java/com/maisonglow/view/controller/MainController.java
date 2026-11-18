@@ -232,6 +232,16 @@ public final class MainController {
         navigator.show(start);
         if (session.isAdministrator()) {
             refreshBadges();
+        } else {
+            hideBadges();
+        }
+    }
+
+    /** The counters of the menu are the business's (today's appointments, products to restock): a customer never sees them. */
+    private void hideBadges() {
+        for (Label badge : List.of(appointmentsBadge, productsBadge)) {
+            badge.setVisible(false);
+            badge.setManaged(false);
         }
     }
 

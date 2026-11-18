@@ -2,13 +2,11 @@ package com.maisonglow.view;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.view.access.AccessSession;
-import com.maisonglow.view.controller.ChangePasswordController;
 import com.maisonglow.view.controller.LoginController;
 import com.maisonglow.view.controller.MainController;
 import com.maisonglow.view.controller.RegisterController;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -64,6 +62,11 @@ public final class AppWindow {
     /** Shows the first screen: the area of the open session if there is one, the sign-in otherwise. */
     public void start() {
         AlertPresenter.onSessionExpired(this::logout);
+        ChangePasswordDialog.onChanged(() -> {
+            // The service ends every session of the account when the password changes: back to the sign-in.
+            logout();
+            new AlertPresenter(scene.getRoot()).toast("Contraseña actualizada. Inicia sesión con la nueva.");
+        });
         context.access().current().ifPresentOrElse(this::showArea, this::showLogin);
     }
 
@@ -114,22 +117,7 @@ public final class AppWindow {
     }
 
     private void openChangePassword() {
-        ViewLoader.Loaded<ChangePasswordController> loaded =
-            ViewLoader.loadWithController(resource("ChangePasswordView.fxml"), context);
-        Stage dialog = new Stage();
-        dialog.initOwner(stage);
-        dialog.initModality(Modality.WINDOW_MODAL);
-        dialog.setTitle("Cambiar contraseña");
-        dialog.setResizable(false);
-        loaded.controller().onCancel(dialog::close);
-        loaded.controller().onDone(() -> {
-            dialog.close();
-            // The service ends every session of the account when the password changes: back to the sign-in.
-            logout();
-            new AlertPresenter(scene.getRoot()).toast("Contraseña actualizada. Inicia sesión con la nueva.");
-        });
-        dialog.setScene(new Scene(loaded.root()));
-        dialog.show();
+        ChangePasswordDialog.show(stage, context);
     }
 
     private void show(Parent root) {
