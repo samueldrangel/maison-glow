@@ -37,6 +37,8 @@ public final class AlertPresenter {
     private static final ButtonType CONFIRM = new ButtonType("Confirmar", ButtonData.OK_DONE);
     private static final ButtonType CANCEL = new ButtonType("Cancelar", ButtonData.CANCEL_CLOSE);
 
+    private static Runnable sessionExpired = () -> { };
+
     private final Supplier<Window> owner;
     private final Function<Alert, Optional<ButtonType>> display;
 
@@ -66,6 +68,19 @@ public final class AlertPresenter {
     public void showError(Exception error) {
         AlertMessages.Message message = AlertMessages.of(error);
         display.apply(build(message.type(), message.title(), message.text(), UNDERSTOOD));
+        if (error instanceof com.maisonglow.view.access.SessionExpiredException) {
+            sessionExpired.run();
+        }
+    }
+
+    /**
+     * Sets what happens after the dialog of an ended session: the window closes the session and goes back to the
+     * sign-in. It is global because any screen can find out that the session ended, and none of them owns the window.
+     *
+     * @param action what to do, normally the logout of the window
+     */
+    public static void onSessionExpired(Runnable action) {
+        sessionExpired = Objects.requireNonNull(action, "action");
     }
 
     /**

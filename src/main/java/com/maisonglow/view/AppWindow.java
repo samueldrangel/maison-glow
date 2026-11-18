@@ -63,6 +63,7 @@ public final class AppWindow {
 
     /** Shows the first screen: the area of the open session if there is one, the sign-in otherwise. */
     public void start() {
+        AlertPresenter.onSessionExpired(this::logout);
         context.access().current().ifPresentOrElse(this::showArea, this::showLogin);
     }
 

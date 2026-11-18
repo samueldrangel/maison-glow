@@ -3,6 +3,7 @@ package com.maisonglow.view;
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
+import com.maisonglow.view.access.SessionExpiredException;
 import javafx.scene.control.Alert.AlertType;
 
 import java.util.Objects;
@@ -17,6 +18,8 @@ public final class AlertMessages {
 
     private static final String DATA_ERROR = "No se pudo leer o guardar la información. "
         + "Revisa que la carpeta de datos esté disponible e inténtalo de nuevo.";
+    private static final String FILE_ERROR = "No se pudo leer o guardar el archivo. "
+        + "Revisa que exista, que no esté abierto en otro programa y que tengas permiso.";
     private static final String UNEXPECTED_ERROR = "Ocurrió un problema inesperado. "
         + "Inténtalo de nuevo; si continúa, avisa al equipo.";
 
@@ -39,6 +42,12 @@ public final class AlertMessages {
      */
     public static Message of(Exception error) {
         Objects.requireNonNull(error, "error");
+        if (error instanceof SessionExpiredException) {
+            return new Message(AlertType.WARNING, "Sesión terminada", error.getMessage());
+        }
+        if (error instanceof java.io.IOException || error instanceof java.io.UncheckedIOException) {
+            return new Message(AlertType.ERROR, "Error de archivo", FILE_ERROR);
+        }
         if (error instanceof ValidationException) {
             return new Message(AlertType.WARNING, "Datos no válidos", error.getMessage());
         }
