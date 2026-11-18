@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class SqliteIntegrationTest {
     @TempDir Path folder;
-    private AppContext open() { return new AppContext(folder,Clock.systemDefaultZone(),AiConfig.simulated()); }
+    private AppContext open() { return com.maisonglow.TestAccounts.open(folder,Clock.systemDefaultZone(),AiConfig.simulated()); }
     private Customer customer(AppContext app) throws Exception {
         return app.customers().register(new ContactData("1001","Ana García","3001112233","ana@example.com"));
     }

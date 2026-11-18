@@ -58,7 +58,7 @@ class AppointmentsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         tomorrow = LocalDate.now().plusDays(1);
         Customer ana = context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         Customer laura = context.customers().register(new ContactData("1002", "Laura Méndez", "3124445566", "laura@correo.com"));
@@ -190,7 +190,7 @@ class AppointmentsViewTest {
     /** Books two appointments 10 days ago, with the clock of that day, and starts the app again as today. */
     private void bookInThePast() throws Exception {
         LocalDate then = LocalDate.now().minusDays(10);
-        AppContext past = new AppContext(data, Clock.fixed(then.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
+        AppContext past = com.maisonglow.TestAccounts.open(data, Clock.fixed(then.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
             ZoneId.systemDefault()), AiConfig.simulated());
         Customer laura = past.customers().findByDocument("1002").orElseThrow();
         Professional camila = past.professionals().listAll().stream().filter(p -> p.getDocument().equals("2001")).findFirst().orElseThrow();
@@ -198,7 +198,7 @@ class AppointmentsViewTest {
         past.appointments().book(laura, camila, cut, then.atTime(11, 0), 16500);
         past.appointments().book(laura, camila, cut, then.atTime(15, 0), 16500);
         past.appointments().complete(past.appointments().listByDate(then).get(0).getId());
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
     }
 
     @Test

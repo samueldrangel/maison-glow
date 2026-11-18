@@ -52,7 +52,7 @@ class TryOnViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         photo = files.resolve("foto.png");
         BufferedImage image = new BufferedImage(160, 200, BufferedImage.TYPE_INT_RGB);
@@ -67,7 +67,7 @@ class TryOnViewTest {
 
     private Parent open(Supplier<Path> photoPicker) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
-        context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         return FxTest.onFxThread(() -> {
             ViewLoader.Loaded<TryOnController> loaded = ViewLoader.loadWithController(
                 TryOnViewTest.class.getResource("/com/maisonglow/view/TryOnView.fxml"), context);

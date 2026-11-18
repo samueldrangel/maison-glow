@@ -35,7 +35,7 @@ class SettingsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
     }
 
     private Parent open() throws Exception {

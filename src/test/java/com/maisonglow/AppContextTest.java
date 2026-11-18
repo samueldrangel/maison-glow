@@ -35,7 +35,7 @@ class AppContextTest {
     @Test
     @DisplayName("builds every service the views need")
     void buildsEveryService() {
-        AppContext context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        AppContext context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
 
         assertThat(context.customers()).isNotNull();
         assertThat(context.auth()).isNotNull();
@@ -53,7 +53,7 @@ class AppContextTest {
     @Test
     @DisplayName("starts the AI module in simulated mode without configuration")
     void startsSimulatedAi() {
-        AppContext context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        AppContext context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
 
         assertThat(context.ai().isSimulated()).isTrue();
         assertThat(context.ai().assistant()).isNotNull();
@@ -63,10 +63,10 @@ class AppContextTest {
     @Test
     @DisplayName("keeps the data in the folder between contexts")
     void keepsDataBetweenContexts() throws Exception {
-        new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated()).customers()
+        com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated()).customers()
             .register(new ContactData("1065123456", "Ana Pérez", "3001234567", "ana@correo.com"));
 
-        AppContext reopened = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        AppContext reopened = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
 
         assertThat(reopened.customers().listAll()).hasSize(1);
     }
@@ -74,6 +74,6 @@ class AppContextTest {
     @Test
     @DisplayName("rejects a missing data folder")
     void rejectsMissingFolder() {
-        assertThatNullPointerException().isThrownBy(() -> new AppContext(null));
+        assertThatNullPointerException().isThrownBy(() -> com.maisonglow.TestAccounts.open(null));
     }
 }

@@ -54,6 +54,7 @@ public final class SqliteDatabase {
         transaction(c -> {
             script(c, "schema.sql");
             migrateAccounts(c);
+            migrateCommerce(c);
             return null;
         });
     }
@@ -65,8 +66,8 @@ public final class SqliteDatabase {
             try (var rows = statement.executeQuery("SELECT COALESCE(MAX(version),0) FROM schema_migration")) {
                 rows.next();
                 int version = rows.getInt(1);
-                if (version > 1) throw new DataAccessException("La base requiere una versión más reciente de Maison Glow.");
-                if (version == 1) return;
+                if (version > 2) throw new DataAccessException("La base requiere una versión más reciente de Maison Glow.");
+                if (version >= 1) return;
             }
             boolean hasVersion = false;
             try (var rows = statement.executeQuery("PRAGMA table_info(app_user)")) {
@@ -75,6 +76,16 @@ public final class SqliteDatabase {
             if (!hasVersion) statement.execute("ALTER TABLE app_user ADD COLUMN auth_version INTEGER NOT NULL DEFAULT 0 CHECK (auth_version >= 0)");
             statement.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_app_user_normalized_username ON app_user(lower(trim(username)))");
             statement.execute("INSERT INTO schema_migration VALUES(1, strftime('%Y-%m-%dT%H:%M:%S','now'))");
+        }
+    }
+
+    private void migrateCommerce(Connection connection) throws SQLException,DataAccessException {
+        try(var statement=connection.createStatement();var rows=statement.executeQuery("SELECT 1 FROM schema_migration WHERE version=2")) {
+            if(rows.next())return;
+        }
+        script(connection,"roles-backend.sql");
+        try(var statement=connection.createStatement()) {
+            statement.execute("INSERT INTO schema_migration VALUES(2,strftime('%Y-%m-%dT%H:%M:%S','now'))");
         }
     }
 
@@ -110,6 +121,7 @@ public final class SqliteDatabase {
         String detail = String.valueOf(e.getMessage());
         String message = detail.contains("professional_schedule_conflict")
             ? "El profesional ya tiene una cita en ese horario."
+            : detail.contains("reserved_stock_conflict") ? "Las unidades están reservadas por pedidos pendientes."
             : detail.contains("FOREIGN KEY") ? "No se puede guardar o eliminar el registro porque tiene datos relacionados."
             : detail.contains("UNIQUE") ? "Ya existe un registro con esos datos."
             : "No se pudo consultar o guardar la información en la base de datos. Comprueba que esté disponible.";

@@ -58,7 +58,7 @@ class SalesViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         context.customers().register(new ContactData("1001", "Ana Pérez", "3001112233", "ana@correo.com"));
         context.products().register(new ProductData("Champú Nutritivo", HAIR, 28000, 10), 5);
         context.products().register(new ProductData("Mascarilla Reparadora", HAIR, 35000, 4), 0);

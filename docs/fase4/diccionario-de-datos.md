@@ -1,5 +1,20 @@
 # Diccionario de datos — Maison Glow
 
+## Ampliación local de roles — migración 2
+
+Se aplica mediante `sql/roles-backend.sql`, dentro de la inicialización transaccional. No reemplaza tablas anteriores. Contratos de servicios y reglas: [backend de roles](../fase3/roles-backend.md).
+
+| Tabla | Columnas principales | Relaciones y restricciones |
+|---|---|---|
+| `product_listing` | `product_id`, `published`, `cover_key` | PK/FK a producto; publicado 0/1, independiente de activo; foto gestionada por identificador |
+| `customer_order` | `id`, `customer_id`, `request_key`, `status`, `created_at`, `expires_at`, `sale_id`, `total` | FK cliente y venta; único cliente+clave de reintento; venta única; estados pendiente/pagado/cancelado/vencido; dinero TEXT decimal positivo |
+| `order_item` | `order_id`, `product_id`, `name`, `quantity`, `unit_price` | PK compuesta pedido+producto; FK a ambos; nombre/precio históricos; cantidad y precio positivos |
+| `customer_photo_access` | `customer_id`, `allowed` | PK/FK cliente; autorización de consulta administrativa 0/1, por defecto no concedida |
+| `customer_change` | `id`, `customer_id`, `author_id`, `appointment_id`, `kind`, `notes`, `happened_on`, `created_at`, `source_key`, `result_key` | FK cliente, autor y cita opcional; PERSONAL/SERVICE/SIMULATION; referencias relativas a imágenes gestionadas |
+| `media_delete_queue` | `photo_key` | PK de archivo pendiente de retirar; reintento de limpieza tras confirmar cambios |
+
+`trg_product_reserved_stock` impide reducir stock por debajo de unidades de pedidos pendientes; protege también ventas y ajustes existentes. Los vencimientos se procesan al arrancar y durante operaciones de catálogo/pedidos/inventario. La migración 1 de cuentas permanece aplicada.
+
 > Fuente: [`sql/schema.sql`](../../sql/schema.sql) (diseño, no aplicado en la Entrega 1). Diagramas y cobertura de RF: [`modelo-entidad-relacion.md`](modelo-entidad-relacion.md).
 > Fechas en texto ISO-8601 (`yyyy-MM-dd`, `yyyy-MM-ddTHH:mm:ss`, hora `HH:mm`); booleanos `0/1`; dinero en pesos colombianos.
 > **PK** clave primaria · **FK** clave foránea · **UK** única · **NN** no nula.
