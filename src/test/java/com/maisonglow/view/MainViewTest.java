@@ -65,6 +65,15 @@ class MainViewTest {
         return result.get(10, TimeUnit.SECONDS);
     }
 
+    /** The main window as the application opens it for an administrator. */
+    private static Parent loadMain(AppContext context) {
+        var loaded = ViewLoader.<com.maisonglow.view.controller.MainController>loadWithController(
+            MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"), context);
+        loaded.controller().showSession(new com.maisonglow.view.access.AccessSession("jefa", "La jefa",
+            com.maisonglow.view.access.AccessRole.ADMIN));
+        return loaded.root();
+    }
+
     @Test
     @DisplayName("keeps the palette when the view sits inside another container, as in Scene Builder")
     void keepsPaletteInsideAnotherContainer() throws Exception {
@@ -73,8 +82,7 @@ class MainViewTest {
         AppContext context = new AppContext(data);
 
         Region sidebar = onFxThread(() -> {
-            Parent root = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"),
-                context);
+            Parent root = loadMain(context);
             Scene scene = new Scene(new StackPane(root));
             scene.getRoot().applyCss();
             scene.getRoot().layout();
@@ -91,8 +99,7 @@ class MainViewTest {
         AppContext.seed(data);
         AppContext context = new AppContext(data);
         Parent root = onFxThread(() -> {
-            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"),
-                context);
+            Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
             return loaded;
         });
@@ -333,8 +340,7 @@ class MainViewTest {
         AppContext.seed(data);
         AppContext context = new AppContext(data);
         return onFxThread(() -> {
-            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"),
-                context);
+            Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
             loaded.applyCss();
             loaded.layout();
@@ -366,7 +372,7 @@ class MainViewTest {
         context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 10), 5);
 
         Parent root = onFxThread(() -> {
-            Parent loaded = ViewLoader.load(MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"), context);
+            Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
             return loaded;
         });
@@ -383,13 +389,12 @@ class MainViewTest {
         AppContext.seed(data);
         AppContext context = new AppContext(data);
 
-        Parent root = onFxThread(() -> ViewLoader.load(MainViewTest.class.getResource(
-            "/com/maisonglow/view/MainView.fxml"), context));
+        Parent root = onFxThread(() -> loadMain(context));
 
         StackPane content = (StackPane) root.lookup(".content-area");
         assertThat(content.getChildren()).hasSize(1);
         for (ToggleButton entry : root.lookupAll(".nav-button").stream().filter(ToggleButton.class::isInstance)
-            .map(ToggleButton.class::cast).toList()) {
+            .map(ToggleButton.class::cast).filter(Node::isVisible).toList()) {
             onFxThread(() -> {
                 entry.fire();
                 return null;

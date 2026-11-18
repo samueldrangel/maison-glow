@@ -195,7 +195,7 @@ class TryOnViewTest {
             new Scene(pane,1250,760);
             return pane;
         });
-        var navigator = new com.maisonglow.view.Navigator(host, context);
+        var navigator = new com.maisonglow.view.Navigator(host, context, com.maisonglow.view.access.AccessRole.ADMIN);
         FxTest.onFxThread(() -> { navigator.show(com.maisonglow.view.View.TRY_ON); return null; });
         Parent original = FxTest.onFxThread(() -> (Parent) host.getChildren().getFirst());
         FxTest.onFxThread(() -> { navigator.show(com.maisonglow.view.View.CUSTOMERS); return null; });

@@ -38,7 +38,7 @@ class NavigatorTest {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         AppContext.seed(data);
         StackPane content = FxTest.onFxThread(StackPane::new);
-        Navigator navigator = new Navigator(content, new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated()));
+        Navigator navigator = new Navigator(content, new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated()), com.maisonglow.view.access.AccessRole.ADMIN);
 
         FxTest.onFxThread(() -> { navigator.show(View.ASSISTANT); return null; });
         Node chat = shown(content);
@@ -50,4 +50,38 @@ class NavigatorTest {
         FxTest.onFxThread(() -> { navigator.show(View.HOME); return null; });
         assertThat(shown(content)).isNotSameAs(home);
     }
+
+    @Test
+    @DisplayName("every screen belongs to exactly one role, and each role starts on a screen it may open")
+    void everyScreenHasOneRole() {
+        for (View view : View.values()) {
+            long roles = java.util.Arrays.stream(com.maisonglow.view.access.AccessRole.values()).filter(view::allowedFor).count();
+            assertThat(roles).as(view.name()).isEqualTo(1);
+        }
+        for (com.maisonglow.view.access.AccessRole role : com.maisonglow.view.access.AccessRole.values()) {
+            assertThat(View.startFor(role).allowedFor(role)).isTrue();
+        }
+    }
+
+    @Test
+    @DisplayName("a screen of the other role is refused when asked for directly: nothing is loaded and the area says so")
+    void refusesAScreenOfAnotherRole() throws Exception {
+        assumeTrue(toolkit, "JavaFX toolkit needs a display");
+        AppContext.seed(data);
+        StackPane content = FxTest.onFxThread(StackPane::new);
+        AppContext context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        Navigator asCustomer = new Navigator(content, context, com.maisonglow.view.access.AccessRole.CUSTOMER);
+
+        boolean opened = FxTest.onFxThread(() -> asCustomer.show(View.PRODUCTS));
+
+        assertThat(opened).isFalse();
+        assertThat(asCustomer.current()).isEmpty();
+        assertThat(FxTest.onFxThread(() -> content.lookupAll(".view-title").stream().map(node -> ((javafx.scene.control.Label) node).getText()).toList()))
+            .containsExactly("Sin permiso");
+        assertThat(FxTest.onFxThread(() -> asCustomer.show(View.CUSTOMER_HOME))).isTrue();
+        Navigator asAdmin = new Navigator(content, context, com.maisonglow.view.access.AccessRole.ADMIN);
+        assertThat(FxTest.onFxThread(() -> asAdmin.show(View.SHOP))).isFalse();
+        assertThat(FxTest.onFxThread(() -> asAdmin.show(View.SETTINGS))).isTrue();
+    }
 }
+
