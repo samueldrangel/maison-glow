@@ -274,7 +274,7 @@ class CustomerAiViewTest {
     private ViewLoader.Loaded<AssistantController> openAssistant() throws Exception {
         return FxTest.onFxThread(() -> {
             ViewLoader.Loaded<AssistantController> loaded = ViewLoader.loadWithController(
-                CustomerAiViewTest.class.getResource("/com/maisonglow/view/AssistantView.fxml"), context);
+                CustomerAiViewTest.class.getResource("/com/maisonglow/view/MyAssistantView.fxml"), context);
             loaded.controller().useExecutor(Runnable::run);
             new Scene(loaded.root(), 1200, 760);
             loaded.root().applyCss();

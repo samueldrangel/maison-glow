@@ -32,7 +32,7 @@ public enum View {
     MY_APPOINTMENTS("Mis citas", "MyAppointmentsView.fxml", false, AccessRole.CUSTOMER),
     MY_CHANGES("Mis cambios", "MyChangesView.fxml", true, AccessRole.CUSTOMER),
     MY_TRY_ON("Probador virtual", "MyTryOnView.fxml", true, AccessRole.CUSTOMER),
-    MY_ASSISTANT("Asistente IA", "AssistantView.fxml", true, AccessRole.CUSTOMER);
+    MY_ASSISTANT("Asistente IA", "MyAssistantView.fxml", true, AccessRole.CUSTOMER);
 
     private static final String BASE = "/com/maisonglow/view/";
 
