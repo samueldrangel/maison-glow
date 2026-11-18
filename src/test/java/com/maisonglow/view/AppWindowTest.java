@@ -79,7 +79,7 @@ class AppWindowTest {
         FxTest.onFxThread(() -> { window.showArea(new AccessSession("jefa", "La jefa", AccessRole.ADMIN)); return null; });
 
         assertThat(has("#sidebar")).isTrue();
-        assertThat(menuOf(window.root())).contains("HOME", "PRODUCTS", "SALES", "SETTINGS").doesNotContain("SHOP", "PROFILE", "MY_PURCHASES");
+        assertThat(menuOf(window.root())).contains("HOME", "PRODUCTS", "SALES", "ORDERS", "SETTINGS").doesNotContain("SHOP", "PROFILE", "MY_PURCHASES");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userName")).getText())).isEqualTo("La jefa");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Administración");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#avatarInitials")).getText())).isEqualTo("LJ");
