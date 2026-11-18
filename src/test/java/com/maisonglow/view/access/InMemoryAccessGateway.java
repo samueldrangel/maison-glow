@@ -15,16 +15,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Stand-in for the account service (S-R02) so the access screens can be built and tried now. It keeps the accounts
- * in memory only: nothing is written to disk and they disappear when the application closes. It has no administrator
- * of its own, because the first administrator must come from a controlled setup and never from a key in the
- * repository; {@link #addAdministrator} lets a test or the real setup create one. It must be replaced by the real
- * service and must not be shipped as the way to sign in.
+ * In-memory double of the account service for the tests of the access screens: nothing is written to disk and the
+ * accounts disappear with the object. It has no administrator of its own; {@link #addAdministrator} creates one. The
+ * rules it applies (a password of at least {@value #MIN_PASSWORD_LENGTH} characters, unique usernames) mirror the real
+ * service, which the integration test of the adapter checks.
  */
 public final class InMemoryAccessGateway implements AccessGateway {
 
     /** Shortest password accepted. */
-    public static final int MIN_PASSWORD_LENGTH = 8;
+    public static final int MIN_PASSWORD_LENGTH = 12;
 
     private final Map<String, Account> accounts = new HashMap<>();
     private AccessSession session;

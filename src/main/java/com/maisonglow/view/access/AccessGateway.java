@@ -1,6 +1,7 @@
 package com.maisonglow.view.access;
 
 import com.maisonglow.exception.BusinessRuleException;
+import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 
 import java.util.Optional;
@@ -24,8 +25,9 @@ public interface AccessGateway {
      * @return the open session
      * @throws ValidationException   if the username or the password is empty
      * @throws BusinessRuleException if the credentials do not match or the account is off
+     * @throws DataAccessException   if the accounts cannot be read
      */
-    AccessSession login(String username, String password) throws ValidationException, BusinessRuleException;
+    AccessSession login(String username, String password) throws ValidationException, BusinessRuleException, DataAccessException;
 
     /**
      * Creates a customer account and opens its session. The role is never chosen by the person who signs up.
@@ -35,7 +37,7 @@ public interface AccessGateway {
      * @throws ValidationException   if a field is empty or malformed, or the confirmation does not match
      * @throws BusinessRuleException if the username or the document is already in use
      */
-    AccessSession register(RegistrationData data) throws ValidationException, BusinessRuleException;
+    AccessSession register(RegistrationData data) throws ValidationException, BusinessRuleException, DataAccessException;
 
     /**
      * Changes the password of the open session.
@@ -47,7 +49,7 @@ public interface AccessGateway {
      * @throws BusinessRuleException if there is no open session or the current password is wrong
      */
     void changePassword(String current, String replacement, String confirmation)
-        throws ValidationException, BusinessRuleException;
+        throws ValidationException, BusinessRuleException, DataAccessException;
 
     /** Closes the session; calling it with no session open does nothing. */
     void logout();

@@ -6,6 +6,8 @@ import com.maisonglow.ai.AiModule;
 import com.maisonglow.ai.AiProviderFactory;
 import com.maisonglow.dao.*;
 import com.maisonglow.service.AppointmentService;
+import com.maisonglow.service.AuthenticationService;
+import com.maisonglow.service.auth.PasswordHasher;
 import com.maisonglow.service.CustomerService;
 import com.maisonglow.service.LowRotationService;
 import com.maisonglow.service.ProductService;
@@ -19,7 +21,7 @@ import com.maisonglow.service.rule.ConfirmationRule;
 import com.maisonglow.service.rule.DepositRule;
 import com.maisonglow.service.rule.ReminderRule;
 import com.maisonglow.view.access.AccessGateway;
-import com.maisonglow.view.access.InMemoryAccessGateway;
+import com.maisonglow.view.access.AuthenticationAccessGateway;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,7 +61,8 @@ public final class AppContext {
     private final AiModule ai;
     private final AiHistory aiHistory;
     private final SqliteDatabase database;
-    private AccessGateway access = new InMemoryAccessGateway();
+    private final AuthenticationService auth;
+    private AccessGateway access;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -96,6 +99,9 @@ public final class AppContext {
 
         settings = new SettingsService(new SettingDaoSqlite(database));
         customers = new CustomerService(customerDao);
+        auth = new AuthenticationService(new AccountDaoSqlite(database), customerDao, customers,
+            new SqliteTransactions(database), new PasswordHasher(), clock);
+        access = new AuthenticationAccessGateway(auth, customers);
         treatments = new TreatmentService(treatmentDao);
         professionals = new ProfessionalService(professionalDao, treatmentDao);
         products = new ProductService(productDao, categoryDao);
@@ -133,7 +139,7 @@ public final class AppContext {
     }
 
     /**
-     * @return the accounts and the session; for now an in-memory stand-in that S-R02 replaces
+     * @return the accounts and the session as the access screens see them
      */
     public AccessGateway access() { return access; }
 
@@ -171,6 +177,9 @@ public final class AppContext {
     public Clock clock() {
         return clock;
     }
+
+    /** @return account lifecycle and the current desktop session; initially unauthenticated */
+    public AuthenticationService auth() { return auth; }
 
     /** @return the customer service */
     public CustomerService customers() {
