@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Mis cambios del cliente (N-R05). En el centro su linea de tiempo: cada cambio con su fecha, de que tipo es (personal, del
+     negocio o una simulacion, que siempre dice que no es un resultado real), las notas y las fotos de antes y despues, con la
+     opcion de retirar las fotos. A la derecha la privacidad (por defecto el negocio NO puede ver nada; el cliente lo autoriza
+     o lo revoca cuando quiera) y el formulario para anadir un cambio personal, con fotos opcionales tomadas con la camara o
+     subidas desde un archivo. Las tarjetas de ejemplo se ven aqui para disenar; MyChangesController las reemplaza.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.MyChangesController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="720">
+    <top>
+        <VBox spacing="2">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <Label text="Mis cambios" styleClass="view-title"/>
+            <Label text="Tu historial de cambios de imagen, con tus fotos. Solo tú lo ves, salvo que autorices al negocio." styleClass="form-hint"/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="host">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll">
+                <VBox fx:id="timelineBox" spacing="12">
+                    <Label fx:id="emptyLabel" text="Todavía no has registrado cambios. Añade el primero aquí al lado." styleClass="home-empty" wrapText="true"/>
+                    <VBox styleClass="card, form-card" spacing="6">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="12/11/2026" styleClass="stat-value"/>
+                            <Label text="Cambio personal" styleClass="chip-rose"/>
+                        </HBox>
+                        <Label text="Me pinté el cabello en un tono cobrizo." styleClass="form-hint" wrapText="true"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="340" minWidth="340">
+            <VBox spacing="16" styleClass="side-column">
+                <VBox styleClass="card, form-card" spacing="8">
+                    <Label text="Privacidad" styleClass="form-title"/>
+                    <CheckBox fx:id="staffAccessBox" text="Permitir que el negocio consulte mis fotos y mi historial" wrapText="true"/>
+                    <Label fx:id="privacyNote" text="Por ahora nadie del negocio puede ver tus fotos." styleClass="form-hint" wrapText="true"/>
+                </VBox>
+                <VBox styleClass="card, form-card" spacing="6">
+                    <Label text="Añadir un cambio" styleClass="form-title"/>
+                    <Label text="Fecha" styleClass="form-label"/>
+                    <DatePicker fx:id="datePicker" maxWidth="Infinity"/>
+                    <Label fx:id="dateMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    <Label text="Qué cambiaste" styleClass="form-label"/>
+                    <TextArea fx:id="notesArea" promptText="Cuéntalo con tus palabras..." prefRowCount="4" wrapText="true"/>
+                    <Label fx:id="notesMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    <Label text="Foto de antes (opcional)" styleClass="form-label"/>
+                    <VBox fx:id="beforeBox"/>
+                    <Label text="Foto de después (opcional)" styleClass="form-label"/>
+                    <VBox fx:id="afterBox"/>
+                    <Button fx:id="saveButton" text="Guardar cambio" styleClass="button-gold, button-compact" maxWidth="Infinity">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                    </Button>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </right>
+</BorderPane>

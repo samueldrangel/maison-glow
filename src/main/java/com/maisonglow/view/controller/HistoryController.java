@@ -19,6 +19,7 @@ import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.LoadingOverlay;
 import com.maisonglow.view.ViewLifecycle;
 import com.maisonglow.view.ViewLoader;
+import com.maisonglow.view.history.ChangeCards;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -263,60 +264,8 @@ public final class HistoryController implements ViewLifecycle {
         }
     }
 
-    /** One record of the timeline: its date, what kind it is, the notes and the photos with a way to remove them. */
     private Node card(Change change) {
-        Label date = new Label(DateFormats.date(change.happenedOn()));
-        date.getStyleClass().add("stat-value");
-        Label kind = new Label(switch (change.kind()) {
-            case SERVICE -> "Servicio del negocio";
-            case PERSONAL -> "Cambio personal";
-            case SIMULATION -> "Simulación";
-        });
-        kind.getStyleClass().add(switch (change.kind()) {
-            case SERVICE -> "chip-gold";
-            case PERSONAL -> "chip-rose";
-            case SIMULATION -> "chip-neutral";
-        });
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-        HBox header = new HBox(8, date, kind, spacer);
-        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label notes = new Label(change.notes());
-        notes.getStyleClass().add("form-hint");
-        notes.setWrapText(true);
-        VBox card = new VBox(8, header, notes);
-        card.getStyleClass().addAll("card", "form-card");
-        HBox photos = new HBox(10);
-        addPhoto(photos, change, false, change.sourceKey() == null ? null : "Antes");
-        addPhoto(photos, change, true, change.resultKey() == null ? null : "Después");
-        if (!photos.getChildren().isEmpty()) {
-            card.getChildren().add(photos);
-            Button remove = new Button("Retirar fotos");
-            remove.getStyleClass().addAll("button-secondary", "button-compact");
-            remove.setOnAction(event -> removePhotos(change));
-            card.getChildren().add(remove);
-        }
-        return card;
-    }
-
-    private void addPhoto(HBox photos, Change change, boolean result, String caption) {
-        if (caption == null) {
-            return;
-        }
-        try {
-            Path file = changes.photo(change.id(), result);
-            Image image = new Image(file.toUri().toString(), 180, 140, true, true);
-            if (image.isError()) {
-                return;
-            }
-            ImageView view = new ImageView(image);
-            view.setPreserveRatio(true);
-            Label label = new Label(caption);
-            label.getStyleClass().add("stat-caption");
-            photos.getChildren().add(new VBox(4, view, label));
-        } catch (BusinessRuleException | DataAccessException e) {
-            // A photo that is gone from the disk is simply not shown; the record and its notes stay.
-        }
+        return ChangeCards.card(change, changes, this::removePhotos);
     }
 
     private void removePhotos(Change change) {

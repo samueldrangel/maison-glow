@@ -43,6 +43,8 @@ import java.util.function.IntFunction;
  */
 public final class AssistantController implements ViewLifecycle {
 
+    private static final String CUSTOMER_WELCOME = "Hola, soy el asistente de Maison Glow. Puedo mostrarte los productos de la tienda, "
+        + "tus citas y tu perfil, y ayudarte a reservar una cita; antes de reservar siempre te pido confirmar.";
     private static final String WELCOME = "Hola, soy el asistente de Maison Glow. Pregúntame por el stock, las citas o los "
         + "clientes. Si me pides agendar una cita, te mostraré los datos y esperaré tu confirmación.";
 
@@ -53,6 +55,8 @@ public final class AssistantController implements ViewLifecycle {
     private final TreatmentService treatments;
     private final Clock clock;
     private final PendingActionRows rows;
+    /** True when the person is a customer: they get their own shortcuts and names, and none of the business's. */
+    private final boolean customerMode;
     private Executor executor = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "asistente");
         thread.setDaemon(true);
@@ -97,10 +101,20 @@ public final class AssistantController implements ViewLifecycle {
         this.professionals = context.professionals();
         this.treatments = context.treatments();
         this.clock = context.clock();
-        this.rows = new PendingActionRows(
-            id -> nameOf(() -> customers.findById(id).getName()),
-            id -> nameOf(() -> professionals.findById(id).getName()),
-            id -> nameOf(() -> treatments.findById(id).getName()));
+        this.customerMode = context.access().current().map(session -> session.role() == com.maisonglow.view.access.AccessRole.CUSTOMER).orElse(false);
+        if (customerMode) {
+            var portal = context.portal();
+            this.rows = new PendingActionRows(
+                id -> nameOf(() -> portal.profile().getName()),
+                id -> nameOf(() -> professionalOf(portal, id)),
+                id -> nameOf(() -> portal.treatments().stream().filter(treatment -> treatment.getId() == id)
+                    .map(com.maisonglow.model.Treatment::getName).findFirst().orElse(null)));
+        } else {
+            this.rows = new PendingActionRows(
+                id -> nameOf(() -> customers.findById(id).getName()),
+                id -> nameOf(() -> professionals.findById(id).getName()),
+                id -> nameOf(() -> treatments.findById(id).getName()));
+        }
     }
 
     /**
@@ -119,19 +133,42 @@ public final class AssistantController implements ViewLifecycle {
         messagesBox.heightProperty().addListener((observable, before, height) -> chatScroll.setVvalue(1.0));
         sendButton.setOnAction(event -> ask(messageField.getText()));
         messageField.setOnAction(event -> ask(messageField.getText()));
-        lowStockShortcut.setOnAction(event -> ask("stock bajo"));
         todayShortcut.setOnAction(event -> ask("citas " + LocalDate.now(clock)));
         helpShortcut.setOnAction(event -> ask("ayuda"));
-        customerShortcut.setOnAction(event -> {
-            messageField.setText("buscar cliente ");
-            messageField.requestFocus();
-            messageField.positionCaret(messageField.getText().length());
-        });
-        addAssistant(WELCOME);
+        if (customerMode) {
+            // A customer asks about what is theirs and about the shop; the business's shortcuts are not theirs.
+            lowStockShortcut.setText("Productos de la tienda");
+            lowStockShortcut.setOnAction(event -> ask("published_products"));
+            todayShortcut.setText("Mis citas de hoy");
+            customerShortcut.setText("Mi perfil");
+            customerShortcut.setOnAction(event -> ask("my_profile"));
+            addAssistant(CUSTOMER_WELCOME);
+        } else {
+            lowStockShortcut.setOnAction(event -> ask("stock bajo"));
+            customerShortcut.setOnAction(event -> {
+                messageField.setText("buscar cliente ");
+                messageField.requestFocus();
+                messageField.positionCaret(messageField.getText().length());
+            });
+            addAssistant(WELCOME);
+        }
     }
 
     private interface Lookup {
         String get() throws BusinessRuleException, DataAccessException;
+    }
+
+    /** The name of a professional for a customer: the customer cannot list the professionals of the business, only those of a treatment. */
+    private static String professionalOf(com.maisonglow.service.CustomerPortalService portal, int id)
+        throws BusinessRuleException, DataAccessException {
+        for (com.maisonglow.model.Treatment treatment : portal.treatments()) {
+            for (com.maisonglow.model.Commerce.ProfessionalOption option : portal.professionals(treatment.getId())) {
+                if (option.id() == id) {
+                    return option.name();
+                }
+            }
+        }
+        return null;
     }
 
     private static String nameOf(Lookup lookup) {

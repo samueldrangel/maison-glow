@@ -30,7 +30,9 @@ public enum View {
     CART("Carrito", "CartView.fxml", false, AccessRole.CUSTOMER),
     MY_PURCHASES("Mis compras", "MyPurchasesView.fxml", false, AccessRole.CUSTOMER),
     MY_APPOINTMENTS("Mis citas", "MyAppointmentsView.fxml", false, AccessRole.CUSTOMER),
-    MY_CHANGES("Mis cambios", "MyChangesView.fxml", true, AccessRole.CUSTOMER);
+    MY_CHANGES("Mis cambios", "MyChangesView.fxml", true, AccessRole.CUSTOMER),
+    MY_TRY_ON("Probador virtual", "MyTryOnView.fxml", true, AccessRole.CUSTOMER),
+    MY_ASSISTANT("Asistente IA", "MyAssistantView.fxml", true, AccessRole.CUSTOMER);
 
     private static final String BASE = "/com/maisonglow/view/";
 
