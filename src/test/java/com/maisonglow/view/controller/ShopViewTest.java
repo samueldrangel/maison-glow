@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
@@ -234,10 +235,12 @@ class ShopViewTest {
         assertThat(text(root, "detailNote")).isEqualTo("Se paga y se retira en el local.");
         assertThat(shown(root, "detailUnavailable")).isFalse();
         assertThat(shop.controller().selected()).isEqualTo(esmalte.getId());
+        assertThat(shown(root, "detailPlaceholder")).isTrue();
 
         click(cards(root).get(2));
         assertThat(text(root, "detailAvailability")).isEqualTo("Agotado");
         assertThat(text(root, "detailNote")).contains("no hay unidades");
+        assertThat(FxTest.onFxThread(() -> ((Button) root.lookup("#addButton")).isDisabled())).isTrue();
     }
 
     @Test

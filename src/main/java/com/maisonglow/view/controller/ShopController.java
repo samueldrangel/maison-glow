@@ -344,7 +344,8 @@ public final class ShopController implements ViewLifecycle, RefreshableView {
         detailNote.setVisible(true);
         detailNote.setManaged(true);
         detailNote.setText(availability.canBeOrdered() ? "Se paga y se retira en el local." : "Por ahora no hay unidades disponibles.");
-        Path cover = items.stream().filter(item -> item.product().id() == product.id()).map(Item::cover).findFirst().orElse(null);
+        Path cover = items.stream().filter(item -> item.product().id() == product.id() && item.cover() != null)
+            .map(Item::cover).findFirst().orElse(null);
         Image image = cover == null ? null : new Image(cover.toUri().toString(), 280, 200, true, true);
         boolean has = image != null && !image.isError();
         detailCover.setImage(has ? image : null);
