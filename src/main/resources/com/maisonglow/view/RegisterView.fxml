@@ -64,7 +64,7 @@
                 <HBox spacing="12">
                     <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">
                         <Label text="Contraseña" styleClass="form-label"/>
-                        <PasswordField fx:id="passwordField" promptText="Mínimo 8"/>
+                        <PasswordField fx:id="passwordField" promptText="Mínimo 12"/>
                         <Label fx:id="passwordMessage" text="Mensaje de error" styleClass="field-error-message"/>
                     </VBox>
                     <VBox spacing="4" prefWidth="0" HBox.hgrow="ALWAYS">

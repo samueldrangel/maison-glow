@@ -195,7 +195,7 @@ class AccessViewsTest {
     @DisplayName("a valid sign-up creates a customer account and opens its session")
     void registerSucceeds() throws Exception {
         Parent root = openRegister();
-        fillRegister(root, "ana", "clave-segura", "clave-segura");
+        fillRegister(root, "ana", "clave-segura-1", "clave-segura-1");
 
         press(root, "registerButton");
         until(() -> !signedIn.isEmpty());
@@ -210,7 +210,7 @@ class AccessViewsTest {
     @DisplayName("each sign-up error appears under its own field")
     void registerShowsErrorsUnderTheirField() throws Exception {
         Parent root = openRegister();
-        fillRegister(root, "ana", "clave-segura", "otra-clave");
+        fillRegister(root, "ana", "clave-segura-1", "otra-clave-12");
         type(root, "emailField", "sin-arroba");
 
         press(root, "registerButton");
@@ -229,7 +229,7 @@ class AccessViewsTest {
     @DisplayName("a username already in use is refused under the username, keeping what was typed")
     void registerDuplicateUsername() throws Exception {
         Parent root = openRegister();
-        fillRegister(root, "jefa", "clave-segura", "clave-segura");
+        fillRegister(root, "jefa", "clave-segura-1", "clave-segura-1");
 
         press(root, "registerButton");
         until(() -> !shown(root, "usernameMessage").isEmpty() || !signedIn.isEmpty());

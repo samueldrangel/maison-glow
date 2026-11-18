@@ -1,5 +1,7 @@
 # Modelo entidad-relación — Maison Glow
 
+> Actualización de acceso (17-11-2026): SQLite ya se usa en la aplicación. La migración 1 incorpora `app_user.auth_version` y el índice único de usuario normalizado, registrados en `schema_migration`. Las notas de Entrega 1 siguientes se conservan como contexto histórico. Ver [contratos de roles](../fase3/roles-contratos.md).
+
 > **Estado: diseño.** El esquema (`sql/schema.sql`) **no se aplica ni se conecta** en la Entrega 1, que persiste en archivos de texto
 > ([ADR-0012](../adr/0012-persistencia-en-archivos-de-texto.md)). Se diseña completo desde ahora para que el modelo de clases y
 > los archivos de texto nazcan coherentes con él; la conexión SQLite se hace en la Entrega 2 ([ADR-0003](../adr/0003-persistencia-sqlite-jdbc-dao.md)).
@@ -74,6 +76,7 @@ erDiagram
         text username UK
         text role
         int customer_id FK
+        int auth_version
     }
 ```
 

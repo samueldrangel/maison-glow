@@ -124,7 +124,9 @@ public final class AppWindow {
         loaded.controller().onCancel(dialog::close);
         loaded.controller().onDone(() -> {
             dialog.close();
-            new AlertPresenter(scene.getRoot()).toast("Contraseña actualizada.");
+            // The service ends every session of the account when the password changes: back to the sign-in.
+            logout();
+            new AlertPresenter(scene.getRoot()).toast("Contraseña actualizada. Inicia sesión con la nueva.");
         });
         dialog.setScene(new Scene(loaded.root()));
         dialog.show();

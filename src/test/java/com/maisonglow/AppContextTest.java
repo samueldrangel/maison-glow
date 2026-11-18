@@ -38,6 +38,7 @@ class AppContextTest {
         AppContext context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
 
         assertThat(context.customers()).isNotNull();
+        assertThat(context.auth()).isNotNull();
         assertThat(context.professionals()).isNotNull();
         assertThat(context.treatments()).isNotNull();
         assertThat(context.products()).isNotNull();

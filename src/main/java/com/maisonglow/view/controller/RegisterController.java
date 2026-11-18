@@ -2,6 +2,7 @@ package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
 import com.maisonglow.exception.BusinessRuleException;
+import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.access.AccessGateway;
@@ -136,7 +137,7 @@ public final class RegisterController {
         CompletableFuture.supplyAsync(() -> {
             try {
                 return access.register(data);
-            } catch (ValidationException | BusinessRuleException e) {
+            } catch (ValidationException | BusinessRuleException | DataAccessException e) {
                 throw new CompletionException(e);
             }
         }, executor).whenComplete((session, error) -> Platform.runLater(() -> {
