@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Panel reutilizable para elegir una foto: la foto actual o una vista previa, y los botones para tomarla con la
+     camara o subirla desde un archivo. Una foto nueva queda como "vista previa, aun sin guardar" hasta pulsar "Usar esta
+     foto"; "Descartar" la quita y volver a pulsar "Tomar foto" o "Subir foto" la repite. Sin camara se puede subir un
+     archivo. Lo coloca cada pantalla en su propio formulario (portada de producto, fotos del cliente).
+     Los textos "Mensaje de error" se ven aqui para disenar; PhotoPickerController los oculta.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.maisonglow.view.controller.PhotoPickerController"
+      styleClass="view-root" stylesheets="@styles.css" spacing="8">
+    <StackPane styleClass="photo-frame" minHeight="200" prefHeight="220">
+        <ImageView fx:id="photoView" fitWidth="260" fitHeight="200" preserveRatio="true"/>
+        <Label fx:id="placeholder" text="Aún no hay foto" styleClass="placeholder-notice"/>
+    </StackPane>
+    <Label fx:id="stateLabel" text="Vista previa: aún sin guardar" styleClass="form-hint" wrapText="true"/>
+    <HBox spacing="8">
+        <Button fx:id="cameraButton" text="Tomar foto" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        <Button fx:id="uploadButton" text="Subir foto" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+    </HBox>
+    <HBox fx:id="pendingBox" spacing="8">
+        <Button fx:id="useButton" text="Usar esta foto" styleClass="button-primary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        <Button fx:id="discardButton" text="Descartar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+    </HBox>
+    <Label text="Formatos JPG o PNG • Máx. 10 MB" styleClass="form-hint"/>
+    <Label fx:id="photoMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
+</VBox>
