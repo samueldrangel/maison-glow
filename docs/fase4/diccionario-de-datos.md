@@ -36,7 +36,10 @@
 | `role` | TEXT | NN, `ADMIN` o `CUSTOMER` | Rol |
 | `customer_id` | INTEGER | FK → `customer`, UK | Cliente asociado; obligatorio si el rol es `CUSTOMER` y nulo si es `ADMIN` |
 | `active` | INTEGER | NN, 0/1 | Si puede ingresar |
+| `auth_version` | INTEGER | NN, ≥ 0, por defecto 0 | Versión de credenciales; cambiar contraseña o actividad invalida sesiones anteriores (migración 1) |
 | `created_at` | TEXT | NN | Fecha de creación |
+
+El usuario de acceso es único también por `lower(trim(username))`. `schema_migration(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)` registra las actualizaciones aditivas aplicadas; la primera añade la versión de credenciales y el índice normalizado. Procedimiento y compatibilidad: [contratos de roles](../fase3/roles-contratos.md).
 
 ## Tratamientos
 
