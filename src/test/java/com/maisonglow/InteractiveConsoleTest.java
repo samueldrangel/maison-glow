@@ -38,7 +38,7 @@ class InteractiveConsoleTest {
         ByteArrayOutputStream printed = new ByteArrayOutputStream();
         ConsoleIo console = new ConsoleIo(new ByteArrayInputStream(input), StandardCharsets.UTF_8,
             new PrintStream(printed, true, StandardCharsets.UTF_8));
-        new MainMenu(console, new Main(data).consoleModules(console)).run();
+        new MainMenu(console, new Main(TestAccounts.open(data)).consoleModules(console)).run();
         return printed.toString(StandardCharsets.UTF_8);
     }
 

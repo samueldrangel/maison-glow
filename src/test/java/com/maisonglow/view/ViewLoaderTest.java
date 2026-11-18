@@ -30,7 +30,7 @@ class ViewLoaderTest {
     void returnsTheController() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
 
         ViewLoader.Loaded<MainController> loaded = FxTest.onFxThread(() ->
             ViewLoader.loadWithController(ViewLoaderTest.class.getResource("/com/maisonglow/view/MainView.fxml"), context));

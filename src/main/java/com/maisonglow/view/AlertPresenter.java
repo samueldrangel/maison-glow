@@ -68,7 +68,8 @@ public final class AlertPresenter {
     public void showError(Exception error) {
         AlertMessages.Message message = AlertMessages.of(error);
         display.apply(build(message.type(), message.title(), message.text(), UNDERSTOOD));
-        if (error instanceof com.maisonglow.view.access.SessionExpiredException) {
+        if (error instanceof com.maisonglow.view.access.SessionExpiredException
+            || (error instanceof com.maisonglow.exception.AccessDeniedDataException denied && denied.isSessionExpired())) {
             sessionExpired.run();
         }
     }

@@ -118,6 +118,11 @@ public class AppointmentService {
      * @throws DataAccessException   if the appointment cannot be read or stored
      */
     public void confirm(int appointmentId) throws BusinessRuleException, DataAccessException {
+        Appointment appointment=find(appointmentId);
+        for(AppointmentRule rule:rules) if(rule instanceof com.maisonglow.service.rule.DepositRule deposit) {
+            try {deposit.apply(appointment);}
+            catch(ValidationException e){throw new DataAccessException("Revisa la configuración de anticipo.",e);}
+        }
         changeStatus(appointmentId, AppointmentStatus.CONFIRMED, "confirmar");
     }
 

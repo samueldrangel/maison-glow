@@ -4,6 +4,14 @@ import com.maisonglow.ai.AiConfig;
 import com.maisonglow.ai.AiHistory;
 import com.maisonglow.ai.AiModule;
 import com.maisonglow.ai.AiProviderFactory;
+import com.maisonglow.ai.SessionAi;
+import com.maisonglow.ai.ToolRegistry;
+import com.maisonglow.ai.CustomerTools;
+import com.maisonglow.service.CatalogService;
+import com.maisonglow.service.OrderService;
+import com.maisonglow.service.CustomerPortalService;
+import com.maisonglow.service.ChangeHistoryService;
+import com.maisonglow.service.PhotoStore;
 import com.maisonglow.dao.*;
 import com.maisonglow.service.AppointmentService;
 import com.maisonglow.service.AuthenticationService;
@@ -63,6 +71,10 @@ public final class AppContext {
     private final SqliteDatabase database;
     private final AuthenticationService auth;
     private AccessGateway access;
+    private final CatalogService catalog;
+    private final OrderService orders;
+    private final CustomerPortalService portal;
+    private final ChangeHistoryService changes;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -97,22 +109,50 @@ public final class AppContext {
         AppointmentDao appointmentDao = new AppointmentDaoSqlite(database, customerDao, professionalDao, treatmentDao);
         SaleDao saleDao = new SaleDaoSqlite(database, customerDao, appointmentDao, productDao, treatmentDao);
 
-        settings = new SettingsService(new SettingDaoSqlite(database));
-        customers = new CustomerService(customerDao);
-        auth = new AuthenticationService(new AccountDaoSqlite(database), customerDao, customers,
+        var transactions=new SqliteTransactions(database);
+        var rawSettings = new SettingsService(new SettingDaoSqlite(database));
+        var rawCustomers = new CustomerService(customerDao);
+        auth = new AuthenticationService(new AccountDaoSqlite(database), customerDao, rawCustomers,
             new SqliteTransactions(database), new PasswordHasher(), clock);
-        access = new AuthenticationAccessGateway(auth, customers);
-        treatments = new TreatmentService(treatmentDao);
-        professionals = new ProfessionalService(professionalDao, treatmentDao);
-        products = new ProductService(productDao, categoryDao);
-        appointments = new AppointmentService(appointmentDao, customerDao, List.of(new DepositRule(settings),
-            new ConfirmationRule(settings, clock), new ReminderRule(settings)));
-        sales = new SaleService(saleDao, productDao, new SqliteTransactions(database));
-        statistics = new StatisticsService(saleDao, appointmentDao);
-        lowRotation = new LowRotationService(saleDao, productDao, settings);
-        promotions = new PromotionService(lowRotation, saleDao, settings);
-        ai = new AiProviderFactory(aiConfig).create(customers, products, appointments, professionals, treatments);
-        aiHistory = new AiHistory(data, clock);
+        access=new AuthenticationAccessGateway(auth,rawCustomers);
+        var rawTreatments=new TreatmentService(treatmentDao);
+        var rawProfessionals=new ProfessionalService(professionalDao,treatmentDao);
+        var rawProducts=new ProductService(productDao,categoryDao);
+        var rawSales=new SaleService(saleDao,productDao,transactions);
+        var rawStatistics=new StatisticsService(saleDao,appointmentDao);
+        var selfAppointments=new AppointmentService(appointmentDao,customerDao,List.of(new ConfirmationRule(rawSettings,clock),new ReminderRule(rawSettings)));
+        var commerce=new CommerceDao(database);
+        var photos=new PhotoStore(data.resolve("media"));
+        photos.cleanPending(commerce);
+        try {commerce.expire(java.time.LocalDateTime.now(clock));}
+        catch(com.maisonglow.exception.DataAccessException e) {throw new IllegalStateException("No se pudieron actualizar los pedidos vencidos.",e);}
+        catalog=new CatalogService(auth,rawProducts,commerce,photos,transactions,clock);
+        orders=new OrderService(auth,commerce,rawProducts,rawCustomers,rawSales,saleDao,transactions,clock);
+        portal=new CustomerPortalService(auth,rawCustomers,rawTreatments,rawProfessionals,selfAppointments,appointmentDao,saleDao,rawStatistics,rawSettings,transactions,commerce,clock);
+        changes=new ChangeHistoryService(auth,commerce,appointmentDao,photos,transactions,clock);
+
+        CustomerDao adminCustomers=AdminDaoGuard.protect(CustomerDao.class,customerDao,auth);
+        TreatmentDao adminTreatments=AdminDaoGuard.protect(TreatmentDao.class,treatmentDao,auth);
+        ProfessionalDao adminProfessionals=AdminDaoGuard.protect(ProfessionalDao.class,professionalDao,auth);
+        ProductDao adminProducts=AdminDaoGuard.protect(ProductDao.class,productDao,auth,() -> commerce.expire(java.time.LocalDateTime.now(clock)));
+        CategoryDao adminCategories=AdminDaoGuard.protect(CategoryDao.class,categoryDao,auth);
+        AppointmentDao adminAppointments=AdminDaoGuard.protect(AppointmentDao.class,appointmentDao,auth);
+        SaleDao adminSales=AdminDaoGuard.protect(SaleDao.class,saleDao,auth);
+        settings=new SettingsService(AdminDaoGuard.protect(SettingDao.class,new SettingDaoSqlite(database),auth));
+        customers=new CustomerService(adminCustomers);
+        treatments=new TreatmentService(adminTreatments);
+        professionals=new ProfessionalService(adminProfessionals,adminTreatments);
+        products=new ProductService(adminProducts,adminCategories);
+        appointments=new AppointmentService(adminAppointments,adminCustomers,List.of(new DepositRule(rawSettings),new ConfirmationRule(rawSettings,clock),new ReminderRule(rawSettings)));
+        sales=new SaleService(adminSales,adminProducts,transactions);
+        statistics=new StatisticsService(adminSales,adminAppointments);
+        lowRotation=new LowRotationService(adminSales,adminProducts,settings);
+        promotions=new PromotionService(lowRotation,adminSales,settings);
+        var aiFactory=new AiProviderFactory(aiConfig);
+        ai=new SessionAi(auth,() -> aiFactory.create(customers,products,appointments,professionals,treatments,t -> SessionAi.bind(t,auth)),
+            () -> aiFactory.create(rawCustomers,new ToolRegistry(CustomerTools.create(portal,catalog).stream().map(t -> SessionAi.bind(t,auth)).toList()))).module();
+        // Old unowned text histories remain untouched and are not attributed to newly created account IDs.
+        aiHistory = new AiHistory(data.resolve("account-ai"),clock,auth,commerce);
     }
 
     /**
@@ -180,6 +220,10 @@ public final class AppContext {
 
     /** @return account lifecycle and the current desktop session; initially unauthenticated */
     public AuthenticationService auth() { return auth; }
+    public CatalogService catalog() {return catalog;}
+    public OrderService orders() {return orders;}
+    public CustomerPortalService portal() {return portal;}
+    public ChangeHistoryService changes() {return changes;}
 
     /** @return the customer service */
     public CustomerService customers() {

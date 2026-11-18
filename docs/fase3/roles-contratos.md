@@ -4,6 +4,8 @@ Fecha: 17 de noviembre de 2026. Responsabilidad: Samuel. Base: JavaFX + SQLite l
 
 ## Estado y límite de esta entrega
 
+**Actualización posterior al PR #60:** el backend de catálogo, pedidos, autoservicio, historial y protección de las entradas anteriores se describe en [roles-backend.md](roles-backend.md). Ese documento sustituye las referencias siguientes a contratos todavía no implementados; las pantallas y el cierre visual siguen a cargo de los bloques de frontend.
+
 Esta entrega implementa el backend de cuentas y sesión, la migración aditiva 1 y el armado en `AppContext`. No modifica pantallas de Isabella o Nicoll. Los servicios anteriores de productos, ventas, citas, estadísticas, consola e IA conservan su comportamiento; **todavía no están protegidos por esta nueva sesión**. Su adaptación corresponde a S-R03–S-R07 y es requisito del cierre de roles.
 
 Las operaciones nuevas de cuentas verifican sus propios permisos. `auth.requireAdmin()` y `auth.requireCustomerAccess(...)` son guardas de backend: en las tareas siguientes se invocan dentro de cada operación protegida, no solo desde los controladores. No exponer los DAO a los controladores ni interpretar una cuenta recibida del formulario como autorización.

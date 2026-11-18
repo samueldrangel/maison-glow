@@ -24,6 +24,7 @@ public final class FxTest {
         } catch (UnsupportedOperationException noDisplay) {
             available = false;
         }
+        if(available)Platform.setImplicitExit(false);
         return available;
     }
 

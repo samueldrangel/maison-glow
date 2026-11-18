@@ -58,7 +58,7 @@ class HomeViewTest {
         AppContext.seed(data);
         today = LocalDate.now();
         morning = Clock.fixed(today.atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
-        context = new AppContext(data, morning, AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, morning, AiConfig.simulated());
         ana = context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         cut = context.treatments().register(new TreatmentData("Corte y peinado", "", 55000, 60));
         camila = context.professionals().register(new ContactData("2001", "Camila Ruiz", "3001112233", "c@correo.com"),
@@ -69,7 +69,7 @@ class HomeViewTest {
 
     private Parent open() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
-        context = new AppContext(data, morning, AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, morning, AiConfig.simulated());
         return FxTest.onFxThread(() -> {
             Parent root = ViewLoader.load(HomeViewTest.class.getResource("/com/maisonglow/view/HomeView.fxml"), context);
             new Scene(root, 1200, 760);

@@ -4,6 +4,8 @@ Arquitectura vigente tras la sustentación: [modelos de datos y reglas en servic
 
 Backend de roles en desarrollo: [contratos de cuentas, sesión y configuración local](fase3/roles-contratos.md), para conectar las pantallas de acceso de Isabella.
 
+Continuación del backend: [catálogo, pedidos, citas propias, fotos e IA por cuenta](fase3/roles-backend.md), con los métodos que deben usar Isabella y Nicoll.
+
 Ampliación propuesta tras la reunión del 17 de noviembre: [roadmap de roles cliente y administrador](roadmap-roles.md). Incluye tabla inicial de seguimiento, frontend secuencial (Isabella → Nicoll), backend local de Samuel y semilla ampliada opcional. Se mantiene SQLite local; la nube queda aplazada hasta después de la presentación del 18 de noviembre.
 
 | Carpeta | Contenido |

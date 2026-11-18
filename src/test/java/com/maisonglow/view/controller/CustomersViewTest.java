@@ -54,7 +54,7 @@ class CustomersViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         Customer laura = context.customers().register(new ContactData("1002", "Laura Méndez", "3124445566", "laura@correo.com"));
         context.customers().registerNoShow(laura.getId());

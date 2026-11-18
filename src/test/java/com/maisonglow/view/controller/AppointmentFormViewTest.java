@@ -70,7 +70,7 @@ class AppointmentFormViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         tomorrow = LocalDate.now().plusDays(1);
         ana = context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         laura = context.customers().register(new ContactData("1002", "Laura Méndez", "3124445566", "laura@correo.com"));

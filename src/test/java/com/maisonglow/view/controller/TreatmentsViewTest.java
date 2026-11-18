@@ -48,7 +48,7 @@ class TreatmentsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         context.treatments().register(new TreatmentData("Manicura gel", "Esmaltado semipermanente", 45000, 50));
         Treatment cut = context.treatments().register(new TreatmentData("Corte y peinado", "", 55000, 60));
         context.treatments().deactivate(cut.getId());

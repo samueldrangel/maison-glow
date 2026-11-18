@@ -1,5 +1,22 @@
 # Modelo entidad-relación — Maison Glow
 
+## Relaciones añadidas en la migración 2
+
+```mermaid
+erDiagram
+    PRODUCT ||--o| PRODUCT_LISTING : publicacion
+    CUSTOMER ||--o{ CUSTOMER_ORDER : solicita
+    CUSTOMER_ORDER ||--|{ ORDER_ITEM : incluye
+    PRODUCT ||--o{ ORDER_ITEM : reservado
+    CUSTOMER_ORDER |o--o| SALE : genera_al_pagar
+    CUSTOMER ||--o| CUSTOMER_PHOTO_ACCESS : autoriza
+    CUSTOMER ||--o{ CUSTOMER_CHANGE : historial
+    APP_USER ||--o{ CUSTOMER_CHANGE : autor
+    APPOINTMENT |o--o{ CUSTOMER_CHANGE : atencion
+```
+
+Las fotos se guardan como archivos gestionados, y su retirada se reintenta mediante `media_delete_queue`. La venta y el pedido son entidades distintas: la reserva no registra un pago. Detalle: [backend de roles](../fase3/roles-backend.md).
+
 > Actualización de acceso (17-11-2026): SQLite ya se usa en la aplicación. La migración 1 incorpora `app_user.auth_version` y el índice único de usuario normalizado, registrados en `schema_migration`. Las notas de Entrega 1 siguientes se conservan como contexto histórico. Ver [contratos de roles](../fase3/roles-contratos.md).
 
 > **Estado: diseño.** El esquema (`sql/schema.sql`) **no se aplica ni se conecta** en la Entrega 1, que persiste en archivos de texto
