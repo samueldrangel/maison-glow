@@ -61,6 +61,16 @@ class AiProviderFactoryTest {
     }
 
     @Test
+    void localConfigKeyEnablesApiWithoutEnvironmentVariable() throws Exception {
+        AiConfig configured = config("ai.provider=api\nai.api_key=local-test-key\n", Map.of());
+        assertThat(configured.provider()).isEqualTo(AiConfig.Provider.API);
+        assertThat(configured.apiKey()).isEqualTo("local-test-key");
+        assertThat(configured.toString()).doesNotContain("local-test-key");
+        assertThat(config("ai.provider=api\nai.api_key=local-test-key\nai.api_key_env= \n", Map.of()).provider())
+            .isEqualTo(AiConfig.Provider.API);
+    }
+
+    @Test
     void configuredApiSelectsBothAdapters() throws Exception {
         AiConfig config = config("ai.provider=api\n", Map.of("MAISON_GLOW_AI_API_KEY", "test-key"));
         SmartAssistant assistant = mock(SmartAssistant.class);

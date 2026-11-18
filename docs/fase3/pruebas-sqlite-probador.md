@@ -28,7 +28,7 @@ El historial de IA de la primera entrega (`AiHistory`) conserva su formato de te
 6. Probar sin cliente, sin foto y sin tono: debe mostrar errores y permitir corregirlos. Crear el cliente antes de generarlo sigue siendo obligatorio.
 7. Registrar una cita y una venta, cerrar y abrir la aplicación y comprobar clientes, citas, ventas y existencias. Los registros deben seguir disponibles.
 
-Sin proveedor disponible se muestra **Modo simulado**: aplica un tinte de ejemplo a la foto completa; no detecta el cabello. El proveedor API conserva su configuración de `config.properties` y la clave de entorno. Las pruebas automatizadas del adaptador API usan transporte simulado y no consumen la API real.
+Sin proveedor disponible se muestra **Modo simulado**: aplica un tinte de ejemplo a la foto completa; no detecta el cabello. El proveedor API lee la clave de `config.properties` local. Las pruebas automatizadas del adaptador API usan transporte simulado y no consumen la API real.
 
 ## Verificación
 

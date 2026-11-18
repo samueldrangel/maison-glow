@@ -22,7 +22,7 @@ Los comandos de esta guía se muestran para PowerShell en Windows.
 | Internet en la primera compilación | Maven descarga JavaFX, SQLite JDBC y el controlador de cámara |
 | Cámara integrada o USB, opcional | Usar **Tomar foto**; también se puede subir un archivo |
 | `config.properties`, enviado por Samuel en privado | Seleccionar el proveedor IA |
-| Clave API válida, entregada por un canal privado | Solo para IA real; se configura en una variable de entorno, no en Git |
+| Clave API válida, entregada por un canal privado | Solo para IA real; se guarda en `config.properties` local, nunca en Git |
 
 No se necesita instalar JavaFX, SQLite, FFmpeg ni una librería de cámara por separado: Maven trae las dependencias Java. Una instalación de Maven necesita `JAVA_HOME` apuntando al **JDK** y sus comandos disponibles en `PATH`.
 
@@ -78,33 +78,20 @@ maison-glow/
   sql/
 ```
 
-El archivo indica el proveedor y el nombre de la variable de entorno. El formato esperado es:
+El archivo privado contiene la selección del proveedor y la clave. El formato esperado es:
 
 ```properties
 ai.provider=api
-ai.api_key_env=MAISON_GLOW_AI_API_KEY
+ai.api_key=TU_CLAVE_API
 ```
 
-**El archivo por sí solo no basta para IA real:** la aplicación busca la clave en la variable indicada. No reconoce una clave pegada como otra propiedad del archivo. `config.properties` está ignorado por Git; no subirlo ni pegar claves en commits, capturas o mensajes públicos.
+`config.properties` está ignorado por Git; no subirlo ni pegar claves en commits, capturas o mensajes públicos. La opción anterior `ai.api_key_env` sigue disponible para quienes prefieran usar una variable de entorno; si están presentes las dos, se usa `ai.api_key`.
 
 Para ejecutar solamente la simulación se puede usar `ai.provider=simulated`, o ejecutar sin configuración privada.
 
-## 6. Configurar la clave y abrir la aplicación
+## 6. Abrir la aplicación
 
-En PowerShell, pedir la clave sin mostrarla en la pantalla ni incluirla como texto en el comando:
-
-```powershell
-$clavePrivada = Read-Host "Clave API recibida por privado" -AsSecureString
-$env:MAISON_GLOW_AI_API_KEY = [System.Net.NetworkCredential]::new("", $clavePrivada).Password
-Remove-Variable clavePrivada
-mvn javafx:run
-```
-
-Si el archivo privado indica otro nombre en `ai.api_key_env`, usar ese nombre en lugar de `MAISON_GLOW_AI_API_KEY`.
-
-La variable anterior dura lo que dure esa terminal. Al cerrarla, hay que configurarla de nuevo. Si ejecutan desde un IDE, establecer la variable en su configuración de ejecución; una terminal o un IDE que ya estaba abierto no incorpora automáticamente cambios hechos en otro proceso.
-
-Para abrir sin IA real:
+Con `config.properties` junto a `pom.xml`, basta con ejecutar `com.maisonglow.Main` sin argumentos desde el IDE. También se puede abrir desde PowerShell:
 
 ```powershell
 mvn javafx:run
@@ -112,7 +99,7 @@ mvn javafx:run
 
 La ventana abre en **Acceso**. Para administrar el negocio, configurar primero una cuenta ADMIN con el [procedimiento de configuración local](docs/fase3/roles-contratos.md#configurar-el-primer-administrador-local) e iniciar sesión con ella. El registro público crea cuentas de cliente. La barra lateral muestra las opciones del rol y se expande al pasar el cursor.
 
-También se puede ejecutar `com.maisonglow.Main` sin argumentos desde el IDE o usar `mvn exec:java`: ambos abren la misma interfaz JavaFX. Los argumentos `demo` y `menu` conservan los modos de consola.
+`mvn exec:java` también abre la interfaz JavaFX. Los argumentos `demo` y `menu` conservan los modos de consola.
 
 ## 7. Base de datos y datos de demostración
 
@@ -138,8 +125,10 @@ El correo de factura sigue siendo simulado. Los archivos locales y las bases de 
 
 ## 9. Tomar una foto y usar el probador
 
+Los pasos siguientes corresponden al **administrador**. Su probador incluye un buscador de clientes. Con una cuenta **cliente** aparece «Tu foto» y «Guardar en Mis cambios»: trabaja únicamente sobre la cuenta que inició sesión, por lo que no ofrece un selector de otras personas. Ambos usan la misma paleta de tonos.
+
 1. Crear primero el cliente en **Clientes**. Si el probador ya estaba abierto, volver a él: la lista se actualiza sin reiniciar. También se refresca al abrir el selector.
-2. En **Probador virtual**, buscar y seleccionar el cliente por nombre o documento.
+2. En **Probador virtual**, buscar y seleccionar el cliente por nombre o documento. Con más de 20 clientes, escribir al menos dos caracteres; la lista muestra hasta 20 coincidencias y se acota al seguir escribiendo.
 3. Pulsar **Tomar foto**. Se abre una ventana con el selector de cámara y la vista previa. Elegir la webcam física cuando aparezcan cámaras virtuales.
 4. Encuadrar al cliente y pulsar **Capturar**. Usar **Volver a tomar** si hace falta repetirla.
 5. Pulsar **Usar esta foto**: la imagen queda seleccionada directamente en el probador, sin buscar un archivo. **Cancelar** conserva la foto que ya estuviera seleccionada. La cámara se libera al cerrar la ventana.
@@ -160,7 +149,7 @@ En **modo simulado** se aplica un tinte de ejemplo a la imagen completa; no dete
 |---|---|
 | `java` o `mvn` no se reconoce | JDK/Maven instalados, `JAVA_HOME` y `PATH`; abrir otra terminal |
 | Error al compilar por versión de Java | `mvn -version` debe mostrar JDK 21 o superior |
-| Aparece modo simulado aunque recibí el archivo | Nombre y ubicación de `config.properties`, proveedor `api`, variable de entorno en la misma terminal y acceso a Internet |
+| Aparece modo simulado aunque recibí el archivo | Nombre y ubicación de `config.properties`, proveedor `api`, propiedad `ai.api_key` y acceso a Internet |
 | La API no genera | Clave válida, acceso a los modelos, facturación y conexión; el mensaje de error no debe incluir la clave |
 | No aparece el cliente | Guardarlo primero en Clientes y volver al probador o abrir de nuevo el selector |
 | No se encuentra la cámara | Conectar la webcam, elegir la fuente correcta, revisar permisos y cerrar otras aplicaciones que la estén usando; Subir foto sigue disponible |

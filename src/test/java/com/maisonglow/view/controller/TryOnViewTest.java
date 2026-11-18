@@ -13,6 +13,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -141,6 +143,32 @@ class TryOnViewTest {
         assertThat(FxTest.onFxThread(() -> root.lookup("#simulatedBanner").isVisible())).isTrue();
         assertThat(FxTest.onFxThread(() -> root.lookup("#saveButton").isDisabled())).isTrue();
         assertThat(message(root, "customerMessage")).isEmpty();
+    }
+
+    @Test
+    void largeCustomerListRequiresSearchAndCapsSuggestions() throws Exception {
+        for (int i = 0; i < 35; i++) {
+            context.customers().register(new ContactData("200" + i, "Cliente Prueba " + i,
+                "3001112233", "cliente" + i + "@example.com"));
+        }
+        Parent root = open();
+        FxTest.onFxThread(() -> {
+            @SuppressWarnings("unchecked")
+            ComboBox<Customer> box = (ComboBox<Customer>) root.lookup("#customerBox");
+            Label hint = (Label) root.lookup("#customerSearchHint");
+            assertThat(box.getItems()).isEmpty();
+            assertThat(hint.getText()).contains("2 caracteres");
+            box.getEditor().setText("Cliente Prueba");
+            box.getEditor().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.E,
+                false, false, false, false));
+            assertThat(box.getItems()).hasSize(20);
+            assertThat(hint.getText()).contains("primeros 20");
+            box.getEditor().setText("Prueba 34");
+            box.getEditor().fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.E,
+                false, false, false, false));
+            assertThat(box.getItems()).extracting(Customer::getName).containsExactly("Cliente Prueba 34");
+            return null;
+        });
     }
 
     @Test

@@ -20,13 +20,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 
 import java.nio.file.Path;
@@ -71,7 +73,9 @@ public final class MyTryOnController implements ViewLifecycle {
     @FXML
     private Label needPhotoMessage;
     @FXML
-    private FlowPane tonesPane;
+    private TilePane tonesPane;
+    @FXML
+    private Label selectedToneLabel;
     @FXML
     private Label toneMessage;
     @FXML
@@ -139,7 +143,10 @@ public final class MyTryOnController implements ViewLifecycle {
         });
         photoBox.getChildren().setAll(loaded.root());
         tonesPane.getChildren().setAll(HairTones.ALL.stream().map(this::toneChip).toList());
-        tones.selectedToggleProperty().addListener((observable, before, now) -> invalidateResult());
+        tones.selectedToggleProperty().addListener((observable, before, now) -> {
+            selectedToneLabel.setText(now == null ? "Selecciona una tonalidad" : ((ToggleButton) now).getText());
+            invalidateResult();
+        });
         intensitySlider.valueProperty().addListener((observable, before, now) -> invalidateResult());
         intensityValue.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
             () -> Math.round(intensitySlider.getValue() * 100) + "%", intensitySlider.valueProperty()));
@@ -155,7 +162,13 @@ public final class MyTryOnController implements ViewLifecycle {
         String name = tone.name();
         ToggleButton chip = new ToggleButton(name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1));
         chip.getStyleClass().add("tone-chip");
-        chip.setGraphic(new Circle(7, Color.web(tone.hex())));
+        Circle swatch = new Circle(22);
+        swatch.setFill(new ImagePattern(new Image(MyTryOnController.class.getResource(
+            "/com/maisonglow/view/images/tones/" + tone.swatch() + ".png").toExternalForm())));
+        chip.setGraphic(swatch);
+        chip.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        chip.setTooltip(new Tooltip(chip.getText()));
+        chip.setAccessibleText(chip.getText());
         chip.setUserData(name);
         chip.setToggleGroup(tones);
         return chip;

@@ -14,12 +14,12 @@ En el `config.properties` local, ignorado por Git:
 
 ```properties
 ai.provider=api
-ai.api_key_env=MAISON_GLOW_AI_API_KEY
+ai.api_key=TU_CLAVE_API
 ```
 
-La variable de entorno indicada debe contener la clave antes de iniciar la aplicación. `AppContext` usa `AiProviderFactory`, que comprueba disponibilidad mediante `GET /v1/models/gpt-image-1.5`, con límite de tres segundos. Si responde 200, construye `ApiAssistant` (`gpt-5.4`) y `ApiTryOnService` (`gpt-image-1.5`). Sin configuración, sin clave o si falla esa comprobación, conserva ambos simulados. La comprobación no garantiza saldo, permisos de generación ni disponibilidad en una petición posterior.
+El archivo local está ignorado por Git. `AppContext` usa `AiProviderFactory`, que comprueba disponibilidad mediante `GET /v1/models/gpt-image-1.5`, con límite de tres segundos. Si responde 200, construye `ApiAssistant` (`gpt-5.4`) y `ApiTryOnService` (`gpt-image-1.5`). Sin configuración, sin clave o si falla esa comprobación, conserva ambos simulados. La comprobación no garantiza saldo, permisos de generación ni disponibilidad en una petición posterior.
 
-En modo API, cada solicitud válida de generación envía la foto a OpenAI y puede generar un cargo del proveedor. No se realizaron llamadas reales durante esta implementación.
+En modo API, cada solicitud válida de generación envía la foto a OpenAI y puede generar un cargo del proveedor. El adaptador se verificó con transporte controlado y, en la comprobación local del 18 de noviembre de 2026, también con una ilustración ficticia y la API real.
 
 La vista del probador sigue asignada a Nicoll en N-16: debe invocar el servicio fuera del hilo de JavaFX, mostrar el resultado y su aviso, y presentar los errores controlados. S-16 deja listo el backend; no agrega esa pantalla.
 

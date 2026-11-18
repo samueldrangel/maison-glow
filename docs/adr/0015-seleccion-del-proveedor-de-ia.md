@@ -10,7 +10,7 @@ S-12 y S-13 aportan implementaciones simuladas. Los adaptadores HTTP se desarrol
 
 ## Decisión
 
-`AiConfig` lee `config.properties` opcional. `ai.provider=api` solicita el proveedor externo y `ai.api_key_env` nombra la variable de entorno de la clave (por defecto `MAISON_GLOW_AI_API_KEY`). La clave no se escribe en el archivo ni en el repositorio. Sin archivo, clave o adaptadores, `AiProviderFactory` crea el asistente y el probador simulados. Una prueba de disponibilidad acotada, proporcionada por los futuros adaptadores, decide si se puede activar el par API. Si falla, se usa el par simulado. `AiModule.isSimulated()` permite mostrar el aviso en la UI.
+`AiConfig` lee `config.properties` opcional. `ai.provider=api` solicita el proveedor externo y `ai.api_key` permite guardar la clave en ese archivo local ignorado por Git. `ai.api_key_env` conserva la alternativa de variable de entorno (por defecto `MAISON_GLOW_AI_API_KEY`); la clave local tiene prioridad. Sin archivo, clave o adaptadores, `AiProviderFactory` crea el asistente y el probador simulados. Una prueba de disponibilidad acotada decide si se puede activar el par API. Si falla, se usa el par simulado. `AiModule.isSimulated()` permite mostrar el aviso en la UI.
 
 La fábrica acepta proveedores de ambos servicios juntos: evita presentar una función como real y la otra como simulada bajo un único indicador. S-15/S-16 implementan los adaptadores de OpenAI. La fábrica de producción comprueba `GET /v1/models/gpt-image-1.5` con timeout de tres segundos; sin disponibilidad usa el par simulado. Un fallo posterior se comunica mediante el contrato del servicio, sin cambiar silenciosamente el proveedor ni el indicador del módulo.
 

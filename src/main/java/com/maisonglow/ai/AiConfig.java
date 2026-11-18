@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-/** Reads provider selection without storing an API key in the repository. */
+/** Reads provider selection and a local key without storing it in the repository. */
 public final class AiConfig {
     /** Available provider modes. */
     public enum Provider { SIMULATED, API }
@@ -23,7 +23,7 @@ public final class AiConfig {
         this.apiKey = apiKey == null ? "" : apiKey;
     }
 
-    /** Reads config.properties from the current directory and the process environment. */
+    /** Reads config.properties from the current directory. */
     public static AiConfig load() {
         return load(Path.of("config.properties"), System.getenv());
     }
@@ -41,9 +41,12 @@ public final class AiConfig {
         }
         String provider = properties.getProperty("ai.provider", "simulated").trim().toLowerCase(Locale.ROOT);
         if (!provider.equals("api")) return simulated();
-        String keyName = properties.getProperty("ai.api_key_env", DEFAULT_KEY_ENV).trim();
-        if (keyName.isBlank()) return simulated();
-        String key = environment.get(keyName);
+        String key = properties.getProperty("ai.api_key", "").trim();
+        if (key.isBlank()) {
+            String keyName = properties.getProperty("ai.api_key_env", DEFAULT_KEY_ENV).trim();
+            if (keyName.isBlank()) return simulated();
+            key = environment.get(keyName);
+        }
         return key == null || key.isBlank() ? simulated() : new AiConfig(Provider.API, key.trim());
     }
 

@@ -58,6 +58,8 @@ import java.util.function.Supplier;
  */
 public final class TryOnController implements RefreshableView, ViewLifecycle {
 
+    private static final int MAX_CUSTOMER_SUGGESTIONS = 20;
+
     private final TryOnService tryOn;
     private final com.maisonglow.ai.AiModule ai;
     private final CustomerService customers;
@@ -80,6 +82,8 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
     private HBox simulatedBanner;
     @FXML
     private ComboBox<Customer> customerBox;
+    @FXML
+    private Label customerSearchHint;
     @FXML
     private Label customerMessage;
     @FXML
@@ -178,13 +182,18 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
                 return customerList.stream().filter(c -> toString(c).equals(text) || c.getDocument().equals(text)).findFirst().orElse(null);
             }
         });
-        customerBox.setOnShowing(event -> refresh());
+        customerBox.setVisibleRowCount(8);
+        customerBox.setOnShowing(event -> updateCustomerSuggestions(customerBox.getEditor().getText()));
         customerBox.getEditor().setOnKeyReleased(event -> {
             if (event.getCode().isNavigationKey() || event.getCode() == javafx.scene.input.KeyCode.ENTER || event.getCode() == javafx.scene.input.KeyCode.ESCAPE) return;
             String typed = customerBox.getEditor().getText();
-            String wanted = normalized(typed);
-            if (!customerBox.isShowing()) customerBox.show();
-            customerBox.getItems().setAll(customerList.stream().filter(c -> normalized(c.getName() + " " + c.getDocument()).contains(wanted)).toList());
+            Customer selected = customerBox.getValue();
+            if (selected != null && !customerBox.getConverter().toString(selected).equals(typed)) {
+                customerBox.setValue(null);
+            }
+            updateCustomerSuggestions(typed);
+            if (!customerBox.isShowing() && !customerBox.getItems().isEmpty()
+                && customerBox.getScene() != null && customerBox.getScene().getWindow() != null) customerBox.show();
             customerBox.getEditor().setText(typed);
             customerBox.getEditor().positionCaret(typed.length());
         });
@@ -226,10 +235,26 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
         Customer selected = customerBox.getValue();
         try {
             customerList = customers.listAll();
-            customerBox.getItems().setAll(customerList);
+            updateCustomerSuggestions("");
             customerBox.setValue(selected == null ? null : customerList.stream().filter(c -> c.getId() == selected.getId()).findFirst().orElse(null));
             customerBox.setPromptText(customerList.isEmpty() ? "Registra un cliente en Clientes" : "Buscar cliente...");
         } catch (DataAccessException e) { show(customerMessage, "No se pudo cargar la lista de clientes. Vuelve a intentarlo."); }
+    }
+
+    private void updateCustomerSuggestions(String query) {
+        String wanted = normalized(query).trim();
+        if (customerList.size() > MAX_CUSTOMER_SUGGESTIONS && wanted.length() < 2) {
+            customerBox.getItems().clear();
+            customerSearchHint.setText("Escribe al menos 2 caracteres del nombre o documento.");
+            return;
+        }
+        List<Customer> matches = customerList.stream()
+            .filter(customer -> wanted.isEmpty() || normalized(customer.getName() + " " + customer.getDocument()).contains(wanted))
+            .limit(MAX_CUSTOMER_SUGGESTIONS + 1L).toList();
+        boolean more = matches.size() > MAX_CUSTOMER_SUGGESTIONS;
+        customerBox.getItems().setAll(matches.subList(0, Math.min(matches.size(), MAX_CUSTOMER_SUGGESTIONS)));
+        customerSearchHint.setText(matches.isEmpty() ? "No se encontraron clientes." :
+            more ? "Mostrando los primeros 20; escribe más para acotar la búsqueda." : "");
     }
 
     private static String normalized(String value) {

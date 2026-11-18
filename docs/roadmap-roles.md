@@ -1,19 +1,19 @@
 # Roadmap de ampliación — Cliente y administrador
 
-> Plan vigente del 17 de noviembre de 2026. Presentación: 18 de noviembre. **Se conserva SQLite local; nube aplazada y fuera del alcance actual.**
+> Estado revisado el 18 de noviembre de 2026 sobre `develop` con los PR #60–#76 fusionados. **Se conserva SQLite local; nube aplazada y fuera del alcance actual.**
 > Alcance: cuentas con roles, autoservicio del cliente, productos publicados con fotos e historial de cambios.
-> S-R01/S-R02 fusionadas en PR #60. S-R03–S-R06 y la parte backend de S-R07 se preparan en `feature/roles-backend`: [contratos de integración](fase3/roles-backend.md). El cierre visual espera los bloques de frontend.
+> El backend S-R03–S-R06 llegó con el PR #61; la semilla opcional S-R08 con el PR #62. Los bloques visuales de Isabella y Nicoll también están fusionados. Faltan comprobaciones de aceptación de N-R06 y S-R07: [contratos de integración](fase3/roles-backend.md).
 > Base: [Corte 3](roadmap-corte3.md), [instalación y estado actual](../README.md), [esquema](../sql/schema.sql).
 
 ## 0. Resumen de seguimiento del equipo
 
-**Seguimiento: 4 de 20 tareas fusionadas (S-R01/S-R02 e I-R01/I-R02; PR #57–#60).** Es un seguimiento del plan, no un reporte automático de Git. Actualizar esta tabla y la fila detallada de cada tarea en el mismo PR; registrar su enlace y el bloqueo real, si existe.
+**Seguimiento: 17 de 20 tareas terminadas según sus criterios; las 20 tienen código fusionado.** N-R06 y S-R07 aún requieren recorrido de aceptación completo; S-R08, opcional, requiere el recorrido final de la semilla. Fusionar código no equivale por sí solo a aprobar todos los criterios. Actualizar esta tabla y la fila detallada de cada tarea en el mismo PR.
 
 | Integrante | Qué entrega | Orden de trabajo | Terminadas / total | Estado inicial | Próximo paso |
 |---|---|---|---|---|---|
-| **Isabella** | Frontend de acceso y administración | Primero I-R01 → I-R06 | 6 / 6 | Bloque 1 completo y fusionado | Traspaso a Nicoll entregado; queda la prueba manual con cámara física e IA real |
-| **Nicoll** | Frontend del cliente: perfil, tienda, compras, citas, fotos e IA | Después de I-R06: N-R01 → N-R06 | 2 / 6 | N-R01 y N-R02 hechas; N-R03 en revisión | Seguir con N-R04 (Reservar y Mis citas) |
-| **Samuel** | Backend local completo y semilla opcional | S-R01 → S-R07; S-R08 después, si hay tiempo | 2 / 8 | En curso: S-R03–S-R07 | Integrar el backend de catálogo, pedidos, autoservicio e historial; cerrar S-R07 tras frontend |
+| **Isabella** | Frontend de acceso y administración | Primero I-R01 → I-R06 | 6 / 6 | Bloque completo y fusionado | Comprobar cámara física en el equipo de presentación si se usará |
+| **Nicoll** | Frontend del cliente: perfil, tienda, compras, citas, fotos e IA | Después de I-R06: N-R01 → N-R06 | 5 / 6 | N-R01–N-R05 fusionadas; código de N-R06 fusionado | Registrar recorrido integral manual con dos cuentas y reinicio para cerrar N-R06 |
+| **Samuel** | Backend local completo y semilla opcional | S-R01 → S-R07; S-R08 opcional | 6 / 8 | S-R01–S-R06 fusionadas; código de S-R07/S-R08 fusionado | Verificar cierre visual, restauración local y recorrido final de la semilla |
 
 **Estados:** Pendiente · En curso · Bloqueada (indicar causa) · Terminada (PR fusionado y aceptación comprobada). La espera prevista de Nicoll no cuenta como trabajo iniciado. Para los porcentajes, usar tareas terminadas / tareas totales; no representa horas consumidas.
 
@@ -21,24 +21,24 @@
 |---|---|---|---|---|---|---|
 | B1 | S-R01 | Contratos, permisos y migraciones | Samuel | Base actual verificada | Terminada | PR #60 fusionado |
 | B2 | S-R02 | Cuentas, login y sesión | Samuel | S-R01 | Terminada | PR #60 fusionado; continuidad de integración en S-R07 |
-| B3 | S-R03 | Publicación de productos y archivos | Samuel | S-R02 | Lista para revisión | Backend verificado; 756 pruebas pasan; pendiente merge de `feature/roles-backend` |
-| B4 | S-R04 | Pedidos, reservas y ventas | Samuel | S-R03 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
-| B5 | S-R05 | Perfil y citas propias | Samuel | S-R04 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
-| B6 | S-R06 | Fotos, historial e IA por cuenta | Samuel | S-R05 | Lista para revisión | Backend verificado; pendiente merge de `feature/roles-backend` |
-| B8 | S-R08 | Semilla local ampliada (opcional) | Samuel | S-R07 | Lista para revisión técnica; cierre posterior a S-R07 | [Generador y uso](fase3/semilla-local.md); pendiente PR y recorrido final |
+| B3 | S-R03 | Publicación de productos y archivos | Samuel | S-R02 | Terminada | PR #61 fusionado |
+| B4 | S-R04 | Pedidos, reservas y ventas | Samuel | S-R03 | Terminada | PR #61 fusionado |
+| B5 | S-R05 | Perfil y citas propias | Samuel | S-R04 | Terminada | PR #61 fusionado |
+| B6 | S-R06 | Fotos, historial e IA por cuenta | Samuel | S-R05 | Terminada | PR #61 fusionado |
+| B8 | S-R08 | Semilla local ampliada (opcional) | Samuel | S-R07 | En verificación | PR #62 fusionado; falta recorrido final SMALL/LARGE y comprobación local de presentación |
 | F1 | I-R01 | Pantallas de acceso | Isabella | S-R01; integrar S-R02 | Terminada | PR #57/#58 fusionados |
 | F2 | I-R02 | Navegación por rol | Isabella | I-R01 | Terminada | PR #59 fusionado |
 | F3 | I-R03 | Productos y fotos del administrador | Isabella | I-R02, S-R03 | Terminada | PR #63 fusionado; falta la prueba manual con la cámara física |
 | F4 | I-R04 | Pedidos y ventas del administrador | Isabella | I-R03, S-R04 | Terminada | PR #64 y #65 fusionados |
 | F5 | I-R05 | Agenda, clientes, historial y cuentas | Isabella | I-R04, S-R05, S-R06 | Terminada | PR #66 fusionado; falta la prueba manual con la IA real |
 | F6 | I-R06 | Verificación y traspaso | Isabella | I-R05 | Terminada | PR #67 fusionado; recorrido del administrador cubierto por `AdminFlowTest` |
-| F7 | N-R01 | Inicio y perfil del cliente | Nicoll | I-R06, S-R05 | Terminada | PR #69 fusionado en rama intermedia; llega a `develop` con este PR |
-| F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | Terminada | PR #70 fusionado en rama intermedia; llega a `develop` con este PR |
-| F9 | N-R03 | Carrito y Mis compras | Nicoll | N-R02, S-R04 | En curso: carrito (agregar desde el detalle, cantidades, total), confirmación única con clave de reintento, aviso de cambio de precio, falta de stock o producto retirado antes de enviar, y Mis compras (pedidos con estado, cancelar, comprobante, compras en el local), probados con los servicios reales; en revisión | PR #71; llega a `develop` con su propio PR |
-| F10 | N-R04 | Reservas y Mis citas | Nicoll | N-R03, S-R05 | En curso: Mis citas hecha (reservar eligiendo tratamiento, profesional, fecha y uno de los horarios libres; ver estado y anticipo que se pide; reprogramar y cancelar según las reglas del servicio; sin selector de cliente) y probada con los servicios reales; falta revisión y fusión | Rama `feature/roles-n-r04`, sobre N-R03; PR sin abrir (contra `develop`) |
-| F11 | N-R05 | Fotos, cambios y probador propios | Nicoll | N-R04, S-R06 | En curso: Mis cambios (línea de tiempo propia, cambio personal con fotos de antes y después, retirar fotos y permiso del negocio), probador virtual propio (sin selector de cliente; Guardar en Mis cambios como simulación, siempre explícito) y asistente propio (atajos y nombres del cliente; confirmar antes de reservar), probados con los servicios reales; falta revisión y fusión | Rama `feature/roles-n-r05`, sobre N-R04; PR sin abrir (contra `develop`) |
-| F12 | N-R06 | Revisión integral de frontend | Nicoll | N-R05 | En curso: validaciones por campo en vivo (mensaje bajo cada campo al salir de él y al corregirlo, con las mismas reglas del servicio) en registro, ingreso, cambio de contraseña, perfil, Mis cambios y reservar cita; límites de escritura en buscador y asistente; falta el recorrido integral de punta a punta y la revisión del frontend administrativo | Rama `feature/roles-n-r06`, sobre N-R05; PR sin abrir (contra `develop`) |
-| H1 | S-R07 | Integración local y compatibilidad | Samuel | S-R06, I-R06, N-R06 | En curso | Backend protegido; cierre visual espera I-R06/N-R06 |
+| F7 | N-R01 | Inicio y perfil del cliente | Nicoll | I-R06, S-R05 | Terminada | PR #69 fusionado mediante integración del bloque cliente |
+| F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | Terminada | PR #70/#72 fusionados |
+| F9 | N-R03 | Carrito y Mis compras | Nicoll | N-R02, S-R04 | Terminada | PR #71 fusionado |
+| F10 | N-R04 | Reservas y Mis citas | Nicoll | N-R03, S-R05 | Terminada | PR #73 fusionado |
+| F11 | N-R05 | Fotos, cambios y probador propios | Nicoll | N-R04, S-R06 | Terminada | PR #74 fusionado |
+| F12 | N-R06 | Revisión integral de frontend | Nicoll | N-R05 | En verificación | PR #75 fusionado; faltan recorrido manual con dos cuentas, reinicio y evidencia de errores de persistencia y sesión |
+| H1 | S-R07 | Integración local y compatibilidad | Samuel | S-R06, I-R06, N-R06 | En verificación | PR #61 y frontend fusionados; falta cierre visual y respaldo/restauración manual en equipo principal |
 
 B = backend local; F = frontend secuencial; H = cierre local. S-R08 es opcional y no bloquea ninguna pantalla ni la presentación. El backend y un único bloque de frontend pueden avanzar al mismo tiempo. Los números de ambas líneas no implican trabajo paralelo de Isabella y Nicoll.
 
@@ -60,7 +60,7 @@ La nueva distribución prevalece sobre las asignaciones históricas de backend d
 
 - Ya existen vistas JavaFX de clientes, productos, ventas, agenda, estadísticas, asistente y probador; se amplían y reutilizan.
 - El negocio ya persiste en SQLite y la venta descuenta inventario dentro de una transacción.
-- `sql/schema.sql` ya define `app_user`, `ADMIN` y `CUSTOMER`, pero esa tabla por sí sola no implementa registro, login ni autorización. El arranque actual abre Inicio sin autenticación.
+- `sql/schema.sql` define `app_user`, `ADMIN` y `CUSTOMER`; los servicios ya implementan registro, login y autorización. El arranque actual abre la pantalla de acceso.
 - Ya existe captura con cámara y selección de archivo en el probador. Se reutiliza la experiencia, separando las fotos de producto de las fotos privadas del cliente.
 - El historial de IA usa archivos de texto; no equivale a una galería permanente de cambios reales. Los resultados del probador pueden ser temporales y deben copiarse si el usuario decide conservarlos.
 - El registro actual de un cliente es una ficha del negocio; una cuenta de acceso necesita credenciales y vinculación comprobada a esa ficha.
@@ -103,11 +103,11 @@ Prioridad **P0** = necesaria para cerrar la ampliación; **P1** = mejora posteri
 |---|---|---|---|---|---|
 | S-R01 | P0 | Contratos de servicios, matriz de permisos y evolución de datos | Base actual verificada | Acordar sesión, errores, pedidos, publicación y archivos; migraciones versionadas sobre una copia de una BD existente, sin borrar ni recrear datos; actualizar MER/diccionario. Acordar duración de reserva y reglas de cancelación. | Terminada: PR #60 fusionado |
 | S-R02 | P0 | Cuentas, registro, autenticación, sesión y autorización | S-R01 | Cuenta/cliente creados de forma atómica; identificador de acceso normalizado y único; contraseñas con hash adaptativo y sal; primer administrador sin clave fija en Git; cambio de contraseña, desactivación e invalidación de sesión. Pruebas de acceso anónimo, rol incorrecto y datos ajenos. | Terminada: PR #60 fusionado; integración general continúa en S-R07 |
-| S-R03 | P0 | Catálogo publicable y almacenamiento de imágenes | S-R02 | Separar activo de publicado; cliente solo recibe publicados; guardar portada mediante cámara/archivo; validar contenido, tamaño y dimensiones; rutas gestionadas por la app, sin aceptar rutas arbitrarias. No quedan archivos huérfanos ante fallo ni se pierde la portada anterior. | En curso: backend en revisión |
-| S-R04 | P0 | Pedidos, reservas de stock, compra y consulta propia | S-R03 | Reutilizar venta transaccional existente; precio recalculado por backend; reservar/liberar sin duplicados; vencimientos procesados al arrancar y durante uso; confirmar pago solo como administrador; convertir pedido a venta sin descontar dos veces. Probar competencia por stock, reintentos, cancelación y fallos parciales. | En curso: backend en revisión |
-| S-R05 | P0 | Autoservicio de citas y perfil | S-R04 | Derivar cliente desde sesión; disponibilidad sin revelar agenda ajena; conservar reglas de horario, anticipo y cruces; cliente no confirma pagos ni completa citas; contacto editable sin alterar rol, identidad vinculada o inasistencias. | En curso: backend en revisión |
-| S-R06 | P0 | Historial de cambios, fotos e IA por cuenta | S-R05 | Guardar originales y resultados aceptados en almacenamiento permanente; distinguir cambio real de simulación; permisos por propietario y autorización de atención; retirada de fotos y tratamiento de archivos fallidos. Asistente/herramientas y persistencia de IA filtrados por cuenta; ninguna acción pendiente sobrevive al logout. | En curso: backend en revisión |
-| S-R07 | P0 | Integración local, compatibilidad y cierre de etapa | S-R06, I-R06, N-R06 | Servicios y herramientas sin vías de acceso antiguas que omitan permisos; revisar también consola, consultas y exportaciones. Verificar actualización, reinicio, copias de seguridad y restauración de BD + medios + historial de IA. Actualizar instrucciones y evidencia. La entrega funciona localmente; la nube no es un criterio de cierre. | En curso: backend protegido y pruebas; cierre visual espera I-R06/N-R06 |
+| S-R03 | P0 | Catálogo publicable y almacenamiento de imágenes | S-R02 | Separar activo de publicado; cliente solo recibe publicados; guardar portada mediante cámara/archivo; validar contenido, tamaño y dimensiones; rutas gestionadas por la app, sin aceptar rutas arbitrarias. No quedan archivos huérfanos ante fallo ni se pierde la portada anterior. | Terminada: PR #61 fusionado |
+| S-R04 | P0 | Pedidos, reservas de stock, compra y consulta propia | S-R03 | Reutilizar venta transaccional existente; precio recalculado por backend; reservar/liberar sin duplicados; vencimientos procesados al arrancar y durante uso; confirmar pago solo como administrador; convertir pedido a venta sin descontar dos veces. Probar competencia por stock, reintentos, cancelación y fallos parciales. | Terminada: PR #61 fusionado |
+| S-R05 | P0 | Autoservicio de citas y perfil | S-R04 | Derivar cliente desde sesión; disponibilidad sin revelar agenda ajena; conservar reglas de horario, anticipo y cruces; cliente no confirma pagos ni completa citas; contacto editable sin alterar rol, identidad vinculada o inasistencias. | Terminada: PR #61 fusionado |
+| S-R06 | P0 | Historial de cambios, fotos e IA por cuenta | S-R05 | Guardar originales y resultados aceptados en almacenamiento permanente; distinguir cambio real de simulación; permisos por propietario y autorización de atención; retirada de fotos y tratamiento de archivos fallidos. Asistente/herramientas y persistencia de IA filtrados por cuenta; ninguna acción pendiente sobrevive al logout. | Terminada: PR #61 fusionado |
+| S-R07 | P0 | Integración local, compatibilidad y cierre de etapa | S-R06, I-R06, N-R06 | Servicios y herramientas sin vías de acceso antiguas que omitan permisos; revisar también consola, consultas y exportaciones. Verificar actualización, reinicio, copias de seguridad y restauración de BD + medios + historial de IA. Actualizar instrucciones y evidencia. La entrega funciona localmente; la nube no es un criterio de cierre. | En verificación: falta recorrido visual y respaldo/restauración manual |
 
 Samuel aplica la autorización a las rutas existentes, no solo a los servicios nuevos. La consola no puede convertirse en una vía para saltarse el login. Las comprobaciones del asistente se hacen al ejecutar la herramienta y al confirmar la acción, aunque la conversación ya tuviera una autorización anterior.
 
@@ -136,10 +136,10 @@ Al finalizar I-R06, Isabella entrega una base estable. Los ajustes posteriores s
 |---|---|---|---|---|---|
 | N-R01 | P0 | Inicio del cliente y Mi perfil | I-R06, S-R05 | Saludo, próxima cita, pedidos recientes y acceso a sus datos; estados vacíos útiles; edición de contacto y cambio de contraseña usando lo entregado por Isabella. | Terminada |
 | N-R02 | P0 | Tienda y detalle de producto | N-R01, S-R03 | Buscar/filtrar publicados, portada, precio y disponibilidad; no mostrar ajustes internos de inventario; producto retirado deja de poder comprarse. | Terminada |
-| N-R03 | P0 | Carrito, confirmación y Mis compras | N-R02, S-R04 | Cantidades y total, aviso de retiro/pago local, confirmación única, pedido persistente y detalle propio; explicar falta de stock o cambio de precio antes de continuar. | En curso (hecha; PR #71 en revisión) |
-| N-R04 | P0 | Reservar y Mis citas | N-R03, S-R05 | Elegir tratamiento/profesional/horario disponible; ver anticipo y condiciones; confirmar, reprogramar o cancelar según reglas; sin selector de otros clientes. | En curso (hecha; PR sin abrir) |
-| N-R05 | P0 | Mis cambios, fotos y probador/asistente propios | N-R04, S-R06 | Línea de tiempo con fecha y notas; cámara/archivo, antes/después y retirada; guardar una simulación explícitamente; sin selector global de clientes ni acceso a chats ajenos. | En curso (hecha; PR sin abrir) |
-| N-R06 | P0 | Revisión integral de frontend y cierre del bloque | N-R05 | Recorrido de registro → compra → cita → foto → reinicio → logout; repetir con otra cuenta; teclado, errores, carga, errores de persistencia local y sesión vencida revisados con dobles de servicio; formularios y listas vacías; corregir regresiones del frontend administrativo. | En curso (validaciones por campo hechas; falta el recorrido integral) |
+| N-R03 | P0 | Carrito, confirmación y Mis compras | N-R02, S-R04 | Cantidades y total, aviso de retiro/pago local, confirmación única, pedido persistente y detalle propio; explicar falta de stock o cambio de precio antes de continuar. | Terminada: PR #71 fusionado |
+| N-R04 | P0 | Reservar y Mis citas | N-R03, S-R05 | Elegir tratamiento/profesional/horario disponible; ver anticipo y condiciones; confirmar, reprogramar o cancelar según reglas; sin selector de otros clientes. | Terminada: PR #73 fusionado |
+| N-R05 | P0 | Mis cambios, fotos y probador/asistente propios | N-R04, S-R06 | Línea de tiempo con fecha y notas; cámara/archivo, antes/después y retirada; guardar una simulación explícitamente; sin selector global de clientes ni acceso a chats ajenos. | Terminada: PR #74 fusionado |
+| N-R06 | P0 | Revisión integral de frontend y cierre del bloque | N-R05 | Recorrido de registro → compra → cita → foto → reinicio → logout; repetir con otra cuenta; teclado, errores, carga, errores de persistencia local y sesión vencida revisados con dobles de servicio; formularios y listas vacías; corregir regresiones del frontend administrativo. | En verificación: PR #75 fusionado; falta evidencia del recorrido manual completo |
 
 ## 8. Hitos y estimación orientativa
 
@@ -156,7 +156,7 @@ Estas son jornadas de trabajo efectivo, no fechas comprometidas. Se revisan tras
 
 **Carga secuencial de frontend: 16–24 jornadas**, más preparación, integración y esperas. No se reutiliza automáticamente la promesa anterior de 14 días: hay nuevos flujos y reglas de datos.
 
-**La presentación es mañana, 18 de noviembre. Estas estimaciones describen el alcance completo y no prometen terminarlo en un día.** Primero integrar un recorrido local de acceso por rol, producto publicado, compra y reserva. Si no alcanza el tiempo, documentar los pendientes reales; recuperación de cuenta, Deluxe, semilla grande y nube no desplazan ese recorrido. No dar por finalizado un bloque incompleto para adelantar el de Nicoll.
+**El código del recorrido local de acceso por rol, producto publicado, compra y reserva ya está integrado.** Para cerrar la aceptación faltan el ensayo visual completo con dos cuentas, el reinicio y la comprobación manual del respaldo en el equipo de presentación. Recuperación de cuenta, Deluxe y nube siguen fuera de este cierre.
 
 Cada tarea usa una rama propia, por ejemplo `feature/roles-s-r02` o `feature/roles-i-r03`, desde la base de integración acordada por el equipo. PR hacia `develop`; Samuel revisa frontend e Isabella o Nicoll revisan backend. No cambiar estados históricos para aparentar que estas tareas ya estaban cubiertas.
 
@@ -206,9 +206,9 @@ Las mejoras posteriores de frontend también se programan en bloques consecutivo
 
 | ID | Pri. | Tarea | Depende de | Criterio de aceptación | Estado |
 |---|---|---|---|---|---|
-| S-R08 | P1 | Generador de semilla local reproducible | S-R07 | Perfil pequeño para demo y grande para volumen; fecha base y semilla aleatoria fijas; solo sobre destino de pruebas explícito, nunca al arranque normal; segunda ejecución sin duplicados; relaciones, totales, stock y agenda coherentes; informe de conteos. No sobrescribir datos existentes ni usar información personal real. | Lista para revisión técnica; cierre posterior a S-R07 |
+| S-R08 | P1 | Generador de semilla local reproducible | S-R07 | Perfil pequeño para demo y grande para volumen; fecha base y semilla aleatoria fijas; solo sobre destino de pruebas explícito, nunca al arranque normal; segunda ejecución sin duplicados; relaciones, totales, stock y agenda coherentes; informe de conteos. No sobrescribir datos existentes ni usar información personal real. | En verificación: PR #62 fusionado; falta recorrido final de presentación |
 
-Para mañana basta un conjunto pequeño que cubra dos clientes con cuentas distintas, un administrador, productos publicados/retirados, stock disponible/agotado, tratamientos, profesionales y citas en estados válidos. Las credenciales de prueba se entregan fuera de Git. El generador está [preparado para revisión](fase3/semilla-local.md); este documento no carga datos.
+Para presentar basta un conjunto pequeño que cubra dos clientes con cuentas distintas, un administrador, productos publicados/retirados, stock disponible/agotado, tratamientos, profesionales y citas en estados válidos. Las credenciales de prueba se entregan fuera de Git. El generador está [fusionado y documentado](fase3/semilla-local.md); este documento no carga datos.
 
 El perfil grande queda para después del cierre: hasta 1.000 clientes, 200 productos, 20 profesionales, 30 tratamientos, 5.000 citas, 3.000 ventas, 1.000 pedidos y 1.000 registros de historial. Ajustar el volumen a las pruebas necesarias; no generar cientos de imágenes mediante API ni enviar correos reales para poblar ejemplos. Debe incluir también cuentas sin actividad y listas vacías.
 
@@ -220,8 +220,7 @@ La tabla inicial cuenta únicamente las 19 tareas del alcance local y S-R08 opci
 
 ## 12. Cómo empezar y hacer el traspaso
 
-1. **Samuel:** cerrar S-R01 antes de integrar login: acordar sesión, operaciones permitidas y errores. Mantener el armado de servicios en `AppContext`. El dominio y SQLite quedan a su cargo.
-2. **Isabella:** empezar I-R01 con las pantallas de acceso y sus estados visuales sobre componentes existentes; puede maquetar con dobles de servicio mientras Samuel entrega S-R02. No crear DAO ni reglas de negocio dentro de controladores. Una tarea solo se marca terminada tras conectar y verificar el servicio real.
-3. **Nicoll:** mientras espera I-R06, revisar contratos y preparar el recorrido de cliente y casos de prueba; no programar pantallas en paralelo. Después del traspaso, ejecutar N-R01 → N-R06 con la base ya fusionada.
-4. Usar la base `develop` actualizada, que ya incorpora `feature/probar-nicoll`. Una rama por tarea y PR hacia `develop`; no mezclar archivos locales de datos, fotos o configuración privada.
-5. Actualizar estado, PR y bloqueos en la tabla inicial. Para la presentación, mostrar lo comprobado y declarar lo que continúe pendiente.
+1. **Samuel:** coordinar S-R07: ejecutar el recorrido completo con las interfaces y comprobar en el equipo principal que una copia de `data/session/` se restaura con base y medios.
+2. **Isabella:** revisar el flujo administrativo del recorrido y probar la cámara física en el equipo de presentación si se va a usar.
+3. **Nicoll:** cerrar N-R06 registrando el recorrido de registro → compra → cita → foto → reinicio → logout con dos clientes y los errores indicados en su criterio de aceptación.
+4. **Equipo:** usar `develop` actualizado; mantener fuera de Git claves, bases, fotos personales y la guía local de sustentación. Registrar en la tabla inicial los resultados comprobados y los pendientes reales.

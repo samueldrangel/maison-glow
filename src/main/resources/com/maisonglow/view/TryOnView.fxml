@@ -17,6 +17,7 @@
      <VBox spacing="6" minWidth="220" prefWidth="300" maxWidth="360">
       <Label text="Cliente *" styleClass="tryon-label" labelFor="$customerBox"/>
       <ComboBox fx:id="customerBox" editable="true" promptText="Buscar cliente..." maxWidth="Infinity" accessibleText="Buscar cliente por nombre o documento"/>
+      <Label fx:id="customerSearchHint" styleClass="form-hint" wrapText="true"/>
       <Label fx:id="customerMessage" styleClass="field-error-message" wrapText="true"/>
      </VBox>
     </HBox>

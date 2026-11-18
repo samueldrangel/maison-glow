@@ -7,7 +7,7 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -20,7 +20,7 @@
      Colores: View > Scene Style Sheets > styles.css. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.maisonglow.view.controller.MyTryOnController"
-            styleClass="view-root" stylesheets="@styles.css" prefWidth="1200" prefHeight="760">
+            styleClass="view-root, tryon-root" stylesheets="@styles.css" prefWidth="1200" prefHeight="760">
     <top>
         <VBox spacing="8">
             <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
@@ -35,27 +35,28 @@
     </top>
     <center>
         <HBox spacing="16">
-            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
-                <Label text="Tu foto" styleClass="form-title"/>
+            <VBox styleClass="card, tryon-card" spacing="12" prefWidth="0" HBox.hgrow="ALWAYS">
+                <Label text="Tu foto" styleClass="tryon-card-title"/>
                 <VBox fx:id="photoBox"/>
                 <Label fx:id="needPhotoMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
             </VBox>
-            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" minWidth="300" HBox.hgrow="ALWAYS">
-                <Label text="El tono" styleClass="form-title"/>
+            <VBox styleClass="card, tryon-card" spacing="12" prefWidth="0" minWidth="300" HBox.hgrow="ALWAYS">
+                <Label text="El tono" styleClass="tryon-card-title"/>
                 <Label text="Elige un tono de cabello." styleClass="form-hint"/>
-                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefHeight="300">
-                    <FlowPane fx:id="tonesPane" hgap="8" vgap="8"/>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="tryon-scroll" prefHeight="300">
+                    <TilePane fx:id="tonesPane" prefColumns="5" prefTileWidth="50" prefTileHeight="50" hgap="6" vgap="10"/>
                 </ScrollPane>
+                <Label fx:id="selectedToneLabel" text="Selecciona una tonalidad" styleClass="tryon-tone-name" wrapText="true"/>
                 <Label fx:id="toneMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
                 <HBox alignment="CENTER_LEFT" spacing="8">
-                    <Label text="Intensidad" styleClass="form-label"/>
+                    <Label text="Intensidad" styleClass="tryon-label"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="intensityValue" text="50%" styleClass="stat-value"/>
+                    <Label fx:id="intensityValue" text="50%" styleClass="tryon-tone-name"/>
                 </HBox>
                 <Slider fx:id="intensitySlider" min="0.1" max="1.0" value="0.5"/>
             </VBox>
-            <VBox styleClass="card, form-card" spacing="8" prefWidth="0" HBox.hgrow="ALWAYS">
-                <Label text="Resultado" styleClass="form-title"/>
+            <VBox styleClass="card, tryon-card" spacing="12" prefWidth="0" HBox.hgrow="ALWAYS">
+                <Label text="Resultado" styleClass="tryon-card-title"/>
                 <StackPane styleClass="photo-frame" minHeight="260" prefHeight="300">
                     <ImageView fx:id="resultView" fitWidth="300" fitHeight="280" preserveRatio="true"/>
                     <Label fx:id="resultPlaceholder" text="Aquí aparece el resultado" styleClass="placeholder-notice"/>
