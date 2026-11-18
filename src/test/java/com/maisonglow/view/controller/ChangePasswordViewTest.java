@@ -116,7 +116,7 @@ class ChangePasswordViewTest {
         type(root, "confirmationField", "corta");
         press(root, "saveButton");
         waitFor(root, "newMessage");
-        assertThat(shown(root, "newMessage")).contains("8");
+        assertThat(shown(root, "newMessage")).contains("12");
 
         type(root, "newField", "nueva-clave-1");
         type(root, "confirmationField", "distinta-1");
