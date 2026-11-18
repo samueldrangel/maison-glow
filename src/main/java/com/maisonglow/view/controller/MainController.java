@@ -8,12 +8,13 @@ import com.maisonglow.view.NavGroup;
 import com.maisonglow.view.Navigator;
 import com.maisonglow.view.SidebarLogo;
 import com.maisonglow.view.View;
+import com.maisonglow.view.access.AccessSession;
+import com.maisonglow.util.Initials;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
@@ -67,12 +68,23 @@ public final class MainController {
     private ToggleGroup navigation;
 
     @FXML
+    private Label userName;
+
+    @FXML
+    private Label userRole;
+
+    @FXML
+    private Label avatarInitials;
+
+    @FXML
     private Label appointmentsBadge;
 
     @FXML
     private Label productsBadge;
 
     private Navigator navigator;
+    private Runnable logout = () -> { };
+    private Runnable changePassword = () -> { };
 
     /**
      * Creates the controller (called by the {@code ViewLoader}).
@@ -183,9 +195,44 @@ public final class MainController {
             .findFirst().ifPresent(NavGroup::openFirst);
     }
 
+    /**
+     * Sets what happens when the person asks to close the session.
+     *
+     * @param action the window that owns this screen goes back to the sign-in
+     */
+    public void onLogoutRequested(Runnable action) {
+        this.logout = Objects.requireNonNull(action, "action");
+    }
+
+    /**
+     * Sets what happens when the person asks to change the password.
+     *
+     * @param action opens the change-password window
+     */
+    public void onChangePasswordRequested(Runnable action) {
+        this.changePassword = Objects.requireNonNull(action, "action");
+    }
+
+    /**
+     * Shows who is using the application in the profile of the side menu.
+     *
+     * @param session the open session
+     */
+    public void showSession(AccessSession session) {
+        Objects.requireNonNull(session, "session");
+        userName.setText(session.displayName());
+        userRole.setText(session.isAdministrator() ? "Administración" : "Cliente");
+        avatarInitials.setText(Initials.of(session.displayName()));
+    }
+
     @FXML
-    private void onExit() {
-        Platform.exit();
+    private void onLogout() {
+        logout.run();
+    }
+
+    @FXML
+    private void onChangePassword() {
+        changePassword.run();
     }
 
     /** Shows today's appointments and the low-stock products next to their menu entries. */

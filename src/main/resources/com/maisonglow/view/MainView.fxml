@@ -51,7 +51,7 @@
 
                 <HBox styleClass="profile">
                     <StackPane styleClass="avatar">
-                        <Label text="AD" styleClass="avatar-initials"/>
+                        <Label fx:id="avatarInitials" text="AD" styleClass="avatar-initials"/>
                     </StackPane>
                     <VBox styleClass="profile-text, collapsible">
                         <Label fx:id="userName" text="Administración" styleClass="profile-name"/>
@@ -137,7 +137,10 @@
                     <userData><String fx:value="SETTINGS"/></userData>
                     <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M4 21v-7 M4 10V3 M12 21v-9 M12 8V3 M20 21v-5 M20 12V3 M1 14h6 M9 8h6 M17 16h6"/></StackPane></graphic>
                 </ToggleButton>
-                <Button text="Salir" onAction="#onExit" styleClass="nav-button" maxWidth="Infinity">
+                <Button fx:id="passwordButton" text="Cambiar contraseña" onAction="#onChangePassword" styleClass="nav-button" maxWidth="Infinity">
+                    <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4"/></StackPane></graphic>
+                </Button>
+                <Button fx:id="logoutButton" text="Cerrar sesión" onAction="#onLogout" styleClass="nav-button" maxWidth="Infinity">
                     <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9"/></StackPane></graphic>
                 </Button>
             </VBox>
