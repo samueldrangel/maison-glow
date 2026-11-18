@@ -20,6 +20,8 @@ import com.maisonglow.service.TreatmentService;
 import com.maisonglow.service.rule.ConfirmationRule;
 import com.maisonglow.service.rule.DepositRule;
 import com.maisonglow.service.rule.ReminderRule;
+import com.maisonglow.view.access.AccessGateway;
+import com.maisonglow.view.access.AuthenticationAccessGateway;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,6 +62,7 @@ public final class AppContext {
     private final AiHistory aiHistory;
     private final SqliteDatabase database;
     private final AuthenticationService auth;
+    private AccessGateway access;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -98,6 +101,7 @@ public final class AppContext {
         customers = new CustomerService(customerDao);
         auth = new AuthenticationService(new AccountDaoSqlite(database), customerDao, customers,
             new SqliteTransactions(database), new PasswordHasher(), clock);
+        access = new AuthenticationAccessGateway(auth, customers);
         treatments = new TreatmentService(treatmentDao);
         professionals = new ProfessionalService(professionalDao, treatmentDao);
         products = new ProductService(productDao, categoryDao);
@@ -133,6 +137,18 @@ public final class AppContext {
         } catch (com.maisonglow.exception.DataAccessException e) { throw new IOException("No se pudo preparar SQLite: " + e.getMessage(), e); }
         return SESSION_DATA;
     }
+
+    /**
+     * @return the accounts and the session as the access screens see them
+     */
+    public AccessGateway access() { return access; }
+
+    /**
+     * Replaces the account service, which the real service (S-R02) and the tests use.
+     *
+     * @param gateway the service to use from now on
+     */
+    public void useAccess(AccessGateway gateway) { this.access = Objects.requireNonNull(gateway, "gateway"); }
 
     /** @return the SQLite database shared by all business services */
     public SqliteDatabase database() { return database; }

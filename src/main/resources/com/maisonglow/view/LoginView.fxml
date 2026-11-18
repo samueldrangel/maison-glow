@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de inicio de sesion. A la izquierda el panel de marca; a la derecha la tarjeta con usuario y contrasena
+     (el campo oculta lo que se escribe), el aviso del resultado y el enlace para crear una cuenta. No hay selector de
+     rol: el rol lo decide la cuenta. Los textos "Mensaje de error" se ven aqui para disenar; LoginController los oculta.
+     Colores: View > Scene Style Sheets > styles.css (clases auth-*). -->
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.maisonglow.view.controller.LoginController"
+      styleClass="view-root, auth-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="720">
+    <VBox styleClass="auth-brand" alignment="CENTER" spacing="18" prefWidth="0" HBox.hgrow="ALWAYS">
+        <ImageView fitWidth="260" preserveRatio="true" smooth="true">
+            <image><Image url="@images/logo-claro.png"/></image>
+        </ImageView>
+        <Label text="Belleza que se cuida contigo" styleClass="auth-tagline"/>
+    </VBox>
+    <StackPane styleClass="auth-side" prefWidth="0" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card, auth-card" spacing="6" maxWidth="420" maxHeight="-Infinity" alignment="CENTER_LEFT">
+            <Label text="Bienvenida de nuevo" styleClass="auth-title"/>
+            <Label text="Inicia sesión para continuar." styleClass="form-hint"/>
+            <Region minHeight="10"/>
+            <Label text="Usuario" styleClass="form-label"/>
+            <TextField fx:id="usernameField" promptText="tu usuario"/>
+            <Label fx:id="usernameMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            <Label text="Contraseña" styleClass="form-label"/>
+            <PasswordField fx:id="passwordField" promptText="tu contraseña"/>
+            <Label fx:id="passwordMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            <Label fx:id="formMessage" text="Usuario o contraseña incorrectos." styleClass="auth-alert" wrapText="true"/>
+            <Region minHeight="8"/>
+            <HBox alignment="CENTER" spacing="10">
+                <Button fx:id="loginButton" text="Iniciar sesión" styleClass="button-gold" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <ProgressIndicator fx:id="waiting" prefWidth="26" prefHeight="26" maxWidth="26" maxHeight="26"/>
+            </HBox>
+            <HBox alignment="CENTER" spacing="6">
+                <padding><Insets top="10"/></padding>
+                <Label text="¿Aún no tienes cuenta?" styleClass="form-hint"/>
+                <Button fx:id="registerLink" text="Crear cuenta" styleClass="link-button"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+</HBox>
