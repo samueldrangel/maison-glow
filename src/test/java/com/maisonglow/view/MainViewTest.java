@@ -75,6 +75,34 @@ class MainViewTest {
     }
 
     @Test
+    @DisplayName("with a short window the options scroll and the buttons of the bottom, Cerrar sesion included, stay inside the sidebar")
+    void footerStaysVisibleWithManyOptions() throws Exception {
+        assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
+        AppContext.seed(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
+
+        for (var role : new com.maisonglow.view.access.AccessRole[] {com.maisonglow.view.access.AccessRole.ADMIN,
+            com.maisonglow.view.access.AccessRole.CUSTOMER}) {
+            double[] bounds = onFxThread(() -> {
+                var loaded = ViewLoader.<com.maisonglow.view.controller.MainController>loadWithController(
+                    MainViewTest.class.getResource("/com/maisonglow/view/MainView.fxml"), context);
+                loaded.controller().showSession(new com.maisonglow.view.access.AccessSession("u", "Usuario", role));
+                Scene scene = new Scene(loaded.root(), 1200, 520);
+                scene.getRoot().applyCss();
+                scene.getRoot().layout();
+                Node sidebar = loaded.root().lookup(".sidebar");
+                Node logout = loaded.root().lookup("#logoutButton");
+                var box = sidebar.localToScene(sidebar.getBoundsInLocal());
+                var button = logout.localToScene(logout.getBoundsInLocal());
+                return new double[] {box.getMinY(), box.getMaxY(), button.getMinY(), button.getMaxY(), logout.getBoundsInLocal().getHeight()};
+            });
+            assertThat(bounds[2]).as("logout top for " + role).isGreaterThanOrEqualTo(bounds[0]);
+            assertThat(bounds[3]).as("logout bottom for " + role).isLessThanOrEqualTo(bounds[1]);
+            assertThat(bounds[4]).as("logout is drawn with its full height").isGreaterThan(30);
+        }
+    }
+
+    @Test
     @DisplayName("keeps the palette when the view sits inside another container, as in Scene Builder")
     void keepsPaletteInsideAnotherContainer() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
@@ -374,12 +402,15 @@ class MainViewTest {
         Parent root = onFxThread(() -> {
             Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
+            loaded.applyCss();
+            loaded.layout();
             return loaded;
         });
 
         Label badge = (Label) root.lookup("#productsBadge");
         assertThat(badge.getText()).isEqualTo("1");
-        assertThat(badge.isVisible()).isTrue();
+        // The CSS only draws the counters while the sidebar is open; what the controller decides is whether they take room.
+        assertThat(badge.isManaged()).isTrue();
     }
 
     @Test

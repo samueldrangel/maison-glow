@@ -226,6 +226,29 @@ class AccessViewsTest {
     }
 
     @Test
+    @DisplayName("an empty sign-up form says what is missing under every field without asking the service")
+    void registerValidatesEveryFieldBeforeTheService() throws Exception {
+        Parent root = openRegister();
+
+        press(root, "registerButton");
+
+        assertThat(shown(root, "nameMessage")).isEqualTo("Escribe tu nombre completo.");
+        assertThat(shown(root, "documentMessage")).isEqualTo("Escribe tu documento.");
+        assertThat(shown(root, "phoneMessage")).isEqualTo("Escribe tu teléfono.");
+        assertThat(shown(root, "emailMessage")).isEqualTo("Escribe tu correo.");
+        assertThat(shown(root, "usernameMessage")).isEqualTo("Elige un usuario.");
+        assertThat(shown(root, "passwordMessage")).isEqualTo("Escribe una contraseña.");
+        assertThat(shown(root, "confirmationMessage")).contains("Repite");
+        assertThat(registerRequests).isZero();
+        assertThat(signedIn).isEmpty();
+
+        type(root, "passwordField", "corta");
+        assertThat(shown(root, "passwordMessage")).contains("te faltan 7");
+        type(root, "passwordField", "clave-segura-1");
+        assertThat(shown(root, "passwordMessage")).isEmpty();
+    }
+
+    @Test
     @DisplayName("a username already in use is refused under the username, keeping what was typed")
     void registerDuplicateUsername() throws Exception {
         Parent root = openRegister();

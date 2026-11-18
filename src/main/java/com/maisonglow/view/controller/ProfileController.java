@@ -11,6 +11,8 @@ import com.maisonglow.view.BackgroundTask;
 import com.maisonglow.view.ChangePasswordDialog;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.ViewLifecycle;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -33,6 +35,7 @@ public final class ProfileController implements ViewLifecycle {
     private final CustomerPortalService portal;
     private final AppContext context;
     private final FieldValidator fields = new FieldValidator();
+    private final LiveValidation live = new LiveValidation();
     private Executor executor = ForkJoinPool.commonPool();
     private AlertPresenter alerts;
     private Runnable passwordOpener;
@@ -109,6 +112,12 @@ public final class ProfileController implements ViewLifecycle {
         fields.field(nameField, nameMessage, "nombre");
         fields.field(phoneField, phoneMessage, "teléfono", "telefono");
         fields.field(emailField, emailMessage, "correo");
+        live.text(nameField, nameMessage, () -> FieldRules.fullName(nameField.getText()));
+        live.text(phoneField, phoneMessage, () -> FieldRules.phone(phoneField.getText()));
+        live.text(emailField, emailMessage, () -> FieldRules.email(emailField.getText()));
+        LiveValidation.limit(nameField, FieldRules.NAME_MAX);
+        LiveValidation.limit(phoneField, 13);
+        LiveValidation.limit(emailField, FieldRules.EMAIL_MAX);
         saveButton.setDisable(true);
         saveButton.setOnAction(event -> save());
         discardButton.setOnAction(event -> fill(loaded));
@@ -120,6 +129,7 @@ public final class ProfileController implements ViewLifecycle {
     private void fill(Customer customer) {
         loaded = customer;
         fields.clear();
+        live.clear();
         if (customer == null) {
             return;
         }
@@ -134,6 +144,9 @@ public final class ProfileController implements ViewLifecycle {
 
     private void save() {
         fields.clear();
+        if (!live.validateAll()) {
+            return;
+        }
         String name = nameField.getText();
         String phone = phoneField.getText();
         String email = emailField.getText();

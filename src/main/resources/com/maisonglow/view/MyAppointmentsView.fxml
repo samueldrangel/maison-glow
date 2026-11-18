@@ -36,12 +36,16 @@
                     <Label text="Tratamiento" styleClass="form-label"/>
                     <ComboBox fx:id="treatmentBox" promptText="Elige un tratamiento" maxWidth="Infinity"/>
                     <Label fx:id="treatmentSummary" text="60 min · \$ 55.000" styleClass="form-hint"/>
+                    <Label fx:id="treatmentMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
                     <Label text="Profesional" styleClass="form-label"/>
                     <ComboBox fx:id="professionalBox" promptText="Elige un profesional" maxWidth="Infinity"/>
+                    <Label fx:id="professionalMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
                     <Label text="Fecha" styleClass="form-label"/>
                     <DatePicker fx:id="datePicker" promptText="Elige la fecha" maxWidth="Infinity"/>
+                    <Label fx:id="dateMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
                     <Label text="Horario" styleClass="form-label"/>
                     <VBox fx:id="slotsHost"/>
+                    <Label fx:id="slotMessage" text="Mensaje de error" styleClass="field-error-message" wrapText="true"/>
                     <Label text="Tu cita queda pendiente hasta que el negocio la confirme al recibir el anticipo. Aquí no se paga nada." styleClass="form-hint" wrapText="true"/>
                     <Button fx:id="bookButton" text="Reservar cita" styleClass="button-gold, button-compact" maxWidth="Infinity">
                         <VBox.margin><Insets top="8"/></VBox.margin>

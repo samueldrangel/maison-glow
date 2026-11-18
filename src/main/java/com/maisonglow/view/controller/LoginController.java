@@ -7,6 +7,8 @@ import com.maisonglow.exception.ValidationException;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.access.AccessGateway;
 import com.maisonglow.view.access.AccessSession;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -32,6 +34,7 @@ public final class LoginController {
 
     private final AccessGateway access;
     private final FieldValidator fields = new FieldValidator();
+    private final LiveValidation live = new LiveValidation();
     private Executor executor = ForkJoinPool.commonPool();
     private Consumer<AccessSession> signedIn = session -> { };
     private Runnable register = () -> { };
@@ -93,6 +96,8 @@ public final class LoginController {
     private void initialize() {
         fields.field(usernameField, usernameMessage, "usuario");
         fields.field(passwordField, passwordMessage, "contraseña");
+        live.text(usernameField, usernameMessage, () -> FieldRules.loginUsername(usernameField.getText()));
+        live.text(passwordField, passwordMessage, () -> FieldRules.loginPassword(passwordField.getText()));
         hideFormMessage();
         setWaiting(false);
         loginButton.setDefaultButton(true);
@@ -105,6 +110,9 @@ public final class LoginController {
     private void login() {
         hideFormMessage();
         fields.clear();
+        if (!live.validateAll()) {
+            return;
+        }
         String username = usernameField.getText();
         String password = passwordField.getText();
         setWaiting(true);

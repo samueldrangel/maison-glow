@@ -14,6 +14,8 @@ import com.maisonglow.view.ViewLifecycle;
 import com.maisonglow.view.shop.ProductAvailability;
 import com.maisonglow.view.shop.Cart;
 import com.maisonglow.view.shop.ShopFilter;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -137,6 +139,7 @@ public final class ShopController implements ViewLifecycle, RefreshableView {
 
     @FXML
     private void initialize() {
+        LiveValidation.limit(searchField, FieldRules.SEARCH_MAX);
         alerts = new AlertPresenter(productsPane);
         searchField.textProperty().addListener((observable, before, text) -> apply(filter.withText(text)));
         categories.selectedToggleProperty().addListener((observable, before, chip) ->

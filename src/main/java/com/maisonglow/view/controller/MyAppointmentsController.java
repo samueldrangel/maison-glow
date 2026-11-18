@@ -18,6 +18,8 @@ import com.maisonglow.view.RefreshableView;
 import com.maisonglow.view.ViewLifecycle;
 import com.maisonglow.view.appointment.AppointmentLook;
 import com.maisonglow.view.appointment.SlotPicker;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -62,6 +64,7 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
     private final CustomerPortalService portal;
     private final Clock clock;
     private final SlotPicker bookPicker = new SlotPicker();
+    private final LiveValidation live = new LiveValidation();
     private final SlotPicker reschedulePicker = new SlotPicker();
     private Executor executor = ForkJoinPool.commonPool();
     private AlertPresenter alerts;
@@ -73,6 +76,14 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
 
     @FXML
     private StackPane host;
+    @FXML
+    private Label treatmentMessage;
+    @FXML
+    private Label professionalMessage;
+    @FXML
+    private Label dateMessage;
+    @FXML
+    private Label slotMessage;
     @FXML
     private ComboBox<Treatment> treatmentBox;
     @FXML
@@ -164,6 +175,14 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
         treatmentBox.valueProperty().addListener((observable, before, treatment) -> chooseTreatment(treatment));
         professionalBox.valueProperty().addListener((observable, before, professional) -> loadBookSlots());
         datePicker.valueProperty().addListener((observable, before, date) -> loadBookSlots());
+        live.choice(treatmentBox, treatmentBox.valueProperty(), treatmentMessage,
+            () -> FieldRules.choice(treatmentBox.getValue(), "un tratamiento"));
+        live.choice(professionalBox, professionalBox.valueProperty(), professionalMessage,
+            () -> FieldRules.choice(professionalBox.getValue(), "un profesional"));
+        live.choice(datePicker, datePicker.valueProperty(), dateMessage,
+            () -> FieldRules.dayNotInThePast(datePicker.getValue(), LocalDate.now(clock)));
+        live.choice(slotsHost, bookPicker.selection(), slotMessage,
+            () -> FieldRules.choice(bookPicker.selected().orElse(null), "un horario"));
         bookPicker.onChosen(this::updateBookButton);
         bookButton.setOnAction(event -> book());
         rescheduleDate.valueProperty().addListener((observable, before, date) -> loadRescheduleSlots());
@@ -200,7 +219,7 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
         datePicker.setDisable(true);
         treatmentSummary.setText("");
         bookPicker.showHint("Elige un tratamiento para empezar.");
-        bookButton.setDisable(true);
+        live.clear();
     }
 
     private void chooseTreatment(Treatment treatment) {
@@ -210,7 +229,6 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
         professionalBox.setDisable(true);
         datePicker.setValue(null);
         datePicker.setDisable(true);
-        bookButton.setDisable(true);
         if (treatment == null) {
             treatmentSummary.setText("");
             bookPicker.showHint("Elige un tratamiento para empezar.");
@@ -231,7 +249,6 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
     }
 
     private void loadBookSlots() {
-        bookButton.setDisable(true);
         Treatment treatment = treatmentBox.getValue();
         ProfessionalOption professional = professionalBox.getValue();
         datePicker.setDisable(professional == null);
@@ -265,14 +282,14 @@ public final class MyAppointmentsController implements ViewLifecycle, Refreshabl
     }
 
     private void updateBookButton() {
-        bookButton.setDisable(bookPicker.selected().isEmpty());
+        bookButton.setDisable(false);
     }
 
     private void book() {
         Treatment treatment = treatmentBox.getValue();
         ProfessionalOption professional = professionalBox.getValue();
         LocalDate date = datePicker.getValue();
-        if (treatment == null || professional == null || date == null || bookPicker.selected().isEmpty()) {
+        if (!live.validateAll() || treatment == null || professional == null || date == null) {
             return;
         }
         LocalDateTime start = LocalDateTime.of(date, bookPicker.selected().get());

@@ -59,9 +59,9 @@ class AppWindowTest {
 
     /** The menu entries a person sees, by the screen each one opens. */
     private static java.util.List<String> menuOf(Parent root) throws Exception {
-        return FxTest.onFxThread(() -> root.lookupAll(".nav-button").stream()
+        return FxTest.onFxThread(() -> { root.applyCss(); root.layout(); return root.lookupAll(".nav-button").stream()
             .filter(javafx.scene.control.ToggleButton.class::isInstance).filter(javafx.scene.Node::isVisible)
-            .map(button -> (String) button.getUserData()).toList());
+            .map(button -> (String) button.getUserData()).toList(); });
     }
 
     @Test
@@ -88,7 +88,7 @@ class AppWindowTest {
 
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Cliente");
         assertThat(menuOf(window.root())).containsExactly("CUSTOMER_HOME", "PROFILE", "SHOP", "CART", "MY_PURCHASES", "MY_APPOINTMENTS", "MY_CHANGES", "MY_TRY_ON", "MY_ASSISTANT");
-        assertThat(FxTest.onFxThread(() -> window.root().lookupAll(".nav-badge").stream().filter(javafx.scene.Node::isVisible).count())).isZero();
+        assertThat(FxTest.onFxThread(() -> window.root().lookupAll(".nav-badge").stream().filter(javafx.scene.Node::isManaged).count())).isZero();
     }
 
     @Test

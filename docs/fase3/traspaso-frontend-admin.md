@@ -88,6 +88,10 @@ caja.getChildren().add(loaded.root());
 - Los diálogos se sustituyen con `new AlertPresenter(() -> null, alerta -> ...)`; las respuestas en segundo plano, con `useExecutor(Runnable::run)` o reteniéndolas para probar el descarte.
 - `AdminFlowTest` recorre de punta a punta el inicio de sesión, todo el menú del administrador, el cierre de sesión y la nueva entrada. Es el modelo para el recorrido del cliente (N-R06).
 
+### Validación por campo (N-R06)
+
+Los formularios del cliente validan cada campo mientras se llena: `FieldRules` guarda las reglas (devuelven `null` o la frase en «tú») y `LiveValidation` las conecta a un campo y a la etiqueta que va debajo. El campo se revisa al perder el foco y, desde entonces, en cada cambio; al pulsar el botón, `validateAll()` muestra todos los mensajes y lleva el foco al primero. Las reglas de teléfono y correo son las del servicio, así que ningún valor válido se rechaza; lo que decide el servicio (usuario ya usado, contraseña incorrecta, hora ocupada) sigue mostrándose con `FieldValidator`. `LiveValidation.limit(campo, máximo)` impide escribir más de lo que acepta el servicio.
+
 ## 6. Lo que queda del lado administrativo
 
 - Pedidos, Cuentas, Historial, Productos con portada y publicación, Ventas, Agenda, Clientes, Estadísticas, Configuración, Asistente y Probador están conectados al servicio real y probados.

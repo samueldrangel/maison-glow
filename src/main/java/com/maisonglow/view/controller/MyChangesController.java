@@ -19,6 +19,8 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -53,6 +55,7 @@ public final class MyChangesController implements ViewLifecycle, RefreshableView
     private final AppContext context;
     private final Clock clock;
     private final FieldValidator fields = new FieldValidator();
+    private final LiveValidation live = new LiveValidation();
     private Executor executor = ForkJoinPool.commonPool();
     private AlertPresenter alerts;
     private LoadingOverlay loading;
@@ -133,6 +136,9 @@ public final class MyChangesController implements ViewLifecycle, RefreshableView
         loading = LoadingOverlay.over(host);
         fields.field(datePicker, dateMessage, "fecha");
         fields.field(notesArea, notesMessage, "descripción", "notas");
+        live.choice(datePicker, datePicker.valueProperty(), dateMessage,
+            () -> FieldRules.dayNotInTheFuture(datePicker.getValue(), LocalDate.now(clock)));
+        live.text(notesArea, notesMessage, () -> FieldRules.notes(notesArea.getText()));
         datePicker.setValue(LocalDate.now(clock));
         datePicker.setDayCellFactory(unused -> new DateCell() {
             @Override
@@ -219,16 +225,7 @@ public final class MyChangesController implements ViewLifecycle, RefreshableView
         fields.clear();
         LocalDate date = datePicker.getValue();
         String notes = notesArea.getText();
-        if (date == null) {
-            dateMessage.setText("Elige la fecha del cambio.");
-            dateMessage.setVisible(true);
-            dateMessage.setManaged(true);
-            return;
-        }
-        if (notes == null || notes.isBlank()) {
-            notesMessage.setText("Cuéntanos qué cambiaste.");
-            notesMessage.setVisible(true);
-            notesMessage.setManaged(true);
+        if (!live.validateAll()) {
             return;
         }
         Path before = beforePhoto;
@@ -253,6 +250,7 @@ public final class MyChangesController implements ViewLifecycle, RefreshableView
     private void clearForm() {
         notesArea.clear();
         datePicker.setValue(LocalDate.now(clock));
+        live.clear();
         beforePhoto = null;
         afterPhoto = null;
         beforePicker.showCurrent(null);

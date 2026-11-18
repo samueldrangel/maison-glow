@@ -6,6 +6,8 @@ import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.access.AccessGateway;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -30,6 +32,7 @@ public final class ChangePasswordController {
 
     private final AccessGateway access;
     private final FieldValidator fields = new FieldValidator();
+    private final LiveValidation live = new LiveValidation();
     private Executor executor = ForkJoinPool.commonPool();
     private Runnable done = () -> { };
     private Runnable cancel = () -> { };
@@ -97,6 +100,15 @@ public final class ChangePasswordController {
         fields.field(confirmationField, confirmationMessage, "confirmación", "confirmacion");
         fields.field(currentField, currentMessage, "actual");
         fields.field(newField, newMessage, "nueva", "contraseña");
+        live.text(currentField, currentMessage, () -> FieldRules.currentPassword(currentField.getText()));
+        live.text(newField, newMessage, () -> {
+            String problem = FieldRules.newPassword(newField.getText());
+            return problem != null ? problem : FieldRules.differentFromCurrent(currentField.getText(), newField.getText());
+        });
+        live.text(confirmationField, confirmationMessage,
+            () -> FieldRules.confirmation(newField.getText(), confirmationField.getText()));
+        LiveValidation.limit(newField, FieldRules.PASSWORD_MAX);
+        LiveValidation.limit(confirmationField, FieldRules.PASSWORD_MAX);
         formMessage.setVisible(false);
         formMessage.setManaged(false);
         setWaiting(false);
@@ -110,6 +122,9 @@ public final class ChangePasswordController {
         formMessage.setVisible(false);
         formMessage.setManaged(false);
         fields.clear();
+        if (!live.validateAll()) {
+            return;
+        }
         String current = currentField.getText();
         String replacement = newField.getText();
         String confirmation = confirmationField.getText();
