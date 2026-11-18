@@ -30,6 +30,8 @@ import com.maisonglow.service.rule.DepositRule;
 import com.maisonglow.service.rule.ReminderRule;
 import com.maisonglow.view.access.AccessGateway;
 import com.maisonglow.view.access.AuthenticationAccessGateway;
+import com.maisonglow.view.orders.OrdersGateway;
+import com.maisonglow.view.orders.OrderServiceGateway;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,6 +77,7 @@ public final class AppContext {
     private final OrderService orders;
     private final CustomerPortalService portal;
     private final ChangeHistoryService changes;
+    private OrdersGateway ordersGateway;
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -129,6 +132,7 @@ public final class AppContext {
         catalog=new CatalogService(auth,rawProducts,commerce,photos,transactions,clock);
         orders=new OrderService(auth,commerce,rawProducts,rawCustomers,rawSales,saleDao,transactions,clock);
         portal=new CustomerPortalService(auth,rawCustomers,rawTreatments,rawProfessionals,selfAppointments,appointmentDao,saleDao,rawStatistics,rawSettings,transactions,commerce,clock);
+        ordersGateway = new OrderServiceGateway(orders, rawCustomers, rawSettings);
         changes=new ChangeHistoryService(auth,commerce,appointmentDao,photos,transactions,clock);
 
         CustomerDao adminCustomers=AdminDaoGuard.protect(CustomerDao.class,customerDao,auth);
@@ -150,7 +154,8 @@ public final class AppContext {
         promotions=new PromotionService(lowRotation,adminSales,settings);
         var aiFactory=new AiProviderFactory(aiConfig);
         ai=new SessionAi(auth,() -> aiFactory.create(customers,products,appointments,professionals,treatments,t -> SessionAi.bind(t,auth)),
-            () -> aiFactory.create(rawCustomers,new ToolRegistry(CustomerTools.create(portal,catalog).stream().map(t -> SessionAi.bind(t,auth)).toList()))).module();
+            () -> aiFactory.create(rawCustomers,new ToolRegistry(CustomerTools.create(portal,catalog).stream().map(t -> SessionAi.bind(t,auth)).toList())),
+            () -> aiConfig.provider() != AiConfig.Provider.API).module();
         // Old unowned text histories remain untouched and are not attributed to newly created account IDs.
         aiHistory = new AiHistory(data.resolve("account-ai"),clock,auth,commerce);
     }
@@ -194,6 +199,16 @@ public final class AppContext {
      * @param gateway the service to use from now on
      */
     public void useAccess(AccessGateway gateway) { this.access = Objects.requireNonNull(gateway, "gateway"); }
+
+    /** @return the orders of the shop as the administrator's screen sees them, over {@link #orders()} */
+    public OrdersGateway ordersGateway() { return ordersGateway; }
+
+    /**
+     * Replaces the orders gateway of the screen, which the tests use to answer with their own orders.
+     *
+     * @param gateway the gateway to use from now on
+     */
+    public void useOrdersGateway(OrdersGateway gateway) { this.ordersGateway = Objects.requireNonNull(gateway, "gateway"); }
 
     /** @return the SQLite database shared by all business services */
     public SqliteDatabase database() { return database; }

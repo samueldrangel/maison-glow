@@ -71,6 +71,16 @@
                         <userData><String fx:value="CUSTOMERS"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></StackPane></graphic>
                     </ToggleButton>
+                    <ToggleButton text="Cuentas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="ACCOUNTS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4"/></StackPane></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Historial" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="HISTORY"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/></StackPane></graphic>
+                    </ToggleButton>
 
                     <!-- Grupo desplegable (M3): sus subopciones solo se ven mientras estas en el grupo.
                          Para otro apartado con mas opciones copia este VBox "nav-group-box". -->
@@ -102,6 +112,11 @@
                         <toggleGroup><fx:reference source="navigation"/></toggleGroup>
                         <userData><String fx:value="SALES"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></StackPane></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Pedidos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="ORDERS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></StackPane></graphic>
                     </ToggleButton>
                     <StackPane>
                         <ToggleButton text="Productos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">

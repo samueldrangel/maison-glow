@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de Historial de cambios del administrador (I-R05). Se elige un cliente: si autorizo que el negocio consulte
+     sus fotos e historial se ve su linea de tiempo (cambios personales, servicios del negocio y simulaciones) con sus
+     fotos, y a la derecha se registra la atencion de una cita completada, con notas y fotos de antes y despues.
+     Sin la autorizacion del cliente no se ve nada y se explica por que. Las tarjetas de ejemplo se ven aqui para
+     disenar; HistoryController las reemplaza.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.HistoryController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="700">
+    <top>
+        <VBox spacing="10">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="Historial de cambios" styleClass="view-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox spacing="4" prefWidth="320">
+                    <Label text="Cliente" styleClass="form-label"/>
+                    <ComboBox fx:id="customerBox" promptText="Seleccionar cliente..." maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+            <HBox fx:id="authorizationBanner" styleClass="banner-warning">
+                <Label fx:id="authorizationText" text="Este cliente no ha autorizado consultar sus fotos e historial." styleClass="banner-text" wrapText="true"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="contentHost">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll">
+                <VBox fx:id="timelineBox" spacing="12">
+                    <Label fx:id="emptyLabel" text="Elige un cliente para ver su historial." styleClass="placeholder-notice" wrapText="true"/>
+                    <VBox styleClass="card, form-card" spacing="6">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="12/11/2026" styleClass="stat-value"/>
+                            <Label text="Servicio" styleClass="chip-gold"/>
+                        </HBox>
+                        <Label text="Color cobrizo aplicado; revisar en cuatro semanas." styleClass="form-hint" wrapText="true"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll" prefWidth="340" minWidth="340">
+            <VBox spacing="16" styleClass="side-column">
+                <VBox fx:id="registerCard" styleClass="card, form-card" spacing="6">
+                    <Label text="Registrar atención" styleClass="form-title"/>
+                    <Label text="Cita completada" styleClass="form-label"/>
+                    <ComboBox fx:id="appointmentBox" promptText="Selecciona la cita" maxWidth="Infinity"/>
+                    <Label fx:id="appointmentMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    <Label text="Notas del servicio" styleClass="form-label"/>
+                    <TextArea fx:id="notesArea" promptText="Qué se hizo, productos usados, recomendaciones..." prefRowCount="4" wrapText="true"/>
+                    <Label fx:id="notesMessage" text="Mensaje de error" styleClass="field-error-message"/>
+                    <Label text="Foto de antes (opcional)" styleClass="form-label"/>
+                    <VBox fx:id="beforeBox"/>
+                    <Label text="Foto de después (opcional)" styleClass="form-label"/>
+                    <VBox fx:id="afterBox"/>
+                    <Button fx:id="saveButton" text="Guardar registro" styleClass="button-gold, button-compact" maxWidth="Infinity">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                    </Button>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </right>
+</BorderPane>

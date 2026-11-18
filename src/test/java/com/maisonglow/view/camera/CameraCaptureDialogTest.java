@@ -102,4 +102,9 @@ class CameraCaptureDialogTest {
         await(() -> !button("captureButton").isDisabled());
         assertThat(camera.opens.get()).isEqualTo(1);
     }
+    @Test void cancelButtonHasTheStyleOfTheApplication() throws Exception {
+        open(new FakeCamera());
+        assertThat(button("cancelPhotoButton").getStyleClass()).contains("button-secondary");
+        assertThat(button("usePhotoButton").getStyleClass()).contains("button-gold");
+    }
 }

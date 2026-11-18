@@ -10,9 +10,12 @@ import com.maisonglow.view.access.AccessRole;
 public enum View {
     HOME("Inicio", "HomeView.fxml", false, AccessRole.ADMIN),
     CUSTOMERS("Clientes", "CustomersView.fxml", false, AccessRole.ADMIN),
+    ACCOUNTS("Cuentas", "AccountsView.fxml", false, AccessRole.ADMIN),
+    HISTORY("Historial", "HistoryView.fxml", false, AccessRole.ADMIN),
     PROFESSIONALS("Profesionales", "ProfessionalsView.fxml", false, AccessRole.ADMIN),
     APPOINTMENTS("Citas", "AppointmentsView.fxml", false, AccessRole.ADMIN),
     SALES("Ventas", "SalesView.fxml", false, AccessRole.ADMIN),
+    ORDERS("Pedidos", "OrdersView.fxml", false, AccessRole.ADMIN),
     PRODUCTS("Productos", "ProductsView.fxml", false, AccessRole.ADMIN),
     STATISTICS("Estadísticas", "StatisticsView.fxml", false, AccessRole.ADMIN),
     ASSISTANT("Asistente IA", "AssistantView.fxml", true, AccessRole.ADMIN),

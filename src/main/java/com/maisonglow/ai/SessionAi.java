@@ -10,10 +10,20 @@ import java.util.function.Supplier;
 public final class SessionAi {
     private final AuthenticationService auth;
     private final Supplier<AiModule> adminFactory,customerFactory;
+    private final java.util.function.BooleanSupplier configuredSimulated;
     private UUID login;
     private AiModule provider;
     public SessionAi(AuthenticationService auth,Supplier<AiModule> adminFactory,Supplier<AiModule> customerFactory) {
-        this.auth=auth;this.adminFactory=adminFactory;this.customerFactory=customerFactory;
+        this(auth,adminFactory,customerFactory,() -> true);
+    }
+    /**
+     * @param configuredSimulated what the configuration says (true when no API provider is configured): it answers the
+     *        mode while no provider has been built for the session yet, because the provider is built lazily, on the
+     *        first call, and asking its mode from the render thread must not probe the network
+     */
+    public SessionAi(AuthenticationService auth,Supplier<AiModule> adminFactory,Supplier<AiModule> customerFactory,
+                     java.util.function.BooleanSupplier configuredSimulated) {
+        this.auth=auth;this.adminFactory=adminFactory;this.customerFactory=customerFactory;this.configuredSimulated=configuredSimulated;
     }
     private synchronized AiModule provider()throws BusinessRuleException,DataAccessException {
         UUID current=auth.requireSessionId();
@@ -43,10 +53,14 @@ public final class SessionAi {
             }catch(BusinessRuleException e){throw new ValidationException(e.getMessage(),e);}
         },this::isSimulated);
     }
-    /** Does not perform a connectivity probe from a render-thread mode query. */
+    /**
+     * Does not perform a connectivity probe from a render-thread mode query. Before the session has built its provider
+     * the mode is what the configuration asks for; after the first call it is the mode the provider really took (an
+     * API provider that could not be reached falls back to simulation).
+     */
     private synchronized boolean isSimulated() {
-        try{return provider==null||!auth.requireSessionId().equals(login)||provider.isSimulated();}
-        catch(BusinessRuleException|DataAccessException e){return true;}
+        try{return provider==null||!auth.requireSessionId().equals(login)?configuredSimulated.getAsBoolean():provider.isSimulated();}
+        catch(BusinessRuleException|DataAccessException e){return configuredSimulated.getAsBoolean();}
     }
     public static AssistantTool bind(AssistantTool delegate,AuthenticationService auth) {
         final UUID login;
