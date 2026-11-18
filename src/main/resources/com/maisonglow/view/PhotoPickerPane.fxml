@@ -15,7 +15,7 @@
      Colores: View > Scene Style Sheets > styles.css. -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.maisonglow.view.controller.PhotoPickerController"
-      styleClass="view-root" stylesheets="@styles.css" spacing="8">
+      styleClass="view-root, photo-picker" stylesheets="@styles.css" spacing="8">
     <StackPane styleClass="photo-frame" minHeight="200" prefHeight="220">
         <ImageView fx:id="photoView" fitWidth="260" fitHeight="200" preserveRatio="true"/>
         <Label fx:id="placeholder" text="Aún no hay foto" styleClass="placeholder-notice"/>

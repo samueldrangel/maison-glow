@@ -1564,3 +1564,8 @@
     -fx-text-fill: -mg-gold-dark;
 }
 
+/* El panel de foto dentro de una tarjeta no pinta su propio fondo. */
+.photo-picker {
+    -fx-background-color: transparent;
+}
+

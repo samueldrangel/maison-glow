@@ -179,6 +179,16 @@
                         <userData><String fx:value="MY_CHANGES"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></StackPane></graphic>
                     </ToggleButton>
+                    <ToggleButton text="Probador virtual" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="MY_TRY_ON"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h4"/></StackPane></graphic>
+                    </ToggleButton>
+                    <ToggleButton text="Asistente IA" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="MY_ASSISTANT"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></StackPane></graphic>
+                    </ToggleButton>
                 </VBox>
 
                 <Region VBox.vgrow="ALWAYS"/>
