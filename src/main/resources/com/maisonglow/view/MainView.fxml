@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -60,6 +61,8 @@
                 </HBox>
                 <Separator styleClass="sidebar-separator"/>
 
+                <!-- Las opciones se desplazan con la rueda si no caben; asi "Cerrar sesion" y lo de abajo siempre se ven. -->
+                <ScrollPane fx:id="navScroll" styleClass="side-scroll, nav-scroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                 <VBox styleClass="nav-list">
                     <ToggleButton text="Inicio" selected="true" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                         <toggleGroup><ToggleGroup fx:id="navigation"/></toggleGroup>
@@ -141,7 +144,7 @@
                     <ToggleButton text="Probador virtual" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
                         <toggleGroup><fx:reference source="navigation"/></toggleGroup>
                         <userData><String fx:value="TRY_ON"/></userData>
-                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h4"/></StackPane></graphic>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 8V6a2 2 0 0 1 2-2h2 M16 4h2a2 2 0 0 1 2 2v2 M20 16v2a2 2 0 0 1-2 2h-2 M8 20H6a2 2 0 0 1-2-2v-2 M9 10h.01 M15 10h.01 M9.5 15a3.5 3.5 0 0 0 5 0"/></StackPane></graphic>
                     </ToggleButton>
                     <!-- Entradas del area del cliente: MainController muestra solo las del rol de la sesion. -->
                     <ToggleButton text="Inicio" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
@@ -182,7 +185,7 @@
                     <ToggleButton text="Probador virtual" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
                         <toggleGroup><fx:reference source="navigation"/></toggleGroup>
                         <userData><String fx:value="MY_TRY_ON"/></userData>
-                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h4"/></StackPane></graphic>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M4 8V6a2 2 0 0 1 2-2h2 M16 4h2a2 2 0 0 1 2 2v2 M20 16v2a2 2 0 0 1-2 2h-2 M8 20H6a2 2 0 0 1-2-2v-2 M9 10h.01 M15 10h.01 M9.5 15a3.5 3.5 0 0 0 5 0"/></StackPane></graphic>
                     </ToggleButton>
                     <ToggleButton text="Asistente IA" onAction="#onNavigate" styleClass="nav-button, nav-ai" maxWidth="Infinity">
                         <toggleGroup><fx:reference source="navigation"/></toggleGroup>
@@ -190,8 +193,7 @@
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon, nav-icon-gold" content="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></StackPane></graphic>
                     </ToggleButton>
                 </VBox>
-
-                <Region VBox.vgrow="ALWAYS"/>
+                </ScrollPane>
                 <Separator styleClass="sidebar-separator"/>
                 <ToggleButton text="Configuración" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                     <toggleGroup><fx:reference source="navigation"/></toggleGroup>

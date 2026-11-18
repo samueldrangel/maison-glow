@@ -23,6 +23,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -34,6 +35,8 @@ import javafx.util.Duration;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,6 +68,8 @@ public final class MainController {
 
     @FXML
     private VBox sidebar;
+    @FXML
+    private ScrollPane navScroll;
 
     @FXML
     private ToggleGroup navigation;
@@ -109,9 +114,19 @@ public final class MainController {
         setUpMotion();
     }
 
+    /**
+     * Looks for nodes in the whole sidebar. The options live inside a scroll pane, whose content is only reachable by a lookup once
+     * the pane has its skin (after the first layout), so its content is searched directly.
+     */
+    private Set<Node> navAll(String selector) {
+        Set<Node> found = new LinkedHashSet<>(sidebar.lookupAll(selector));
+        found.addAll(navScroll.getContent().lookupAll(selector));
+        return found;
+    }
+
     /** Sub-entries that follow the current screen. */
     private void setUpGroups() {
-        sidebar.lookupAll(".nav-group-box").forEach(box -> groups.add(new NavGroup((VBox) box)));
+        navAll(".nav-group-box").forEach(box -> groups.add(new NavGroup((VBox) box)));
         navigation.selectedToggleProperty().addListener((observable, previous, selected) -> showCurrentGroup(true));
         showCurrentGroup(false);
     }
@@ -129,7 +144,7 @@ public final class MainController {
         sidebarWidth.addListener((observable, was, width) -> applyWidth(width.doubleValue()));
         sidebar.hoverProperty().addListener((observable, was, hovered) -> onSidebarHover(hovered));
 
-        sidebar.lookupAll(".nav-button").stream().filter(Labeled.class::isInstance)
+        navAll(".nav-button").stream().filter(Labeled.class::isInstance)
             .forEach(button -> Animations.nudgeOnHover((Labeled) button));
     }
 
@@ -247,13 +262,13 @@ public final class MainController {
 
     /** Hides the menu entries the role may not open, and the groups left empty. Hiding is only courtesy: the Navigator refuses them too. */
     private void showMenuFor(AccessRole role) {
-        sidebar.lookupAll(".nav-button").stream().filter(ToggleButton.class::isInstance).map(ToggleButton.class::cast)
+        navAll(".nav-button").stream().filter(ToggleButton.class::isInstance).map(ToggleButton.class::cast)
             .filter(button -> button.getUserData() instanceof String).forEach(button -> {
                 boolean allowed = View.valueOf((String) button.getUserData()).allowedFor(role);
                 button.setVisible(allowed);
                 button.setManaged(allowed);
             });
-        sidebar.lookupAll(".nav-group-box").forEach(box -> {
+        navAll(".nav-group-box").forEach(box -> {
             boolean any = ((VBox) box).lookupAll(".nav-sub").stream().anyMatch(Node::isVisible);
             box.setVisible(any);
             box.setManaged(any);

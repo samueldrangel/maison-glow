@@ -1569,3 +1569,15 @@
     -fx-background-color: transparent;
 }
 
+
+/* Las opciones de la barra lateral se desplazan; la barra de desplazamiento no se dibuja y el fondo es el de la barra. */
+.nav-scroll {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.nav-scroll .scroll-bar {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
