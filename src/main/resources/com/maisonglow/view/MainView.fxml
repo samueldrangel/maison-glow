@@ -71,6 +71,11 @@
                         <userData><String fx:value="CUSTOMERS"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></StackPane></graphic>
                     </ToggleButton>
+                    <ToggleButton text="Cuentas" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="ACCOUNTS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4"/></StackPane></graphic>
+                    </ToggleButton>
 
                     <!-- Grupo desplegable (M3): sus subopciones solo se ven mientras estas en el grupo.
                          Para otro apartado con mas opciones copia este VBox "nav-group-box". -->
