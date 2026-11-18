@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Mis compras del cliente (N-R03). Arriba los pedidos hechos desde la tienda, el mas reciente primero: cada uno con su
+     estado, lo que lleva, el total y lo que toca hacer (pagarlo en el local antes de cierta hora y poder cancelarlo, o ver
+     el comprobante si ya se pago). Debajo las compras hechas directamente en el local. Un pedido pendiente nunca se
+     presenta como pagado. Las tarjetas de ejemplo se ven aqui para disenar; MyPurchasesController las reemplaza.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.MyPurchasesController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="700">
+    <top>
+        <VBox spacing="2">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <Label text="Mis compras" styleClass="view-title"/>
+            <Label text="Tus pedidos de la tienda y tus compras en el local." styleClass="form-hint"/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="host">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="side-scroll">
+                <VBox spacing="16">
+                    <Label text="Pedidos de la tienda" styleClass="home-card-title"/>
+                    <VBox fx:id="ordersBox" spacing="12">
+                        <VBox styleClass="card, form-card" spacing="6">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="Pedido n.º 3" styleClass="stat-value"/>
+                                <Label text="Pendiente de pago" styleClass="chip-gold"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="\$ 96.000" styleClass="shop-price"/>
+                            </HBox>
+                            <Label text="2 × Sérum Vitamina C" styleClass="form-hint"/>
+                        </VBox>
+                    </VBox>
+                    <Label fx:id="ordersEmpty" text="Todavía no has hecho pedidos. Encuentra productos en la «Tienda»." styleClass="home-empty" wrapText="true"/>
+                    <Label text="Compras en el local" styleClass="home-card-title"/>
+                    <VBox fx:id="storeBox" spacing="10"/>
+                    <Label fx:id="storeEmpty" text="Aún no tienes compras hechas en el local." styleClass="home-empty" wrapText="true"/>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+</BorderPane>
