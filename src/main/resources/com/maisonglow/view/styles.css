@@ -1537,3 +1537,30 @@
     -fx-text-fill: -mg-text-muted;
 }
 
+/* ---- Tienda del cliente: tarjetas de producto y su precio ---- */
+.shop-card {
+    -fx-padding: 12;
+    -fx-cursor: hand;
+}
+
+.shop-card:hover {
+    -fx-border-color: -mg-rose-soft;
+}
+
+.shop-card-selected, .shop-card-selected:hover {
+    -fx-border-color: -mg-gold;
+    -fx-border-width: 2;
+}
+
+.shop-price {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -mg-text;
+}
+
+.shop-price-big {
+    -fx-font-family: Georgia, "Times New Roman", serif;
+    -fx-font-size: 30px;
+    -fx-text-fill: -mg-gold-dark;
+}
+
