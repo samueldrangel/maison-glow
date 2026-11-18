@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pantalla de Cuentas del administrador (I-R05): quien tiene acceso a la aplicacion, con su rol, a que cliente
+     pertenece y si esta activa. Desde aqui se activa o desactiva una cuenta; desactivarla cierra sus sesiones. Nunca se
+     muestran contrasenas ni nada con lo que se pueda iniciar sesion. La propia cuenta no se puede desactivar.
+     Las filas de ejemplo se ven aqui para disenar; AccountsController las reemplaza.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.AccountsController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1000" prefHeight="660">
+    <top>
+        <VBox spacing="10">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Cuentas" styleClass="view-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox alignment="CENTER_RIGHT" spacing="8">
+                    <ToggleButton text="Todas" selected="true" styleClass="filter-chip">
+                        <toggleGroup><ToggleGroup fx:id="filters"/></toggleGroup>
+                    </ToggleButton>
+                    <ToggleButton text="Activas" styleClass="filter-chip">
+                        <toggleGroup><fx:reference source="filters"/></toggleGroup>
+                    </ToggleButton>
+                    <ToggleButton text="Desactivadas" styleClass="filter-chip">
+                        <toggleGroup><fx:reference source="filters"/></toggleGroup>
+                    </ToggleButton>
+                </HBox>
+            </HBox>
+            <TextField fx:id="searchField" promptText="Buscar por usuario o cliente..." styleClass="search-field"/>
+            <HBox styleClass="banner-warning">
+                <Label text="Desactivar una cuenta cierra sus sesiones y le impide entrar. Las contraseñas nunca se muestran." styleClass="banner-text" wrapText="true"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="tableHost">
+            <TableView fx:id="accountsTable" styleClass="compact-table">
+                <columns>
+                    <TableColumn fx:id="usernameColumn" text="Usuario" prefWidth="160"/>
+                    <TableColumn fx:id="roleColumn" text="Rol" prefWidth="110"/>
+                    <TableColumn fx:id="customerColumn" text="Cliente" prefWidth="200"/>
+                    <TableColumn fx:id="stateColumn" text="Estado" prefWidth="120"/>
+                    <TableColumn fx:id="actionColumn" text="Acción" prefWidth="130" sortable="false"/>
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                <placeholder><Label fx:id="emptyLabel" text="No hay cuentas en esta lista." styleClass="placeholder-notice"/></placeholder>
+            </TableView>
+        </StackPane>
+    </center>
+</BorderPane>

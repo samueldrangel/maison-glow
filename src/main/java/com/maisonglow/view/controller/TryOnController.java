@@ -59,7 +59,7 @@ import java.util.function.Supplier;
 public final class TryOnController implements RefreshableView, ViewLifecycle {
 
     private final TryOnService tryOn;
-    private final boolean simulated;
+    private final com.maisonglow.ai.AiModule ai;
     private final CustomerService customers;
     private List<Customer> customerList = List.of();
     private final ToggleGroup tones = new ToggleGroup();
@@ -123,7 +123,7 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
     public TryOnController(AppContext context) {
         Objects.requireNonNull(context, "context");
         this.tryOn = context.ai().tryOn();
-        this.simulated = context.ai().isSimulated();
+        this.ai = context.ai();
         this.customers = context.customers();
         cameraPicker = () -> new CameraCaptureDialog(new WebcamPhotoCamera(), context.dataFolder().resolve("captures"))
             .show(cameraButton.getScene() == null ? null : cameraButton.getScene().getWindow());
@@ -166,8 +166,7 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
     @FXML
     private void initialize() {
         alerts = new AlertPresenter(generateButton);
-        simulatedBanner.setVisible(simulated);
-        simulatedBanner.setManaged(simulated);
+        showMode();
         customerBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Customer customer) {
@@ -331,12 +330,20 @@ public final class TryOnController implements RefreshableView, ViewLifecycle {
             transformationChips.setDisable(false);
             intensitySlider.setDisable(false);
             generateButton.setText("Generar simulación");
+            showMode();
             if (error != null) {
                 showError(error.getCause() instanceof Exception cause ? cause : new IllegalStateException(error));
             } else {
                 showResult(generated);
             }
         }));
+    }
+
+    /** Shows the notice only while the try-on really is the simulated one; it is asked again after every request. */
+    private void showMode() {
+        boolean simulated = ai.isSimulated();
+        simulatedBanner.setVisible(simulated);
+        simulatedBanner.setManaged(simulated);
     }
 
     private void showResult(TryOnResult generated) {

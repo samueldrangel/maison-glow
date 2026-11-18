@@ -154,7 +154,8 @@ public final class AppContext {
         promotions=new PromotionService(lowRotation,adminSales,settings);
         var aiFactory=new AiProviderFactory(aiConfig);
         ai=new SessionAi(auth,() -> aiFactory.create(customers,products,appointments,professionals,treatments,t -> SessionAi.bind(t,auth)),
-            () -> aiFactory.create(rawCustomers,new ToolRegistry(CustomerTools.create(portal,catalog).stream().map(t -> SessionAi.bind(t,auth)).toList()))).module();
+            () -> aiFactory.create(rawCustomers,new ToolRegistry(CustomerTools.create(portal,catalog).stream().map(t -> SessionAi.bind(t,auth)).toList())),
+            () -> aiConfig.provider() != AiConfig.Provider.API).module();
         // Old unowned text histories remain untouched and are not attributed to newly created account IDs.
         aiHistory = new AiHistory(data.resolve("account-ai"),clock,auth,commerce);
     }
