@@ -33,7 +33,7 @@
 | F5 | I-R05 | Agenda, clientes, historial y cuentas | Isabella | I-R04, S-R05, S-R06 | En curso: hechas las pantallas Cuentas (ver, activar y desactivar) e Historial (línea de tiempo con fotos del cliente que autorizó, y registro de atención), conectadas al servicio real; Agenda, Estadísticas y Configuración se conservan; falta revisión y fusión | Rama `feature/roles-i-r05`; PR sin abrir |
 | F6 | I-R06 | Verificación y traspaso | Isabella | I-R05 | En curso: recorrido del administrador probado de punta a punta (`AdminFlowTest`) y documento de traspaso para Nicoll; falta fusionar I-R05 y la revisión | Rama `feature/roles-i-r06`; documento `docs/fase3/traspaso-frontend-admin.md`; PR sin abrir |
 | F7 | N-R01 | Inicio y perfil del cliente | Nicoll | I-R06, S-R05 | En curso: Inicio del cliente (saludo, próxima cita, pedidos recientes, indicadores propios) y Mi perfil (editar contacto y cambiar contraseña) hechos y probados con los servicios reales; falta revisión y fusión | Rama `feature/roles-n-r01`, apilada sobre I-R06 (aún sin fusionar); PR sin abrir |
-| F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | Pendiente | — |
+| F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | En curso: Tienda hecha (productos publicados con portada, precio y disponibilidad sin cifras internas, búsqueda, categorías y detalle; un producto retirado se avisa y deja de ofrecerse) y probada con el servicio real; falta revisión y fusión | Rama `feature/roles-n-r02`, apilada sobre N-R01; PR sin abrir |
 | F9 | N-R03 | Carrito y Mis compras | Nicoll | N-R02, S-R04 | Pendiente | — |
 | F10 | N-R04 | Reservas y Mis citas | Nicoll | N-R03, S-R05 | Pendiente | — |
 | F11 | N-R05 | Fotos, cambios y probador propios | Nicoll | N-R04, S-R06 | Pendiente | — |
@@ -135,7 +135,7 @@ Al finalizar I-R06, Isabella entrega una base estable. Los ajustes posteriores s
 | ID | Pri. | Entregable de frontend | Depende de | Criterio de aceptación | Estado |
 |---|---|---|---|---|---|
 | N-R01 | P0 | Inicio del cliente y Mi perfil | I-R06, S-R05 | Saludo, próxima cita, pedidos recientes y acceso a sus datos; estados vacíos útiles; edición de contacto y cambio de contraseña usando lo entregado por Isabella. | En curso (hecha; PR sin fusionar) |
-| N-R02 | P0 | Tienda y detalle de producto | N-R01, S-R03 | Buscar/filtrar publicados, portada, precio y disponibilidad; no mostrar ajustes internos de inventario; producto retirado deja de poder comprarse. | Pendiente |
+| N-R02 | P0 | Tienda y detalle de producto | N-R01, S-R03 | Buscar/filtrar publicados, portada, precio y disponibilidad; no mostrar ajustes internos de inventario; producto retirado deja de poder comprarse. | En curso (hecha; PR sin fusionar) |
 | N-R03 | P0 | Carrito, confirmación y Mis compras | N-R02, S-R04 | Cantidades y total, aviso de retiro/pago local, confirmación única, pedido persistente y detalle propio; explicar falta de stock o cambio de precio antes de continuar. | Pendiente |
 | N-R04 | P0 | Reservar y Mis citas | N-R03, S-R05 | Elegir tratamiento/profesional/horario disponible; ver anticipo y condiciones; confirmar, reprogramar o cancelar según reglas; sin selector de otros clientes. | Pendiente |
 | N-R05 | P0 | Mis cambios, fotos y probador/asistente propios | N-R04, S-R06 | Línea de tiempo con fecha y notas; cámara/archivo, antes/después y retirada; guardar una simulación explícitamente; sin selector global de clientes ni acceso a chats ajenos. | Pendiente |
