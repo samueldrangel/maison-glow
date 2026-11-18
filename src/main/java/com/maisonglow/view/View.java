@@ -11,6 +11,7 @@ public enum View {
     HOME("Inicio", "HomeView.fxml", false, AccessRole.ADMIN),
     CUSTOMERS("Clientes", "CustomersView.fxml", false, AccessRole.ADMIN),
     ACCOUNTS("Cuentas", "AccountsView.fxml", false, AccessRole.ADMIN),
+    HISTORY("Historial", "HistoryView.fxml", false, AccessRole.ADMIN),
     PROFESSIONALS("Profesionales", "ProfessionalsView.fxml", false, AccessRole.ADMIN),
     APPOINTMENTS("Citas", "AppointmentsView.fxml", false, AccessRole.ADMIN),
     SALES("Ventas", "SalesView.fxml", false, AccessRole.ADMIN),
