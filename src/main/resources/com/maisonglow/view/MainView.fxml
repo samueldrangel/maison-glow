@@ -103,6 +103,11 @@
                         <userData><String fx:value="SALES"/></userData>
                         <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></StackPane></graphic>
                     </ToggleButton>
+                    <ToggleButton text="Pedidos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
+                        <toggleGroup><fx:reference source="navigation"/></toggleGroup>
+                        <userData><String fx:value="ORDERS"/></userData>
+                        <graphic><StackPane styleClass="nav-icon-box"><SVGPath styleClass="nav-icon" content="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></StackPane></graphic>
+                    </ToggleButton>
                     <StackPane>
                         <ToggleButton text="Productos" onAction="#onNavigate" styleClass="nav-button" maxWidth="Infinity">
                             <toggleGroup><fx:reference source="navigation"/></toggleGroup>
