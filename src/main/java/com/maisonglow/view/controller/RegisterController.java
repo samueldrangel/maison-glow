@@ -8,6 +8,8 @@ import com.maisonglow.view.FieldValidator;
 import com.maisonglow.view.access.AccessGateway;
 import com.maisonglow.view.access.AccessSession;
 import com.maisonglow.view.access.RegistrationData;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -34,6 +36,7 @@ public final class RegisterController {
 
     private final AccessGateway access;
     private final FieldValidator fields = new FieldValidator();
+    private final LiveValidation live = new LiveValidation();
     private Executor executor = ForkJoinPool.commonPool();
     private Consumer<AccessSession> signedIn = session -> { };
     private Runnable login = () -> { };
@@ -121,6 +124,21 @@ public final class RegisterController {
         fields.field(phoneField, phoneMessage, "teléfono");
         fields.field(emailField, emailMessage, "correo");
         fields.field(usernameField, usernameMessage, "usuario");
+        live.text(nameField, nameMessage, () -> FieldRules.fullName(nameField.getText()));
+        live.text(documentField, documentMessage, () -> FieldRules.document(documentField.getText()));
+        live.text(phoneField, phoneMessage, () -> FieldRules.phone(phoneField.getText()));
+        live.text(emailField, emailMessage, () -> FieldRules.email(emailField.getText()));
+        live.text(usernameField, usernameMessage, () -> FieldRules.newUsername(usernameField.getText()));
+        live.text(passwordField, passwordMessage, () -> FieldRules.newPassword(passwordField.getText()));
+        live.text(confirmationField, confirmationMessage,
+            () -> FieldRules.confirmation(passwordField.getText(), confirmationField.getText()));
+        LiveValidation.limit(nameField, FieldRules.NAME_MAX);
+        LiveValidation.limit(documentField, FieldRules.DOCUMENT_MAX);
+        LiveValidation.limit(phoneField, 13);
+        LiveValidation.limit(emailField, FieldRules.EMAIL_MAX);
+        LiveValidation.limit(usernameField, FieldRules.USERNAME_MAX);
+        LiveValidation.limit(passwordField, FieldRules.PASSWORD_MAX);
+        LiveValidation.limit(confirmationField, FieldRules.PASSWORD_MAX);
         hideFormMessage();
         setWaiting(false);
         registerButton.setDefaultButton(true);
@@ -131,6 +149,9 @@ public final class RegisterController {
     private void register() {
         hideFormMessage();
         fields.clear();
+        if (!live.validateAll()) {
+            return;
+        }
         RegistrationData data = new RegistrationData(nameField.getText(), documentField.getText(), phoneField.getText(),
             emailField.getText(), usernameField.getText(), passwordField.getText(), confirmationField.getText());
         setWaiting(true);

@@ -219,7 +219,7 @@ class MyAppointmentsViewTest {
         assertThat(FxTest.onFxThread(() -> ((ComboBox<?>) root.lookup("#treatmentBox")).getItems().size())).isEqualTo(2);
         assertThat(disabled(root, "professionalBox")).isTrue();
         assertThat(disabled(root, "datePicker")).isTrue();
-        assertThat(disabled(root, "bookButton")).isTrue();
+        assertThat(disabled(root, "bookButton")).isFalse();
         assertThat(texts(root, "slotsHost")).containsExactly("Elige un tratamiento para empezar.");
         // Only the treatment and the professional: there is no customer to choose.
         assertThat(FxTest.onFxThread(() -> root.lookupAll(".combo-box").size())).isEqualTo(2);
@@ -265,7 +265,25 @@ class MyAppointmentsViewTest {
         List<String> offered = hours(root, "slotsHost");
         assertThat(offered).contains("08:00", "09:00", "11:00", "17:00");
         assertThat(offered).doesNotContain("07:00", "07:30", "09:30", "10:00", "10:30", "17:30", "18:00");
-        assertThat(disabled(root, "bookButton")).isTrue();
+    }
+
+    @Test
+    @DisplayName("pressing Reservar with nothing chosen says what is missing under each field and books nothing")
+    void messagesUnderEachField() throws Exception {
+        Parent root = open(true).root();
+        settle();
+
+        press(root, "bookButton");
+
+        assertThat(text(root, "treatmentMessage")).isEqualTo("Elige un tratamiento.");
+        assertThat(text(root, "professionalMessage")).isEqualTo("Elige un profesional.");
+        assertThat(text(root, "dateMessage")).isEqualTo("Elige la fecha.");
+        assertThat(text(root, "slotMessage")).isEqualTo("Elige un horario.");
+        assertThat(shown(root, "treatmentMessage")).isTrue();
+
+        choose(root, "treatmentBox", 0);
+        assertThat(shown(root, "treatmentMessage")).isFalse();
+        assertThat(shown(root, "dateMessage")).isTrue();
     }
 
     @Test

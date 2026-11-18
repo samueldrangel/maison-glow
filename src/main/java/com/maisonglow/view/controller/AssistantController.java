@@ -13,6 +13,8 @@ import com.maisonglow.service.TreatmentService;
 import com.maisonglow.util.DateFormats;
 import com.maisonglow.view.assistant.PendingActionRows;
 import javafx.application.Platform;
+import com.maisonglow.view.validation.FieldRules;
+import com.maisonglow.view.validation.LiveValidation;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -131,6 +133,7 @@ public final class AssistantController implements ViewLifecycle {
         messagesBox.getChildren().clear();
         showMode();
         messagesBox.heightProperty().addListener((observable, before, height) -> chatScroll.setVvalue(1.0));
+        LiveValidation.limit(messageField, FieldRules.MESSAGE_MAX);
         sendButton.setOnAction(event -> ask(messageField.getText()));
         messageField.setOnAction(event -> ask(messageField.getText()));
         todayShortcut.setOnAction(event -> ask("citas " + LocalDate.now(clock)));

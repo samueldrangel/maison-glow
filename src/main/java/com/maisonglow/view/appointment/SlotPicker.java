@@ -91,6 +91,11 @@ public final class SlotPicker extends VBox {
         }).toList());
     }
 
+    /** @return the value that changes when an hour is chosen or cleared */
+    public javafx.beans.value.ObservableValue<?> selection() {
+        return group.selectedToggleProperty();
+    }
+
     /** @return the hour chosen, empty if none */
     public Optional<LocalTime> selected() {
         return group.getSelectedToggle() == null ? Optional.empty() : Optional.of((LocalTime) group.getSelectedToggle().getUserData());
