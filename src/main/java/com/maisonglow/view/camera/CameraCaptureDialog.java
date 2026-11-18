@@ -54,6 +54,10 @@ public final class CameraCaptureDialog {
         accept = (Button)dialog.getDialogPane().lookupButton(use);
         accept.setId("usePhotoButton"); accept.setDisable(true);
         accept.getStyleClass().add("button-gold");
+        // The cancel button of the dialog gets the same look as the buttons of the rest of the application.
+        Button cancel = (Button)dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        cancel.setId("cancelPhotoButton");
+        cancel.getStyleClass().add("button-secondary");
         accept.addEventFilter(ActionEvent.ACTION, event -> { event.consume(); saveSelected(); });
         dialog.setResultConverter(button -> null);
         preview.setId("cameraPreview"); preview.setPreserveRatio(true); preview.setFitWidth(640); preview.setFitHeight(420);
