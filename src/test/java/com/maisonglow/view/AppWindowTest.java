@@ -88,6 +88,7 @@ class AppWindowTest {
 
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Cliente");
         assertThat(menuOf(window.root())).containsExactly("CUSTOMER_HOME", "PROFILE", "SHOP", "MY_PURCHASES", "MY_APPOINTMENTS", "MY_CHANGES");
+        assertThat(FxTest.onFxThread(() -> window.root().lookupAll(".nav-badge").stream().filter(javafx.scene.Node::isVisible).count())).isZero();
     }
 
     @Test
