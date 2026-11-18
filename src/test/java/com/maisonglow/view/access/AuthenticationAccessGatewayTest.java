@@ -105,6 +105,13 @@ class AuthenticationAccessGatewayTest {
     }
 
     @Test
+    @DisplayName("changing the password with no session says the session ended, so the window goes back to the sign-in")
+    void changePasswordWithoutSession() {
+        assertThatThrownBy(() -> access.changePassword(PASSWORD, "nueva-clave-12", "nueva-clave-12"))
+            .isInstanceOf(SessionExpiredException.class).hasMessage(SessionExpiredException.MESSAGE);
+    }
+
+    @Test
     @DisplayName("a deactivated account loses its session and cannot sign in again")
     void deactivatedAccount() throws Exception {
         context.auth().createFirstAdmin("jefa", "clave-de-prueba-1".toCharArray());
