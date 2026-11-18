@@ -35,7 +35,7 @@
 | F7 | N-R01 | Inicio y perfil del cliente | Nicoll | I-R06, S-R05 | Terminada | PR #69 fusionado en rama intermedia; llega a `develop` con este PR |
 | F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | Terminada | PR #70 fusionado en rama intermedia; llega a `develop` con este PR |
 | F9 | N-R03 | Carrito y Mis compras | Nicoll | N-R02, S-R04 | En curso: carrito (agregar desde el detalle, cantidades, total), confirmación única con clave de reintento, aviso de cambio de precio, falta de stock o producto retirado antes de enviar, y Mis compras (pedidos con estado, cancelar, comprobante, compras en el local), probados con los servicios reales; en revisión | PR #71; llega a `develop` con su propio PR |
-| F10 | N-R04 | Reservas y Mis citas | Nicoll | N-R03, S-R05 | Pendiente | — |
+| F10 | N-R04 | Reservas y Mis citas | Nicoll | N-R03, S-R05 | En curso: Mis citas hecha (reservar eligiendo tratamiento, profesional, fecha y uno de los horarios libres; ver estado y anticipo que se pide; reprogramar y cancelar según las reglas del servicio; sin selector de cliente) y probada con los servicios reales; falta revisión y fusión | Rama `feature/roles-n-r04`, sobre N-R03; PR sin abrir (contra `develop`) |
 | F11 | N-R05 | Fotos, cambios y probador propios | Nicoll | N-R04, S-R06 | Pendiente | — |
 | F12 | N-R06 | Revisión integral de frontend | Nicoll | N-R05 | Pendiente | — |
 | H1 | S-R07 | Integración local y compatibilidad | Samuel | S-R06, I-R06, N-R06 | En curso | Backend protegido; cierre visual espera I-R06/N-R06 |
@@ -137,7 +137,7 @@ Al finalizar I-R06, Isabella entrega una base estable. Los ajustes posteriores s
 | N-R01 | P0 | Inicio del cliente y Mi perfil | I-R06, S-R05 | Saludo, próxima cita, pedidos recientes y acceso a sus datos; estados vacíos útiles; edición de contacto y cambio de contraseña usando lo entregado por Isabella. | Terminada |
 | N-R02 | P0 | Tienda y detalle de producto | N-R01, S-R03 | Buscar/filtrar publicados, portada, precio y disponibilidad; no mostrar ajustes internos de inventario; producto retirado deja de poder comprarse. | Terminada |
 | N-R03 | P0 | Carrito, confirmación y Mis compras | N-R02, S-R04 | Cantidades y total, aviso de retiro/pago local, confirmación única, pedido persistente y detalle propio; explicar falta de stock o cambio de precio antes de continuar. | En curso (hecha; PR #71 en revisión) |
-| N-R04 | P0 | Reservar y Mis citas | N-R03, S-R05 | Elegir tratamiento/profesional/horario disponible; ver anticipo y condiciones; confirmar, reprogramar o cancelar según reglas; sin selector de otros clientes. | Pendiente |
+| N-R04 | P0 | Reservar y Mis citas | N-R03, S-R05 | Elegir tratamiento/profesional/horario disponible; ver anticipo y condiciones; confirmar, reprogramar o cancelar según reglas; sin selector de otros clientes. | En curso (hecha; PR sin abrir) |
 | N-R05 | P0 | Mis cambios, fotos y probador/asistente propios | N-R04, S-R06 | Línea de tiempo con fecha y notas; cámara/archivo, antes/después y retirada; guardar una simulación explícitamente; sin selector global de clientes ni acceso a chats ajenos. | Pendiente |
 | N-R06 | P0 | Revisión integral de frontend y cierre del bloque | N-R05 | Recorrido de registro → compra → cita → foto → reinicio → logout; repetir con otra cuenta; teclado, errores, carga, errores de persistencia local y sesión vencida revisados con dobles de servicio; formularios y listas vacías; corregir regresiones del frontend administrativo. | Pendiente |
 
