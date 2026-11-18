@@ -13,6 +13,7 @@ import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Customer;
 import com.maisonglow.view.AlertPresenter;
+import com.maisonglow.view.ViewLifecycle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -55,7 +56,7 @@ import java.util.function.Supplier;
  * guarantee. A request with no customer, no photo or no tone is rejected by the service and the reason is shown under
  * the field it is about. The result can take a while, so it is asked in the background.
  */
-public final class TryOnController implements RefreshableView {
+public final class TryOnController implements RefreshableView, ViewLifecycle {
 
     private final TryOnService tryOn;
     private final boolean simulated;
@@ -71,6 +72,7 @@ public final class TryOnController implements RefreshableView {
     private Supplier<Path> cameraPicker;
     private Supplier<Path> savePicker = () -> choose(true);
     private AlertPresenter alerts;
+    private boolean disposed;
     private Path photo;
     private Path result;
 
@@ -297,6 +299,9 @@ public final class TryOnController implements RefreshableView {
 
     /** Asks for the simulation with what the user chose; a missing choice comes back from the service as an error under its field. */
     private void generate() {
+        if (disposed) {
+            return;
+        }
         clearMessages();
         Customer customer = customerBox.getValue();
         var tone = tones.getSelectedToggle();
@@ -316,6 +321,9 @@ public final class TryOnController implements RefreshableView {
                 throw new CompletionException(e);
             }
         }, executor).whenComplete((generated, error) -> Platform.runLater(() -> {
+            if (disposed) {
+                return;
+            }
             generateButton.setDisable(false);
             uploadButton.setDisable(false);
             cameraButton.setDisable(false);
@@ -410,5 +418,13 @@ public final class TryOnController implements RefreshableView {
             file = chooser.showOpenDialog(window);
         }
         return file == null ? null : file.toPath();
+    }
+
+    /** Closing the session: a simulation still being generated is ignored when it arrives, and its result is never shown. */
+    @Override
+    public void dispose() {
+        disposed = true;
+        photo = null;
+        result = null;
     }
 }

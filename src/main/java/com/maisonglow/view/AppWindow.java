@@ -29,6 +29,7 @@ public final class AppWindow {
     private final Stage stage;
     private final AppContext context;
     private final Consumer<Stage> reveal;
+    private MainController area;
     private Scene scene;
 
     /**
@@ -89,6 +90,7 @@ public final class AppWindow {
     public void showArea(AccessSession session) {
         Objects.requireNonNull(session, "session");
         ViewLoader.Loaded<MainController> loaded = ViewLoader.loadWithController(resource("MainView.fxml"), context);
+        area = loaded.controller();
         loaded.controller().showSession(session);
         loaded.controller().onLogoutRequested(this::logout);
         loaded.controller().onChangePasswordRequested(this::openChangePassword);
@@ -97,8 +99,17 @@ public final class AppWindow {
 
     /** Closes the session and goes back to the sign-in; the screens of the account are discarded. */
     public void logout() {
+        closeArea();
         context.access().logout();
         showLogin();
+    }
+
+    /** Throws away the screens of the open area, so nothing of one account is seen by the next. */
+    private void closeArea() {
+        if (area != null) {
+            area.close();
+            area = null;
+        }
     }
 
     private void openChangePassword() {

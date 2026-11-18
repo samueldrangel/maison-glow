@@ -250,6 +250,13 @@ public final class MainController {
         });
     }
 
+    /** Discards the screens of the session and what they have pending; the window calls it before closing the session. */
+    public void close() {
+        if (navigator != null) {
+            navigator.close();
+        }
+    }
+
     @FXML
     private void onLogout() {
         logout.run();

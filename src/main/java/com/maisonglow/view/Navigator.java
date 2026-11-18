@@ -27,6 +27,8 @@ public final class Navigator {
     private final AppContext context;
     private final AccessRole role;
     private final Map<View, Node> kept = new EnumMap<>(View.class);
+    private final Map<View, Object> keptControllers = new EnumMap<>(View.class);
+    private Object currentController;
     private final Map<View, RefreshableView> refreshable = new EnumMap<>(View.class);
     private View current;
 
@@ -58,27 +60,53 @@ public final class Navigator {
             return false;
         }
         Node screen = kept.get(view);
+        Object controller = keptControllers.get(view);
         if (screen == null) {
             URL fxml = Navigator.class.getResource(view.resource());
             if (fxml == null) {
                 screen = underConstruction(view);
             } else {
-                var loaded = ViewLoader.loadWithController(fxml, context);
+                ViewLoader.Loaded<Object> loaded = ViewLoader.loadWithController(fxml, context);
                 screen = loaded.root();
-                if (loaded.controller() instanceof RefreshableView controller) refreshable.put(view, controller);
+                controller = loaded.controller();
             }
             if (screen instanceof Parent parent) {
                 Animations.installButtonMotion(parent);
             }
             if (view.keepsState()) {
                 kept.put(view, screen);
+                keptControllers.put(view, controller);
             }
         }
+        if (currentController != controller && !keptControllers.containsValue(currentController)) {
+            dispose(currentController);
+        }
+        currentController = controller;
         content.getChildren().setAll(screen);
         if (refreshable.containsKey(view)) refreshable.get(view).refresh();
         Animations.enter(screen);
         current = view;
         return true;
+    }
+
+    /**
+     * Discards every screen, the ones kept included, and tells each one to drop what is pending. It is called when
+     * the session closes; this navigator is not used again afterwards.
+     */
+    public void close() {
+        dispose(currentController);
+        keptControllers.values().forEach(Navigator::dispose);
+        keptControllers.clear();
+        kept.clear();
+        currentController = null;
+        current = null;
+        content.getChildren().clear();
+    }
+
+    private static void dispose(Object controller) {
+        if (controller instanceof ViewLifecycle lifecycle) {
+            lifecycle.dispose();
+        }
     }
 
     /** @return the screen being shown, empty before the first {@link #show(View)} */
