@@ -47,7 +47,7 @@ public final class AssistantController implements ViewLifecycle {
         + "clientes. Si me pides agendar una cita, te mostraré los datos y esperaré tu confirmación.";
 
     private final SmartAssistant assistant;
-    private final boolean simulated;
+    private final com.maisonglow.ai.AiModule ai;
     private final CustomerService customers;
     private final ProfessionalService professionals;
     private final TreatmentService treatments;
@@ -92,7 +92,7 @@ public final class AssistantController implements ViewLifecycle {
     public AssistantController(AppContext context) {
         Objects.requireNonNull(context, "context");
         this.assistant = context.ai().assistant();
-        this.simulated = context.ai().isSimulated();
+        this.ai = context.ai();
         this.customers = context.customers();
         this.professionals = context.professionals();
         this.treatments = context.treatments();
@@ -115,8 +115,7 @@ public final class AssistantController implements ViewLifecycle {
     @FXML
     private void initialize() {
         messagesBox.getChildren().clear();
-        simulatedBanner.setVisible(simulated);
-        simulatedBanner.setManaged(simulated);
+        showMode();
         messagesBox.heightProperty().addListener((observable, before, height) -> chatScroll.setVvalue(1.0));
         sendButton.setOnAction(event -> ask(messageField.getText()));
         messageField.setOnAction(event -> ask(messageField.getText()));
@@ -171,7 +170,15 @@ public final class AssistantController implements ViewLifecycle {
                 reply.pendingConfirmation().ifPresent(this::addConfirmation);
             }
             setWaiting(false);
+            showMode();
         }));
+    }
+
+    /** Shows the notice only while the assistant really is the simulated one; it is asked again after every answer. */
+    private void showMode() {
+        boolean simulated = ai.isSimulated();
+        simulatedBanner.setVisible(simulated);
+        simulatedBanner.setManaged(simulated);
     }
 
     private void setWaiting(boolean value) {
