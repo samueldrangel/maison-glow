@@ -69,6 +69,9 @@ public final class Navigator {
                 ViewLoader.Loaded<Object> loaded = ViewLoader.loadWithController(fxml, context);
                 screen = loaded.root();
                 controller = loaded.controller();
+                if (controller instanceof RefreshableView refreshableScreen) {
+                    refreshable.put(view, refreshableScreen);
+                }
             }
             if (screen instanceof Parent parent) {
                 Animations.installButtonMotion(parent);
@@ -98,6 +101,7 @@ public final class Navigator {
         keptControllers.values().forEach(Navigator::dispose);
         keptControllers.clear();
         kept.clear();
+        refreshable.clear();
         currentController = null;
         current = null;
         content.getChildren().clear();
