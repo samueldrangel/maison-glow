@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Mis citas del cliente (N-R04). A la izquierda se reserva: tratamiento, profesional que lo ofrece, fecha y uno de los
+     horarios libres (solo salen los que el negocio puede atender). A la derecha las citas propias, con su estado, el anticipo
+     que se pide y los botones para reprogramar o cancelar; al reprogramar aparece debajo el mismo selector de horarios. Una
+     cita nueva queda pendiente hasta que el negocio la confirma al recibir el anticipo: aqui no se paga nada. No hay selector de
+     cliente. Los textos de ejemplo se ven aqui para disenar; MyAppointmentsController los reemplaza.
+     Colores: View > Scene Style Sheets > styles.css. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.maisonglow.view.controller.MyAppointmentsController"
+            styleClass="view-root" stylesheets="@styles.css" prefWidth="1100" prefHeight="720">
+    <top>
+        <VBox spacing="2">
+            <BorderPane.margin><Insets bottom="14"/></BorderPane.margin>
+            <Label text="Mis citas" styleClass="view-title"/>
+            <Label text="Reserva una cita y gestiona las que ya tienes." styleClass="form-hint"/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="host">
+            <HBox spacing="18" alignment="TOP_LEFT">
+                <VBox styleClass="card, form-card" spacing="6" prefWidth="0" HBox.hgrow="ALWAYS" maxHeight="-Infinity">
+                    <Label text="Reservar una cita" styleClass="form-title"/>
+                    <Label text="Tratamiento" styleClass="form-label"/>
+                    <ComboBox fx:id="treatmentBox" promptText="Elige un tratamiento" maxWidth="Infinity"/>
+                    <Label fx:id="treatmentSummary" text="60 min · \$ 55.000" styleClass="form-hint"/>
+                    <Label text="Profesional" styleClass="form-label"/>
+                    <ComboBox fx:id="professionalBox" promptText="Elige un profesional" maxWidth="Infinity"/>
+                    <Label text="Fecha" styleClass="form-label"/>
+                    <DatePicker fx:id="datePicker" promptText="Elige la fecha" maxWidth="Infinity"/>
+                    <Label text="Horario" styleClass="form-label"/>
+                    <VBox fx:id="slotsHost"/>
+                    <Label text="Tu cita queda pendiente hasta que el negocio la confirme al recibir el anticipo. Aquí no se paga nada." styleClass="form-hint" wrapText="true"/>
+                    <Button fx:id="bookButton" text="Reservar cita" styleClass="button-gold, button-compact" maxWidth="Infinity">
+                        <VBox.margin><Insets top="8"/></VBox.margin>
+                    </Button>
+                </VBox>
+                <VBox spacing="16" prefWidth="0" HBox.hgrow="ALWAYS">
+                    <VBox styleClass="card, form-card" spacing="10">
+                        <Label text="Mis citas" styleClass="form-title"/>
+                        <VBox fx:id="appointmentsBox" spacing="10">
+                            <VBox styleClass="home-row" spacing="4">
+                                <HBox alignment="CENTER_LEFT" spacing="8"><Label text="Corte y peinado" styleClass="home-row-title"/><Region HBox.hgrow="ALWAYS"/><Label text="Pendiente" styleClass="chip-gold"/></HBox>
+                                <Label text="20/11/2026 10:00 · Camila Ruiz" styleClass="home-row-detail"/>
+                            </VBox>
+                        </VBox>
+                        <Label fx:id="appointmentsEmpty" text="Aún no tienes citas. Reserva la primera aquí al lado." styleClass="home-empty" wrapText="true"/>
+                    </VBox>
+                    <VBox fx:id="rescheduleCard" styleClass="card, form-card" spacing="6">
+                        <Label fx:id="rescheduleTitle" text="Reprogramar: Corte y peinado" styleClass="form-title" wrapText="true"/>
+                        <Label text="Nueva fecha" styleClass="form-label"/>
+                        <DatePicker fx:id="rescheduleDate" promptText="Elige la fecha" maxWidth="Infinity"/>
+                        <Label text="Nuevo horario" styleClass="form-label"/>
+                        <VBox fx:id="rescheduleSlotsHost"/>
+                        <HBox spacing="10">
+                            <padding><Insets top="8"/></padding>
+                            <Button fx:id="rescheduleButton" text="Confirmar nuevo horario" styleClass="button-gold, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button fx:id="rescheduleClose" text="Cerrar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </StackPane>
+    </center>
+</BorderPane>
