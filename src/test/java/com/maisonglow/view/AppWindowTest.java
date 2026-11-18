@@ -57,6 +57,13 @@ class AppWindowTest {
         });
     }
 
+    /** The menu entries a person sees, by the screen each one opens. */
+    private static java.util.List<String> menuOf(Parent root) throws Exception {
+        return FxTest.onFxThread(() -> root.lookupAll(".nav-button").stream()
+            .filter(javafx.scene.control.ToggleButton.class::isInstance).filter(javafx.scene.Node::isVisible)
+            .map(button -> (String) button.getUserData()).toList());
+    }
+
     @Test
     @DisplayName("with nobody signed in the first screen is the sign-in")
     void startsAtTheSignIn() throws Exception {
@@ -72,14 +79,15 @@ class AppWindowTest {
         FxTest.onFxThread(() -> { window.showArea(new AccessSession("jefa", "La jefa", AccessRole.ADMIN)); return null; });
 
         assertThat(has("#sidebar")).isTrue();
+        assertThat(menuOf(window.root())).contains("HOME", "PRODUCTS", "SALES", "SETTINGS").doesNotContain("SHOP", "PROFILE", "MY_PURCHASES");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userName")).getText())).isEqualTo("La jefa");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Administración");
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#avatarInitials")).getText())).isEqualTo("LJ");
 
         FxTest.onFxThread(() -> { window.showArea(new AccessSession("ana", "Ana García", AccessRole.CUSTOMER)); return null; });
 
-        assertThat(has("#sidebar")).isFalse();
-        assertThat(FxTest.onFxThread(() -> window.root().lookupAll(".button").size())).isEqualTo(1);
+        assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Cliente");
+        assertThat(menuOf(window.root())).containsExactly("CUSTOMER_HOME", "PROFILE", "SHOP", "MY_PURCHASES", "MY_APPOINTMENTS", "MY_CHANGES");
     }
 
     @Test

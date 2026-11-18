@@ -1526,3 +1526,14 @@
 .auth-pad {
     -fx-padding: 8 24 24 24;
 }
+
+/* ---- Capa de carga (LoadingOverlay) ---- */
+.loading-overlay {
+    -fx-background-color: rgba(250, 245, 241, 0.82);
+}
+
+.loading-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: -mg-text-muted;
+}
+

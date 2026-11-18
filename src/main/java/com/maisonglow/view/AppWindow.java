@@ -6,13 +6,8 @@ import com.maisonglow.view.controller.ChangePasswordController;
 import com.maisonglow.view.controller.LoginController;
 import com.maisonglow.view.controller.MainController;
 import com.maisonglow.view.controller.RegisterController;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -24,8 +19,8 @@ import java.util.function.Consumer;
  * Decides what the window shows from the session: the sign-in when nobody is in, the sign-up when asked, and the
  * area of the account once someone signs in. Closing the session throws the whole area away, so the chat, the
  * cart, the photos and any other screen kept by the {@link Navigator} are never seen by the next person.
- * The area of a customer is still a placeholder: its screens come with the next tasks of the roadmap, and until then a
- * customer never reaches the administration menu.
+ * Both roles use the same window, with the menu and the screens of their role: a customer never reaches the
+ * administration screens, and the screens of the customer area are "En construcción" until the next block of the roadmap.
  */
 public final class AppWindow {
 
@@ -34,6 +29,7 @@ public final class AppWindow {
     private final Stage stage;
     private final AppContext context;
     private final Consumer<Stage> reveal;
+    private MainController area;
     private Scene scene;
 
     /**
@@ -67,6 +63,7 @@ public final class AppWindow {
 
     /** Shows the first screen: the area of the open session if there is one, the sign-in otherwise. */
     public void start() {
+        AlertPresenter.onSessionExpired(this::logout);
         context.access().current().ifPresentOrElse(this::showArea, this::showLogin);
     }
 
@@ -93,11 +90,8 @@ public final class AppWindow {
      */
     public void showArea(AccessSession session) {
         Objects.requireNonNull(session, "session");
-        if (!session.isAdministrator()) {
-            show(customerPlaceholder(session));
-            return;
-        }
         ViewLoader.Loaded<MainController> loaded = ViewLoader.loadWithController(resource("MainView.fxml"), context);
+        area = loaded.controller();
         loaded.controller().showSession(session);
         loaded.controller().onLogoutRequested(this::logout);
         loaded.controller().onChangePasswordRequested(this::openChangePassword);
@@ -106,8 +100,17 @@ public final class AppWindow {
 
     /** Closes the session and goes back to the sign-in; the screens of the account are discarded. */
     public void logout() {
+        closeArea();
         context.access().logout();
         showLogin();
+    }
+
+    /** Throws away the screens of the open area, so nothing of one account is seen by the next. */
+    private void closeArea() {
+        if (area != null) {
+            area.close();
+            area = null;
+        }
     }
 
     private void openChangePassword() {
@@ -127,21 +130,6 @@ public final class AppWindow {
         });
         dialog.setScene(new Scene(loaded.root()));
         dialog.show();
-    }
-
-    private Parent customerPlaceholder(AccessSession session) {
-        Label hello = new Label("Hola, " + session.displayName());
-        hello.getStyleClass().add("auth-title");
-        Label notice = new Label("Tu área de cliente está en construcción.");
-        notice.getStyleClass().add("placeholder-notice");
-        Button logout = new Button("Cerrar sesión");
-        logout.getStyleClass().add("button-secondary");
-        logout.setOnAction(event -> logout());
-        VBox box = new VBox(12, hello, notice, logout);
-        box.setAlignment(Pos.CENTER);
-        StackPane root = new StackPane(box);
-        root.getStyleClass().addAll("view-root", "auth-root");
-        return root;
     }
 
     private void show(Parent root) {

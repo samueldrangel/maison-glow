@@ -8,6 +8,7 @@ import com.maisonglow.view.NavGroup;
 import com.maisonglow.view.Navigator;
 import com.maisonglow.view.SidebarLogo;
 import com.maisonglow.view.View;
+import com.maisonglow.view.access.AccessRole;
 import com.maisonglow.view.access.AccessSession;
 import com.maisonglow.util.Initials;
 import javafx.animation.Interpolator;
@@ -23,6 +24,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -97,7 +99,6 @@ public final class MainController {
 
     @FXML
     private void initialize() {
-        navigator = new Navigator(content, context);
         // A selected menu entry cannot be unselected by clicking it again.
         navigation.selectedToggleProperty().addListener((observable, previous, selected) -> {
             if (selected == null && previous != null) {
@@ -106,8 +107,6 @@ public final class MainController {
         });
         setUpGroups();
         setUpMotion();
-        refreshBadges();
-        navigator.show(View.HOME);
     }
 
     /** Sub-entries that follow the current screen. */
@@ -184,7 +183,9 @@ public final class MainController {
     @FXML
     private void onNavigate(ActionEvent event) {
         Node source = (Node) event.getSource();
-        navigator.show(View.valueOf((String) source.getUserData()));
+        if (navigator != null) {
+            navigator.show(View.valueOf((String) source.getUserData()));
+        }
     }
 
     /** The header of a group (Citas) leads to its first sub-entry, unless one of them is already open. */
@@ -223,6 +224,37 @@ public final class MainController {
         userName.setText(session.displayName());
         userRole.setText(session.isAdministrator() ? "Administración" : "Cliente");
         avatarInitials.setText(Initials.of(session.displayName()));
+        showMenuFor(session.role());
+        navigator = new Navigator(content, context, session.role());
+        View start = View.startFor(session.role());
+        navigation.getToggles().stream().filter(toggle -> start.name().equals(toggle.getUserData()))
+            .findFirst().ifPresent(toggle -> navigation.selectToggle(toggle));
+        navigator.show(start);
+        if (session.isAdministrator()) {
+            refreshBadges();
+        }
+    }
+
+    /** Hides the menu entries the role may not open, and the groups left empty. Hiding is only courtesy: the Navigator refuses them too. */
+    private void showMenuFor(AccessRole role) {
+        sidebar.lookupAll(".nav-button").stream().filter(ToggleButton.class::isInstance).map(ToggleButton.class::cast)
+            .filter(button -> button.getUserData() instanceof String).forEach(button -> {
+                boolean allowed = View.valueOf((String) button.getUserData()).allowedFor(role);
+                button.setVisible(allowed);
+                button.setManaged(allowed);
+            });
+        sidebar.lookupAll(".nav-group-box").forEach(box -> {
+            boolean any = ((VBox) box).lookupAll(".nav-sub").stream().anyMatch(Node::isVisible);
+            box.setVisible(any);
+            box.setManaged(any);
+        });
+    }
+
+    /** Discards the screens of the session and what they have pending; the window calls it before closing the session. */
+    public void close() {
+        if (navigator != null) {
+            navigator.close();
+        }
     }
 
     @FXML

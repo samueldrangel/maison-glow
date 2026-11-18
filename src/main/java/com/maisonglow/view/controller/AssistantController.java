@@ -1,6 +1,7 @@
 package com.maisonglow.view.controller;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.view.ViewLifecycle;
 import com.maisonglow.ai.AssistantReply;
 import com.maisonglow.ai.PendingAction;
 import com.maisonglow.ai.SmartAssistant;
@@ -40,7 +41,7 @@ import java.util.function.IntFunction;
  * user chooses. The assistant can take a while to answer, so it is asked in the background and the chat keeps
  * answering to the window.
  */
-public final class AssistantController {
+public final class AssistantController implements ViewLifecycle {
 
     private static final String WELCOME = "Hola, soy el asistente de Maison Glow. Pregúntame por el stock, las citas o los "
         + "clientes. Si me pides agendar una cita, te mostraré los datos y esperaré tu confirmación.";
@@ -65,6 +66,11 @@ public final class AssistantController {
     private ScrollPane chatScroll;
     @FXML
     private VBox messagesBox;
+    private boolean disposed;
+    private final java.util.List<PendingDecision> unresolved = new java.util.ArrayList<>();
+
+    /** An action waiting for Confirmar or Cancelar, with the buttons that decide it. */
+    private record PendingDecision(PendingAction action, HBox buttons) { }
     @FXML
     private TextField messageField;
     @FXML
@@ -154,6 +160,9 @@ public final class AssistantController {
     private void answer(Node typing, java.util.function.Supplier<AssistantReply> call) {
         setWaiting(true);
         CompletableFuture.supplyAsync(call, executor).whenComplete((reply, error) -> Platform.runLater(() -> {
+            if (disposed) {
+                return;
+            }
             messagesBox.getChildren().remove(typing);
             if (error != null) {
                 addAssistant("No pude responder en este momento. Inténtalo de nuevo.");
@@ -224,14 +233,37 @@ public final class AssistantController {
         card.getChildren().add(buttons);
         confirm.setOnAction(event -> decide(buttons, () -> assistant.confirm(action)));
         cancel.setOnAction(event -> decide(buttons, () -> assistant.reject(action)));
+        unresolved.add(new PendingDecision(action, buttons));
         messagesBox.getChildren().add(card);
     }
 
     /** Answers a confirmation once: the buttons go off so the same action cannot be decided twice. */
     private void decide(HBox buttons, java.util.function.Supplier<AssistantReply> call) {
+        if (disposed) {
+            return;
+        }
+        unresolved.removeIf(pending -> pending.buttons() == buttons);
         buttons.getChildren().forEach(button -> button.setDisable(true));
         Node typing = bubble("bubble-assistant", "Escribiendo…", Pos.CENTER_LEFT);
         messagesBox.getChildren().add(typing);
         answer(typing, call);
+    }
+
+    /** Closing the session: whatever waited for a confirmation is rejected, its buttons go off and a late answer is ignored. */
+    @Override
+    public void dispose() {
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        for (PendingDecision pending : unresolved) {
+            pending.buttons().getChildren().forEach(button -> button.setDisable(true));
+            try {
+                assistant.reject(pending.action());
+            } catch (RuntimeException ignored) {
+                // The pending action is already unusable: the buttons are off and the screen is discarded.
+            }
+        }
+        unresolved.clear();
     }
 }

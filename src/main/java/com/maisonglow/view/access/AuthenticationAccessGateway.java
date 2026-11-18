@@ -1,5 +1,6 @@
 package com.maisonglow.view.access;
 
+import com.maisonglow.exception.AuthorizationException;
 import com.maisonglow.exception.BusinessRuleException;
 import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
@@ -23,6 +24,9 @@ import java.util.Optional;
  * session itself stay in the service; this class keeps no copy of any of them.
  */
 public final class AuthenticationAccessGateway implements AccessGateway {
+
+    /** What the service says when there is no session; the screens treat it as an ended session. */
+    private static final String NO_SESSION = "Inicia sesión para continuar.";
 
     private final AuthenticationService auth;
     private final CustomerService customers;
@@ -79,6 +83,8 @@ public final class AuthenticationAccessGateway implements AccessGateway {
         char[] fresh = replacement.toCharArray();
         try {
             auth.changePassword(old, fresh);
+        } catch (AuthorizationException e) {
+            throw NO_SESSION.equals(e.getMessage()) ? new SessionExpiredException() : e;
         } finally {
             Arrays.fill(old, '\0');
             Arrays.fill(fresh, '\0');
