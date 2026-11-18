@@ -31,7 +31,7 @@
 | F3 | I-R03 | Productos y fotos del administrador | Isabella | I-R02, S-R03 | En curso: publicar/retirar, portada con cámara o archivo y columna Tienda conectados al servicio real (S-R03); falta revisión y fusión | Rama `feature/roles-i-r03`; PR sin abrir |
 | F4 | I-R04 | Pedidos y ventas del administrador | Isabella | I-R03, S-R04 | En curso: pantalla Pedidos (lista por estado, detalle, confirmar pago, cancelar y comprobante) conectada al servicio real (S-R04) y en el menú; falta revisión y fusión | Rama `feature/roles-i-r04`, apilada sobre I-R03; PR sin abrir |
 | F5 | I-R05 | Agenda, clientes, historial y cuentas | Isabella | I-R04, S-R05, S-R06 | En curso: hechas las pantallas Cuentas (ver, activar y desactivar) e Historial (línea de tiempo con fotos del cliente que autorizó, y registro de atención), conectadas al servicio real; Agenda, Estadísticas y Configuración se conservan; falta revisión y fusión | Rama `feature/roles-i-r05`; PR sin abrir |
-| F6 | I-R06 | Verificación y traspaso | Isabella | I-R05 | Pendiente | — |
+| F6 | I-R06 | Verificación y traspaso | Isabella | I-R05 | En curso: recorrido del administrador probado de punta a punta (`AdminFlowTest`) y documento de traspaso para Nicoll; falta fusionar I-R05 y la revisión | Rama `feature/roles-i-r06`; documento `docs/fase3/traspaso-frontend-admin.md`; PR sin abrir |
 | F7 | N-R01 | Inicio y perfil del cliente | Nicoll | I-R06, S-R05 | Pendiente | — |
 | F8 | N-R02 | Tienda y detalle de producto | Nicoll | N-R01, S-R03 | Pendiente | — |
 | F9 | N-R03 | Carrito y Mis compras | Nicoll | N-R02, S-R04 | Pendiente | — |
@@ -124,7 +124,7 @@ Las pruebas de aislamiento incluyen dos clientes distintos, un administrador y u
 | I-R03 | P0 | Productos del administrador y portada | I-R02, S-R03 | Crear/editar, publicar/retirar y mostrar portada; Tomar foto/Subir foto, vista previa, repetir/cancelar y sustitución; funciona sin cámara mediante archivo. | En curso (conectada al servicio real; PR sin fusionar) |
 | I-R04 | P0 | Gestión administrativa de pedidos y ventas | I-R03, S-R04 | Estados, detalle y reserva visibles; confirmar pago, cancelar y emitir comprobante de venta; no presentar pedido pendiente como pagado. | En curso (conectada al servicio real; PR sin fusionar) |
 | I-R05 | P0 | Adaptar agenda, clientes, historial y cuentas del administrador | I-R04, S-R05, S-R06 | Agenda conserva operaciones actuales; ficha con historial autorizado y registro de atención; cuentas activables/desactivables sin exponer contraseñas; resumen administrativo y configuración accesibles. | En curso (Cuentas e Historial hechas; PR sin fusionar) |
-| I-R06 | P0 | Revisión del bloque y traspaso | I-R05 | Probar flujo administrativo completo y logout/login; entregar componentes, rutas, estados y ejemplos de uso; fusionar todos los cambios antes de que Nicoll abra su bloque. | Pendiente |
+| I-R06 | P0 | Revisión del bloque y traspaso | I-R05 | Probar flujo administrativo completo y logout/login; entregar componentes, rutas, estados y ejemplos de uso; fusionar todos los cambios antes de que Nicoll abra su bloque. | En curso (recorrido y traspaso listos; falta fusionar I-R05) |
 
 Al finalizar I-R06, Isabella entrega una base estable. Los ajustes posteriores sobre archivos compartidos se coordinan con Nicoll, que pasa a ser la única responsable de frontend durante el bloque 2.
 
