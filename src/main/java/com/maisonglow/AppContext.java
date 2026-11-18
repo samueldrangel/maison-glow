@@ -32,6 +32,7 @@ import com.maisonglow.view.access.AccessGateway;
 import com.maisonglow.view.access.AuthenticationAccessGateway;
 import com.maisonglow.view.orders.OrdersGateway;
 import com.maisonglow.view.orders.OrderServiceGateway;
+import com.maisonglow.view.shop.Cart;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,6 +79,7 @@ public final class AppContext {
     private final CustomerPortalService portal;
     private final ChangeHistoryService changes;
     private OrdersGateway ordersGateway;
+    private final Cart cart = new Cart();
 
     /**
      * Wires everything over a data folder with the system clock and the AI
@@ -204,6 +206,9 @@ public final class AppContext {
      * @param gateway the gateway to use from now on
      */
     public void useOrdersGateway(OrdersGateway gateway) { this.ordersGateway = Objects.requireNonNull(gateway, "gateway"); }
+
+    /** @return the cart of the customer who is using the application; the window empties it when the session closes */
+    public Cart cart() { return cart; }
 
     /** @return the SQLite database shared by all business services */
     public SqliteDatabase database() { return database; }
