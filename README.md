@@ -4,6 +4,8 @@ Aplicación de escritorio para la gestión de un negocio de belleza: clientes, p
 
 Seguimiento de la ampliación: [roles de cliente y administrador](docs/roadmap-roles.md), con tareas, responsables, dependencias y criterios de aceptación. Consultar el estado de cada tarea antes de asumir que está integrada.
 
+Para generar datos ficticios de presentación o pruebas de volumen: [semilla local](docs/fase3/semilla-local.md).
+
 Backend de roles: `AppContext.auth()` proporciona cuentas y sesión; los servicios administrativos anteriores ahora exigen ADMIN. `catalog()`, `orders()`, `portal()` y `changes()` proporcionan el autoservicio protegido. Ver [configuración del primer administrador](docs/fase3/roles-contratos.md) y [contratos del backend](docs/fase3/roles-backend.md). Las pantallas de acceso deben integrarse antes de entrar al Inicio administrativo; esta rama no inicia sesión automáticamente.
 
 La interfaz usa JavaFX y la persistencia del negocio usa SQLite. La base se crea automáticamente: **no hay que instalar un servidor de base de datos ni ejecutar scripts SQL manualmente**.

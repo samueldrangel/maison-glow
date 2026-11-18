@@ -163,6 +163,11 @@ public final class AppContext {
      * @throws IOException if the folder or the preloaded files cannot be created
      */
     public static Path sessionFolder() throws IOException {
+        String demo=System.getenv("MAISON_GLOW_DEMO_FOLDER");
+        if(demo!=null&&!demo.isBlank()) {
+            try{return com.maisonglow.service.LocalSeedService.openDemoFolder(Path.of(demo));}
+            catch(com.maisonglow.exception.ValidationException|com.maisonglow.exception.DataAccessException e){throw new IOException("No se pudo abrir la demo local: "+e.getMessage(),e);}
+        }
         Files.createDirectories(SESSION_DATA);
         try {
             SqliteDatabase database = SqliteBootstrap.open(SESSION_DATA);
