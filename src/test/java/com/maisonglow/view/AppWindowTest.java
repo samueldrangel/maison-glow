@@ -87,7 +87,7 @@ class AppWindowTest {
         FxTest.onFxThread(() -> { window.showArea(new AccessSession("ana", "Ana García", AccessRole.CUSTOMER)); return null; });
 
         assertThat(FxTest.onFxThread(() -> ((Label) window.root().lookup("#userRole")).getText())).isEqualTo("Cliente");
-        assertThat(menuOf(window.root())).containsExactly("CUSTOMER_HOME", "PROFILE", "SHOP", "CART", "MY_PURCHASES", "MY_APPOINTMENTS", "MY_CHANGES");
+        assertThat(menuOf(window.root())).containsExactly("CUSTOMER_HOME", "PROFILE", "SHOP", "CART", "MY_PURCHASES", "MY_APPOINTMENTS", "MY_CHANGES", "MY_TRY_ON", "MY_ASSISTANT");
         assertThat(FxTest.onFxThread(() -> window.root().lookupAll(".nav-badge").stream().filter(javafx.scene.Node::isVisible).count())).isZero();
     }
 
