@@ -110,6 +110,7 @@ public final class AppWindow {
 
     /** Throws away the screens of the open area, so nothing of one account is seen by the next. */
     private void closeArea() {
+        context.cart().clear();
         if (area != null) {
             area.close();
             area = null;

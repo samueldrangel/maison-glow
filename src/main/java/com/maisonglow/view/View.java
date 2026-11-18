@@ -27,6 +27,7 @@ public enum View {
     CUSTOMER_HOME("Inicio", "CustomerHomeView.fxml", false, AccessRole.CUSTOMER),
     PROFILE("Mi perfil", "ProfileView.fxml", false, AccessRole.CUSTOMER),
     SHOP("Tienda", "ShopView.fxml", false, AccessRole.CUSTOMER),
+    CART("Carrito", "CartView.fxml", false, AccessRole.CUSTOMER),
     MY_PURCHASES("Mis compras", "MyPurchasesView.fxml", false, AccessRole.CUSTOMER),
     MY_APPOINTMENTS("Mis citas", "MyAppointmentsView.fxml", false, AccessRole.CUSTOMER),
     MY_CHANGES("Mis cambios", "MyChangesView.fxml", true, AccessRole.CUSTOMER);
