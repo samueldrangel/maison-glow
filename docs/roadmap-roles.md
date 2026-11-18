@@ -2,7 +2,7 @@
 
 > Plan vigente del 17 de noviembre de 2026. Presentación: 18 de noviembre. **Se conserva SQLite local; nube aplazada y fuera del alcance actual.**
 > Alcance: cuentas con roles, autoservicio del cliente, productos publicados con fotos e historial de cambios.
-> Todas las tareas nuevas están pendientes. Este documento planifica la ampliación; no acredita funcionalidades implementadas.
+> S-R01 y S-R02 están en curso: [contratos y backend inicial de autenticación](fase3/roles-contratos.md). El resto sigue pendiente; las pantallas y la protección integral aún no están conectadas.
 > Base: [Corte 3](roadmap-corte3.md), [instalación y estado actual](../README.md), [esquema](../sql/schema.sql).
 
 ## 0. Resumen de seguimiento del equipo
@@ -13,14 +13,14 @@
 |---|---|---|---|---|---|
 | **Isabella** | Frontend de acceso y administración | Primero I-R01 → I-R06 | 0 / 6 | Pendiente | Login y registro tras acordar S-R01 |
 | **Nicoll** | Frontend del cliente: perfil, tienda, compras, citas, fotos e IA | Después de I-R06: N-R01 → N-R06 | 0 / 6 | En espera del bloque 1 | Revisar contratos y casos de uso; programar al recibir el traspaso |
-| **Samuel** | Backend local completo y semilla opcional | S-R01 → S-R07; S-R08 después, si hay tiempo | 0 / 8 | Pendiente | Contratos, permisos y diseño de datos |
+| **Samuel** | Backend local completo y semilla opcional | S-R01 → S-R07; S-R08 después, si hay tiempo | 0 / 8 | En curso: S-R01 / S-R02 | Revisar contratos y backend de cuentas antes de seguir con catálogo |
 
 **Estados:** Pendiente · En curso · Bloqueada (indicar causa) · Terminada (PR fusionado y aceptación comprobada). La espera prevista de Nicoll no cuenta como trabajo iniciado. Para los porcentajes, usar tareas terminadas / tareas totales; no representa horas consumidas.
 
 | Orden | ID | Tarea resumida | Responsable | Se habilita cuando | Estado | PR / bloqueo |
 |---|---|---|---|---|---|---|
-| B1 | S-R01 | Contratos, permisos y migraciones | Samuel | Base actual verificada | Pendiente | — |
-| B2 | S-R02 | Cuentas, login y sesión | Samuel | S-R01 | Pendiente | — |
+| B1 | S-R01 | Contratos, permisos y migraciones | Samuel | Base actual verificada | En curso | [Contratos y migración 1](fase3/roles-contratos.md); revisión pendiente |
+| B2 | S-R02 | Cuentas, login y sesión | Samuel | S-R01 | En curso | Backend verificado: 693 pruebas pasan; integración visual y de módulos pendiente |
 | B3 | S-R03 | Publicación de productos y archivos | Samuel | S-R02 | Pendiente | — |
 | B4 | S-R04 | Pedidos, reservas y ventas | Samuel | S-R03 | Pendiente | — |
 | B5 | S-R05 | Perfil y citas propias | Samuel | S-R04 | Pendiente | — |
@@ -101,8 +101,8 @@ Prioridad **P0** = necesaria para cerrar la ampliación; **P1** = mejora posteri
 
 | ID | Pri. | Entregable | Depende de | Criterio de aceptación | Estado |
 |---|---|---|---|---|---|
-| S-R01 | P0 | Contratos de servicios, matriz de permisos y evolución de datos | Base actual verificada | Acordar sesión, errores, pedidos, publicación y archivos; migraciones versionadas sobre una copia de una BD existente, sin borrar ni recrear datos; actualizar MER/diccionario. Acordar duración de reserva y reglas de cancelación. | Pendiente |
-| S-R02 | P0 | Cuentas, registro, autenticación, sesión y autorización | S-R01 | Cuenta/cliente creados de forma atómica; identificador de acceso normalizado y único; contraseñas con hash adaptativo y sal; primer administrador sin clave fija en Git; cambio de contraseña, desactivación e invalidación de sesión. Pruebas de acceso anónimo, rol incorrecto y datos ajenos. | Pendiente |
+| S-R01 | P0 | Contratos de servicios, matriz de permisos y evolución de datos | Base actual verificada | Acordar sesión, errores, pedidos, publicación y archivos; migraciones versionadas sobre una copia de una BD existente, sin borrar ni recrear datos; actualizar MER/diccionario. Acordar duración de reserva y reglas de cancelación. | En curso: contratos, MER/diccionario y migración 1 escritos; pendiente revisión |
+| S-R02 | P0 | Cuentas, registro, autenticación, sesión y autorización | S-R01 | Cuenta/cliente creados de forma atómica; identificador de acceso normalizado y único; contraseñas con hash adaptativo y sal; primer administrador sin clave fija en Git; cambio de contraseña, desactivación e invalidación de sesión. Pruebas de acceso anónimo, rol incorrecto y datos ajenos. | En curso: backend inicial; pendiente integración y revisión |
 | S-R03 | P0 | Catálogo publicable y almacenamiento de imágenes | S-R02 | Separar activo de publicado; cliente solo recibe publicados; guardar portada mediante cámara/archivo; validar contenido, tamaño y dimensiones; rutas gestionadas por la app, sin aceptar rutas arbitrarias. No quedan archivos huérfanos ante fallo ni se pierde la portada anterior. | Pendiente |
 | S-R04 | P0 | Pedidos, reservas de stock, compra y consulta propia | S-R03 | Reutilizar venta transaccional existente; precio recalculado por backend; reservar/liberar sin duplicados; vencimientos procesados al arrancar y durante uso; confirmar pago solo como administrador; convertir pedido a venta sin descontar dos veces. Probar competencia por stock, reintentos, cancelación y fallos parciales. | Pendiente |
 | S-R05 | P0 | Autoservicio de citas y perfil | S-R04 | Derivar cliente desde sesión; disponibilidad sin revelar agenda ajena; conservar reglas de horario, anticipo y cruces; cliente no confirma pagos ni completa citas; contacto editable sin alterar rol, identidad vinculada o inasistencias. | Pendiente |

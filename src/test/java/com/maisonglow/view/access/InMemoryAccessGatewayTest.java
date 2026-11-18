@@ -20,7 +20,7 @@ class InMemoryAccessGatewayTest {
     }
 
     private static RegistrationData ana() {
-        return new RegistrationData("Ana García", "1001", "3001112233", "ana@correo.com", "Ana", "clave-segura", "clave-segura");
+        return new RegistrationData("Ana García", "1001", "3001112233", "ana@correo.com", "Ana", "clave-segura-1", "clave-segura-1");
     }
 
     @Test
@@ -37,15 +37,15 @@ class InMemoryAccessGatewayTest {
     @Test
     @DisplayName("a sign-up with a missing or malformed field says which one")
     void registerValidatesEveryField() {
-        assertThatThrownBy(() -> access.register(new RegistrationData(" ", "1", "3001112233", "a@b.co", "u", "clave-segura", "clave-segura")))
+        assertThatThrownBy(() -> access.register(new RegistrationData(" ", "1", "3001112233", "a@b.co", "u", "clave-segura-1", "clave-segura-1")))
             .isInstanceOf(ValidationException.class).hasMessageContaining("nombre");
-        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "12", "a@b.co", "u", "clave-segura", "clave-segura")))
+        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "12", "a@b.co", "u", "clave-segura-1", "clave-segura-1")))
             .isInstanceOf(ValidationException.class).hasMessageContaining("teléfono");
-        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "3001112233", "sin-arroba", "u", "clave-segura", "clave-segura")))
+        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "3001112233", "sin-arroba", "u", "clave-segura-1", "clave-segura-1")))
             .isInstanceOf(ValidationException.class).hasMessageContaining("correo");
         assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "3001112233", "a@b.co", "u", "corta", "corta")))
-            .isInstanceOf(ValidationException.class).hasMessageContaining("contraseña").hasMessageContaining("8");
-        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "3001112233", "a@b.co", "u", "clave-segura", "otra-clave")))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("contraseña").hasMessageContaining("12");
+        assertThatThrownBy(() -> access.register(new RegistrationData("Ana", "1", "3001112233", "a@b.co", "u", "clave-segura-1", "otra-clave-12")))
             .isInstanceOf(ValidationException.class).hasMessageContaining("confirmación");
         assertThat(access.current()).isEmpty();
     }
@@ -56,9 +56,9 @@ class InMemoryAccessGatewayTest {
         access.register(ana());
         access.logout();
 
-        assertThatThrownBy(() -> access.register(new RegistrationData("Otra", "2002", "3001112233", "o@b.co", "ANA", "clave-segura", "clave-segura")))
+        assertThatThrownBy(() -> access.register(new RegistrationData("Otra", "2002", "3001112233", "o@b.co", "ANA", "clave-segura-1", "clave-segura-1")))
             .isInstanceOf(BusinessRuleException.class).hasMessageContaining("usuario");
-        assertThatThrownBy(() -> access.register(new RegistrationData("Otra", "1001", "3001112233", "o@b.co", "otra", "clave-segura", "clave-segura")))
+        assertThatThrownBy(() -> access.register(new RegistrationData("Otra", "1001", "3001112233", "o@b.co", "otra", "clave-segura-1", "clave-segura-1")))
             .isInstanceOf(BusinessRuleException.class).hasMessageContaining("documento");
     }
 
@@ -68,11 +68,11 @@ class InMemoryAccessGatewayTest {
         access.register(ana());
         access.logout();
 
-        assertThat(access.login("ana", "clave-segura").username()).isEqualTo("ana");
+        assertThat(access.login("ana", "clave-segura-1").username()).isEqualTo("ana");
         access.logout();
         assertThatThrownBy(() -> access.login("ana", "equivocada")).isInstanceOf(BusinessRuleException.class)
             .hasMessage("Usuario o contraseña incorrectos.");
-        assertThatThrownBy(() -> access.login("nadie", "clave-segura")).isInstanceOf(BusinessRuleException.class)
+        assertThatThrownBy(() -> access.login("nadie", "clave-segura-1")).isInstanceOf(BusinessRuleException.class)
             .hasMessage("Usuario o contraseña incorrectos.");
         assertThatThrownBy(() -> access.login("", "x")).isInstanceOf(ValidationException.class).hasMessageContaining("usuario");
         assertThat(access.current()).isEmpty();
@@ -95,12 +95,12 @@ class InMemoryAccessGatewayTest {
 
         assertThatThrownBy(() -> access.changePassword("mala", "nueva-clave-1", "nueva-clave-1"))
             .isInstanceOf(BusinessRuleException.class).hasMessageContaining("actual");
-        assertThatThrownBy(() -> access.changePassword("clave-segura", "nueva-clave-1", "distinta-1"))
+        assertThatThrownBy(() -> access.changePassword("clave-segura-1", "nueva-clave-1", "distinta-1"))
             .isInstanceOf(ValidationException.class).hasMessageContaining("confirmación");
-        access.changePassword("clave-segura", "nueva-clave-1", "nueva-clave-1");
+        access.changePassword("clave-segura-1", "nueva-clave-1", "nueva-clave-1");
         access.logout();
 
-        assertThatThrownBy(() -> access.login("ana", "clave-segura")).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> access.login("ana", "clave-segura-1")).isInstanceOf(BusinessRuleException.class);
         assertThat(access.login("ana", "nueva-clave-1")).isNotNull();
         access.logout();
         assertThatThrownBy(() -> access.changePassword("nueva-clave-1", "otra-clave-22", "otra-clave-22"))
@@ -116,6 +116,6 @@ class InMemoryAccessGatewayTest {
         access.logout();
 
         assertThat(access.current()).isEmpty();
-        assertThat(ana().toString()).doesNotContain("clave-segura");
+        assertThat(ana().toString()).doesNotContain("clave-segura-1");
     }
 }
