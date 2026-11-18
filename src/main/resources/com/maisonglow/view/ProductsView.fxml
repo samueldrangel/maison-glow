@@ -62,7 +62,8 @@
                     <TableColumn fx:id="priceColumn" text="Precio" prefWidth="82"/>
                     <TableColumn fx:id="stockColumn" text="Stock" prefWidth="52"/>
                     <TableColumn fx:id="minimumColumn" text="Mínimo" prefWidth="62"/>
-                    <TableColumn fx:id="statusColumn" text="Estado" prefWidth="118"/>
+                    <TableColumn fx:id="statusColumn" text="Estado" prefWidth="112"/>
+                    <TableColumn fx:id="publishedColumn" text="Tienda" prefWidth="122"/>
                     <TableColumn fx:id="actionsColumn" text="Acciones" prefWidth="72" sortable="false"/>
                 </columns>
                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
@@ -107,6 +108,19 @@
                         <Button fx:id="cancelButton" text="Cancelar" styleClass="button-secondary, button-compact" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                     </HBox>
                 </VBox>
+
+                <StackPane fx:id="coverHost">
+                    <VBox fx:id="coverBox" styleClass="card, form-card" spacing="8">
+                        <Label text="Portada y publicación" styleClass="form-title"/>
+                        <!-- PhotoPickerPane.fxml se coloca aqui al arrancar (ProductsController.setUpCover). -->
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="En la tienda" styleClass="form-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="publishedState" text="No publicado" styleClass="chip-neutral"/>
+                        </HBox>
+                        <Button fx:id="publishButton" text="Publicar en la tienda" styleClass="button-gold, button-compact" maxWidth="Infinity"/>
+                    </VBox>
+                </StackPane>
 
                 <VBox styleClass="card, form-card" spacing="6">
                     <Label text="Ajustar stock" styleClass="form-title"/>

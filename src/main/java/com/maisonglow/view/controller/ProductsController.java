@@ -6,6 +6,7 @@ import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.exception.ValidationException;
 import com.maisonglow.model.Product;
 import com.maisonglow.model.ProductCategory;
+import com.maisonglow.service.CatalogService;
 import com.maisonglow.service.ProductData;
 import com.maisonglow.service.ProductService;
 import com.maisonglow.util.CurrencyFormatter;
@@ -13,7 +14,11 @@ import com.maisonglow.util.NumberInput;
 import com.maisonglow.util.Validator;
 import com.maisonglow.view.AlertPresenter;
 import com.maisonglow.view.FieldValidator;
+import com.maisonglow.view.BackgroundTask;
 import com.maisonglow.view.Icons;
+import com.maisonglow.view.LoadingOverlay;
+import com.maisonglow.view.ViewLifecycle;
+import com.maisonglow.view.ViewLoader;
 import com.maisonglow.view.product.ProductFilter;
 import com.maisonglow.view.product.ProductStatus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -34,12 +39,19 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -49,9 +61,16 @@ import java.util.function.Function;
  * the products, warns about the ones to restock and filters them. It only talks
  * to {@link ProductService}, never to a DAO.
  */
-public final class ProductsController {
+public final class ProductsController implements ViewLifecycle {
 
+    private final AppContext context;
     private final ProductService products;
+    private final CatalogService catalog;
+    private Executor executor = ForkJoinPool.commonPool();
+    private final Set<Integer> publishedIds = new HashSet<>();
+    private PhotoPickerController picker;
+    private LoadingOverlay coverLoading;
+    private boolean disposed;
     private final ObservableList<Product> all = FXCollections.observableArrayList();
     private final FilteredList<Product> shown = new FilteredList<>(all);
     private final ToggleGroup categories = new ToggleGroup();
@@ -166,13 +185,30 @@ public final class ProductsController {
     @FXML
     private TableColumn<Product, Product> actionsColumn;
 
+    @FXML
+    private TableColumn<Product, Product> publishedColumn;
+
+    @FXML
+    private StackPane coverHost;
+
+    @FXML
+    private VBox coverBox;
+
+    @FXML
+    private Label publishedState;
+
+    @FXML
+    private Button publishButton;
+
     /**
      * Creates the controller (called by the {@code ViewLoader}).
      *
      * @param context services shared by every view
      */
     public ProductsController(AppContext context) {
-        this.products = Objects.requireNonNull(context, "context").products();
+        this.context = Objects.requireNonNull(context, "context");
+        this.products = context.products();
+        this.catalog = context.catalog();
     }
 
     /**
@@ -184,11 +220,21 @@ public final class ProductsController {
         this.alerts = Objects.requireNonNull(presenter, "presenter");
     }
 
+    /**
+     * Replaces where the slow work of the cover runs, which the tests use to hold an answer back.
+     *
+     * @param newExecutor runs the call
+     */
+    public void useExecutor(Executor newExecutor) {
+        this.executor = Objects.requireNonNull(newExecutor, "newExecutor");
+    }
+
     @FXML
     private void initialize() {
         alerts = new AlertPresenter(productsTable);
         setUpTable();
         setUpFilters();
+        setUpCover();
         setUpForm();
         setUpAdjust();
         refresh();
@@ -203,6 +249,9 @@ public final class ProductsController {
         statusColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
         priceColumn.setCellFactory(showing(CurrencyFormatter::format));
         statusColumn.setCellFactory(column -> new StatusCell());
+        publishedColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
+        publishedColumn.setCellFactory(column -> new PublishedCell());
+        publishedColumn.setComparator((first, second) -> Boolean.compare(publishedIds.contains(second.getId()), publishedIds.contains(first.getId())));
         actionsColumn.setCellValueFactory(row -> new ReadOnlyObjectWrapper<>(row.getValue()));
         actionsColumn.setCellFactory(column -> new ActionsCell());
         statusColumn.setComparator((first, second) -> ProductStatus.of(first).compareTo(ProductStatus.of(second)));
@@ -261,6 +310,7 @@ public final class ProductsController {
         initialStockBox.setVisible(false);
         initialStockBox.setManaged(false);
         formFields.clear();
+        showCoverFor(product);
         nameField.requestFocus();
     }
 
@@ -353,6 +403,7 @@ public final class ProductsController {
         initialStockBox.setVisible(true);
         initialStockBox.setManaged(true);
         formFields.clear();
+        showCoverFor(null);
         nameField.requestFocus();
     }
 
@@ -390,12 +441,14 @@ public final class ProductsController {
     /** Reads the inventory again, so the table, the warning and the chips show what is stored. */
     void refresh() {
         try {
+            loadPublished();
             all.setAll(products.listAll());
             showProductsToAdjust();
             List<ProductCategory> categoryList = products.listCategories();
             showCategoryChips(categoryList);
             showCategoriesInForm(categoryList);
             showLowStockWarning(products.listLowStock().size());
+            updatePublication();
         } catch (DataAccessException e) {
             alerts.showError(e);
         }
@@ -448,6 +501,128 @@ public final class ProductsController {
                 setText(empty || item == null ? null : text.apply(item));
             }
         };
+    }
+
+    /** @return the photo panel of the cover card, which the tests drive without opening a camera or a file window */
+    PhotoPickerController photoPicker() {
+        return picker;
+    }
+
+    /** Puts the photo panel in the card of the cover and connects it: a photo is kept only when the person uses it. */
+    private void setUpCover() {
+        ViewLoader.Loaded<PhotoPickerController> loaded = ViewLoader.loadWithController(
+            ProductsController.class.getResource("/com/maisonglow/view/PhotoPickerPane.fxml"), context);
+        picker = loaded.controller();
+        picker.onUse(this::saveCover);
+        coverBox.getChildren().add(1, loaded.root());
+        coverLoading = LoadingOverlay.over(coverHost);
+        publishButton.setOnAction(event -> togglePublication());
+    }
+
+    /** Shows the cover and the publication of a product, or turns the card off while there is no product to keep them for. */
+    private void showCoverFor(Product product) {
+        if (product == null) {
+            picker.setEnabled(false, "Guarda el producto o elige uno de la lista para añadir su portada.");
+        } else {
+            picker.setEnabled(true, "");
+            picker.showCurrent(coverOf(product.getId()));
+        }
+        updatePublication();
+    }
+
+    /** The cover kept for a product, or null if it has none (the service refuses a product with no cover). */
+    private Path coverOf(int productId) {
+        try {
+            Path cover = catalog.cover(productId);
+            return Files.isRegularFile(cover) ? cover : null;
+        } catch (BusinessRuleException | DataAccessException e) {
+            return null;
+        }
+    }
+
+    /** Reads which products are published; the service lists only those. */
+    private void loadPublished() {
+        publishedIds.clear();
+        try {
+            catalog.listPublished("").forEach(product -> publishedIds.add(product.id()));
+        } catch (ValidationException | BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
+        productsTable.refresh();
+    }
+
+    private void updatePublication() {
+        boolean none = editing == null;
+        boolean published = !none && publishedIds.contains(editing.getId());
+        publishButton.setDisable(none);
+        publishButton.setText(published ? "Retirar de la tienda" : "Publicar en la tienda");
+        publishedState.setText(none ? "—" : published ? "Publicado" : "No publicado");
+        publishedState.getStyleClass().removeAll("chip-success", "chip-neutral");
+        publishedState.getStyleClass().add(published ? "chip-success" : "chip-neutral");
+    }
+
+    /** Keeps the photo chosen as the cover of the product being edited; the import and the re-encoding run in the background. */
+    private void saveCover(Path photo) {
+        if (editing == null) {
+            return;
+        }
+        int id = editing.getId();
+        coverLoading.show("Guardando la portada…");
+        BackgroundTask.run(executor, () -> {
+            catalog.setCover(id, photo);
+            return catalog.cover(id);
+        }, saved -> {
+            coverLoading.hide();
+            picker.showCurrent(saved);
+            alerts.toast("Portada guardada.");
+            refresh();
+        }, error -> {
+            coverLoading.hide();
+            alerts.showError(error);
+        }, () -> !disposed);
+    }
+
+    private void togglePublication() {
+        if (editing == null) {
+            return;
+        }
+        boolean published = publishedIds.contains(editing.getId());
+        if (published && !alerts.confirm("¿Retirar «" + editing.getName() + "» de la tienda? "
+            + "Los clientes dejarán de poder pedirlo; el inventario y el historial no cambian.")) {
+            return;
+        }
+        try {
+            catalog.setPublished(editing.getId(), !published);
+            alerts.toast(published ? "Producto retirado de la tienda." : "Producto publicado en la tienda.");
+            refresh();
+        } catch (ValidationException | BusinessRuleException | DataAccessException e) {
+            alerts.showError(e);
+        }
+    }
+
+    /** Closing the session: a cover still being saved is ignored when it ends, and the photo panel drops its preview. */
+    @Override
+    public void dispose() {
+        disposed = true;
+        if (picker != null) {
+            picker.dispose();
+        }
+    }
+
+    /** Published or not, as a chip. */
+    private final class PublishedCell extends TableCell<Product, Product> {
+        @Override
+        protected void updateItem(Product product, boolean empty) {
+            super.updateItem(product, empty);
+            if (empty || product == null) {
+                setGraphic(null);
+                return;
+            }
+            boolean published = publishedIds.contains(product.getId());
+            Label chip = new Label(published ? "Publicado" : "No publicado");
+            chip.getStyleClass().add(published ? "chip-success" : "chip-neutral");
+            setGraphic(chip);
+        }
     }
 
     /** The state of a product as a chip with a dot. */
