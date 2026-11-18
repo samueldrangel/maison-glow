@@ -23,3 +23,4 @@ Si una decisión cambia, no se borra el ADR: se crea uno nuevo y el anterior pas
 | [0014](0014-modelos-de-datos-y-reglas-en-servicios.md) | Modelos de datos y reglas en servicios | Aceptado |
 | [0015](0015-seleccion-del-proveedor-de-ia.md) | Selección segura del proveedor de IA | Aceptado |
 | [0016](0016-cuentas-y-sesion-local.md) | Cuentas, sesión y migración aditiva de SQLite local | Aceptado (base de autenticación) |
+| [0017](0017-catalogo-pedidos-e-historial-local.md) | Catálogo, pedidos e historial local por cuenta | Backend implementado; revisión pendiente |

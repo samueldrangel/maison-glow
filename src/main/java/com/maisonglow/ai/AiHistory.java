@@ -21,6 +21,8 @@ public final class AiHistory {
     public enum SessionStatus { PENDING, COMPLETED, FAILED }
 
     private final Clock clock;
+    private final com.maisonglow.service.AuthenticationService auth;
+    private final com.maisonglow.dao.CommerceDao consent;
     private final AiTextTable<Conversation> conversations;
     private final AiTextTable<Message> messages;
     private final AiTextTable<ToolCall> tools;
@@ -28,8 +30,18 @@ public final class AiHistory {
 
     /** Creates the four tables in the same data folder used by the business DAOs. */
     public AiHistory(Path folder, Clock clock) {
+        this(folder,clock,null);
+    }
+
+    /** Production history is account-scoped; the two-argument constructor supports legacy imports/tests only. */
+    public AiHistory(Path folder,Clock clock,com.maisonglow.service.AuthenticationService auth) {
+        this(folder,clock,auth,null);
+    }
+    public AiHistory(Path folder,Clock clock,com.maisonglow.service.AuthenticationService auth,com.maisonglow.dao.CommerceDao consent) {
         Objects.requireNonNull(folder, "folder");
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.auth=auth;
+        this.consent=consent;
         conversations = new AiTextTable<>(folder.resolve("assistant_conversations.txt"),
             f -> { count(f, 3); return new Conversation(id(f[0]), id(f[1]), LocalDateTime.parse(f[2])); },
             c -> new String[] {str(c.id()), str(c.userId()), c.startedAt().toString()});
@@ -53,12 +65,14 @@ public final class AiHistory {
 
     /** Begins a conversation for the user id reserved by the future app_user table. */
     public Conversation startConversation(int userId) throws DataAccessException {
+        requireUser(userId);
         positive(userId);
         return conversations.append(id -> new Conversation(id, userId, now()));
     }
 
     /** Persists one user or assistant message, including newlines and separator characters. */
     public Message addMessage(int conversationId, Sender sender, String content) throws DataAccessException {
+        requireConversation(conversationId);
         positive(conversationId);
         Objects.requireNonNull(sender, "sender");
         Objects.requireNonNull(content, "content");
@@ -72,6 +86,7 @@ public final class AiHistory {
     public ToolCall addToolCall(int messageId, String toolName, String arguments, String result,
                                 boolean requiresConfirmation, ToolStatus status, LocalDateTime executedAt)
         throws DataAccessException {
+        requireMessage(messageId);
         positive(messageId);
         Objects.requireNonNull(toolName, "toolName");
         Objects.requireNonNull(arguments, "arguments");
@@ -88,6 +103,7 @@ public final class AiHistory {
         if (status == ToolStatus.PENDING_CONFIRMATION) throw new IllegalArgumentException("La llamada sigue pendiente.");
         ToolCall old = tools.all().stream().filter(t -> t.id() == id).findFirst()
             .orElseThrow(() -> new DataAccessException("La llamada no existe."));
+        requireMessage(old.messageId());
         return tools.update(id, new ToolCall(id, old.messageId(), old.toolName(), old.arguments(), result,
             old.requiresConfirmation(), status, status == ToolStatus.EXECUTED ? now() : null));
     }
@@ -95,6 +111,7 @@ public final class AiHistory {
     /** Begins a try-on session; the source path is metadata, not copied image data. */
     public Session startSession(int customerId, Path photo, String transformation, String provider)
         throws DataAccessException {
+        requireCustomer(customerId);
         positive(customerId);
         Objects.requireNonNull(photo, "photo");
         Objects.requireNonNull(transformation, "transformation");
@@ -107,20 +124,51 @@ public final class AiHistory {
     public Session finishSession(int id, Path image, String error) throws DataAccessException {
         Session old = sessions.all().stream().filter(s -> s.id() == id).findFirst()
             .orElseThrow(() -> new DataAccessException("La sesión no existe."));
+        requireCustomer(old.customerId());
         if ((image == null) == (error == null)) throw new IllegalArgumentException("Indica imagen o error.");
         return sessions.update(id, new Session(id, old.customerId(), old.sourceImagePath(), old.transformation(),
             image, image == null ? SessionStatus.FAILED : SessionStatus.COMPLETED,
             old.provider(), error, old.createdAt()));
     }
 
-    public List<Conversation> conversations() throws DataAccessException { return conversations.all(); }
+    public List<Conversation> conversations() throws DataAccessException {
+        if(auth==null)return conversations.all();
+        int user=currentUser();return conversations.all().stream().filter(c -> c.userId()==user).toList();
+    }
     public List<Message> messages(int conversationId) throws DataAccessException {
+        requireConversation(conversationId);
         return messages.all().stream().filter(m -> m.conversationId() == conversationId).toList();
     }
     public List<ToolCall> toolCalls(int messageId) throws DataAccessException {
+        requireMessage(messageId);
         return tools.all().stream().filter(t -> t.messageId() == messageId).toList();
     }
-    public List<Session> sessions() throws DataAccessException { return sessions.all(); }
+    public List<Session> sessions() throws DataAccessException {
+        if(auth==null)return sessions.all();
+        currentUser();
+        java.util.ArrayList<Session> result=new java.util.ArrayList<>();
+        for(var session:sessions.all()) {try{requireCustomer(session.customerId());result.add(session);}catch(com.maisonglow.exception.AccessDeniedDataException ignored){}}
+        return List.copyOf(result);
+    }
+
+    private int currentUser()throws DataAccessException {
+        try{return auth.requireAuthenticated().id();}
+        catch(com.maisonglow.exception.AuthorizationException e){throw new com.maisonglow.exception.AccessDeniedDataException(e.getMessage(),e);}
+    }
+    private void requireUser(int id)throws DataAccessException {if(auth!=null&&currentUser()!=id)throw new com.maisonglow.exception.AccessDeniedDataException("La conversación no pertenece a tu cuenta.",null);}
+    private void requireConversation(int id)throws DataAccessException {
+        if(auth!=null) {currentUser();var conversation=conversations.all().stream().filter(c -> c.id()==id).findFirst().orElseThrow(() -> new DataAccessException("La conversación no existe."));requireUser(conversation.userId());}
+    }
+    private void requireMessage(int id)throws DataAccessException {
+        if(auth!=null) {currentUser();var message=messages.all().stream().filter(m -> m.id()==id).findFirst().orElseThrow(() -> new DataAccessException("El mensaje no existe."));requireConversation(message.conversationId());}
+    }
+    private void requireCustomer(int id)throws DataAccessException {
+        if(auth!=null)try{
+            auth.requireCustomerAccess(id);
+            if(auth.requireAuthenticated().role()==com.maisonglow.model.UserRole.ADMIN&&(consent==null||!consent.staffAccess(id)))
+                throw new com.maisonglow.exception.AuthorizationException("El cliente no ha autorizado el historial de fotos.");
+        }catch(com.maisonglow.exception.AuthorizationException e){throw new com.maisonglow.exception.AccessDeniedDataException(e.getMessage(),e);}
+    }
 
     private LocalDateTime now() { return LocalDateTime.now(clock); }
     private static void positive(int id) { if (id < 1) throw new IllegalArgumentException("El id debe ser positivo."); }

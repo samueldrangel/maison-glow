@@ -34,6 +34,7 @@ class AuthenticationIntegrationTest {
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-11-17T15:00:00Z"), ZoneOffset.UTC);
     private static char[] password() { return "fixture-only-password".toCharArray(); }
     private AppContext open() { return new AppContext(folder, CLOCK, AiConfig.simulated()); }
+    private com.maisonglow.service.CustomerService customers(AppContext app) { return new com.maisonglow.service.CustomerService(new CustomerDaoSqlite(app.database())); }
     private ContactData contact(String document) { return new ContactData(document, "Cliente de prueba", "3001234567", "test@example.invalid"); }
     private UserAccount customer(AppContext app, String name) throws Exception {
         return app.auth().registerCustomer(contact(name), name, password());
@@ -48,7 +49,7 @@ class AuthenticationIntegrationTest {
         var app = open();
         var account = customer(app, "alice");
         assertThat(account.role()).isEqualTo(UserRole.CUSTOMER);
-        assertThat(app.customers().findById(account.customerId()).getDocument()).isEqualTo("alice");
+        assertThat(customers(app).findById(account.customerId()).getDocument()).isEqualTo("alice");
         assertThat(app.auth().currentSession()).isEmpty();
         var stored = new AccountDaoSqlite(app.database()).findById(account.id()).orElseThrow();
         assertThat(stored.passwordHash()).startsWith("pbkdf2-sha256$600000$").doesNotContain("fixture-only-password");
@@ -63,7 +64,7 @@ class AuthenticationIntegrationTest {
             .isInstanceOf(BusinessRuleException.class);
         assertThatThrownBy(() -> app.auth().registerCustomer(contact("alice"), "another", password()))
             .isInstanceOf(BusinessRuleException.class);
-        assertThat(app.customers().listAll()).hasSize(1);
+        assertThat(customers(app).listAll()).hasSize(1);
         assertThatThrownBy(() -> app.auth().linkCustomerAccount(1, "another", password()))
             .isInstanceOf(AuthorizationException.class);
     }
@@ -73,11 +74,11 @@ class AuthenticationIntegrationTest {
         var accounts = spy(new AccountDaoSqlite(app.database()));
         doThrow(new DataAccessException("Fallo de escritura controlado"))
             .when(accounts).create(anyString(), anyString(), eq(UserRole.CUSTOMER), anyInt());
-        var auth = new AuthenticationService(accounts, new CustomerDaoSqlite(app.database()), app.customers(),
+        var auth = new AuthenticationService(accounts, new CustomerDaoSqlite(app.database()), customers(app),
             new SqliteTransactions(app.database()), new PasswordHasher(), CLOCK);
         assertThatThrownBy(() -> auth.registerCustomer(contact("new-doc"), "alice", password()))
             .isInstanceOf(DataAccessException.class);
-        assertThat(app.customers().listAll()).isEmpty();
+        assertThat(customers(app).listAll()).isEmpty();
         assertThat(accounts.findByUsername("alice")).isEmpty();
     }
 
@@ -106,13 +107,13 @@ class AuthenticationIntegrationTest {
         assertThatThrownBy(() -> app.auth().setActive(admin.id(), false)).isInstanceOf(BusinessRuleException.class);
         assertThatThrownBy(() -> app.auth().currentCustomerId()).isInstanceOf(AuthorizationException.class);
         app.auth().requireCustomerAccess(123);
-        assertThat(app.customers().listAll()).isEmpty();
+        assertThat(customers(app).listAll()).isEmpty();
     }
 
     @Test void administratorCanLinkOnlyAnExistingUnclaimedCustomer() throws Exception {
         var app = open();
         admin(app);
-        int id = app.customers().register(contact("legacy-document")).getId();
+        int id = customers(app).register(contact("legacy-document")).getId();
         var account = app.auth().linkCustomerAccount(id, "legacy-user", password());
         assertThat(account.customerId()).isEqualTo(id);
         assertThatThrownBy(() -> app.auth().linkCustomerAccount(id, "other-user", password())).isInstanceOf(DataAccessException.class);
@@ -166,7 +167,7 @@ class AuthenticationIntegrationTest {
         var app = open(); customer(app, "alice");
         var time = new MutableClock();
         var auth = new AuthenticationService(new AccountDaoSqlite(app.database()), new CustomerDaoSqlite(app.database()),
-            app.customers(), new SqliteTransactions(app.database()), new PasswordHasher(), time);
+            customers(app), new SqliteTransactions(app.database()), new PasswordHasher(), time);
         auth.login("alice", password());
         time.now = time.now.plus(Duration.ofHours(8));
         assertThat(auth.currentSession()).isEmpty();
@@ -177,7 +178,7 @@ class AuthenticationIntegrationTest {
         assertThatThrownBy(() -> app.auth().registerCustomer(null, "alice", password())).isInstanceOf(ValidationException.class);
         assertThatThrownBy(() -> app.auth().registerCustomer(contact("one"), null, password())).isInstanceOf(ValidationException.class);
         assertThatThrownBy(() -> app.auth().registerCustomer(contact("one"), "alice", "short".toCharArray())).isInstanceOf(ValidationException.class);
-        assertThat(app.customers().listAll()).isEmpty();
+        assertThat(customers(app).listAll()).isEmpty();
         customer(app, "alice");
         assertThatThrownBy(() -> app.database().transaction(c -> {
             try (var s = c.createStatement()) {
@@ -189,7 +190,7 @@ class AuthenticationIntegrationTest {
 
     @Test void upgradePreservesLegacyAccountsAndBusinessDataAndCanBeRepeated() throws Exception {
         var app = open(); var account = customer(app, "alice");
-        app.settings().update("business_name", "Salón conservado");
+        new com.maisonglow.service.SettingsService(new com.maisonglow.dao.SettingDaoSqlite(app.database())).update("business_name", "Salón conservado");
         app.database().transaction(c -> {
             try (var s = c.createStatement()) {
                 s.executeUpdate("DELETE FROM schema_migration");
@@ -202,15 +203,15 @@ class AuthenticationIntegrationTest {
         Files.copy(app.database().file(), backup);
         var upgraded = open();
         assertThat(upgraded.auth().login("alice", password())).isEqualTo(account);
-        assertThat(upgraded.settings().businessName()).isEqualTo("Salón conservado");
-        assertThat(open().customers().listAll()).hasSize(1);
+        assertThat(new com.maisonglow.service.SettingsService(new com.maisonglow.dao.SettingDaoSqlite(upgraded.database())).businessName()).isEqualTo("Salón conservado");
+        assertThat(customers(open()).listAll()).hasSize(1);
         assertThat(backup).exists();
         long versions = upgraded.database().transaction(c -> {
             try (var s = c.createStatement(); var r = s.executeQuery("SELECT count(*) FROM schema_migration")) {
                 r.next(); return r.getLong(1);
             }
         });
-        assertThat(versions).isEqualTo(1);
+        assertThat(versions).isEqualTo(2);
     }
 
     @Test void conflictingLegacyUsernamesFailUpgradeWithoutLosingBusinessData() throws Exception {
@@ -225,7 +226,7 @@ class AuthenticationIntegrationTest {
             return null;
         });
         assertThatThrownBy(this::open).isInstanceOf(IllegalStateException.class);
-        assertThat(app.customers().listAll()).hasSize(1);
+        assertThat(customers(app).listAll()).hasSize(1);
         boolean columnExists = app.database().transaction(c -> {
             try (var s = c.createStatement(); var r = s.executeQuery("PRAGMA table_info(app_user)")) {
                 while (r.next()) if (r.getString("name").equals("auth_version")) return true;

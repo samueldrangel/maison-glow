@@ -48,6 +48,8 @@ public final class AlertMessages {
         if (error instanceof java.io.IOException || error instanceof java.io.UncheckedIOException) {
             return new Message(AlertType.ERROR, "Error de archivo", FILE_ERROR);
         }
+        if(error instanceof com.maisonglow.exception.AccessDeniedDataException)
+            return new Message(AlertType.WARNING,((com.maisonglow.exception.AccessDeniedDataException)error).isSessionExpired()?"Sesión terminada":"Acceso restringido",error.getMessage());
         if (error instanceof ValidationException) {
             return new Message(AlertType.WARNING, "Datos no válidos", error.getMessage());
         }

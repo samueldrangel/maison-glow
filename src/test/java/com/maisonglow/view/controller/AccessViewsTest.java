@@ -48,7 +48,7 @@ class AccessViewsTest {
     @BeforeEach
     void prepare() {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
-        context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         access = new InMemoryAccessGateway();
         access.addAdministrator("jefa", "La jefa", "clave-de-prueba");
         context.useAccess(access);

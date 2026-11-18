@@ -79,7 +79,7 @@ class MainViewTest {
     void keepsPaletteInsideAnotherContainer() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
 
         Region sidebar = onFxThread(() -> {
             Parent root = loadMain(context);
@@ -97,7 +97,7 @@ class MainViewTest {
     void expandsWithTheCursor() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
         Parent root = onFxThread(() -> {
             Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
@@ -338,7 +338,7 @@ class MainViewTest {
 
     private Parent shownMainView() throws Exception {
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
         return onFxThread(() -> {
             Parent loaded = loadMain(context);
             new Scene(loaded, 1100, 720);
@@ -368,7 +368,7 @@ class MainViewTest {
     void opensWithBadges() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
         context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 10), 5);
 
         Parent root = onFxThread(() -> {
@@ -387,7 +387,7 @@ class MainViewTest {
     void walksEveryMenuEntry() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit needs a display");
         AppContext.seed(data);
-        AppContext context = new AppContext(data);
+        AppContext context = com.maisonglow.TestAccounts.open(data);
 
         Parent root = onFxThread(() -> loadMain(context));
 

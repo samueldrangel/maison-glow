@@ -54,15 +54,24 @@ public final class AiProviderFactory {
     public AiModule create(CustomerService customers, ProductService products,
                            AppointmentService appointments, ProfessionalService professionals,
                            TreatmentService treatments) {
+        return create(customers,products,appointments,professionals,treatments,java.util.function.UnaryOperator.identity());
+    }
+    public AiModule create(CustomerService customers,ProductService products,AppointmentService appointments,
+                           ProfessionalService professionals,TreatmentService treatments,java.util.function.UnaryOperator<AssistantTool> wrapper) {
         Objects.requireNonNull(customers, "customers");
         Objects.requireNonNull(products, "products");
         Objects.requireNonNull(appointments, "appointments");
         Objects.requireNonNull(professionals, "professionals");
         Objects.requireNonNull(treatments, "treatments");
-        ToolRegistry registry = new ToolRegistry(List.of(new FindCustomerTool(customers),
+        ToolRegistry registry = new ToolRegistry(List.<AssistantTool>of(new FindCustomerTool(customers),
             new ListLowStockTool(products), new ListAppointmentsByDateTool(appointments),
             new CheckAvailabilityTool(appointments, professionals),
-            new BookAppointmentTool(appointments, customers, professionals, treatments)));
+            new BookAppointmentTool(appointments, customers, professionals, treatments)).stream().map(wrapper).toList());
+        return create(customers,registry);
+    }
+
+    /** A role-specific whitelist supplied by the authenticated application session. */
+    public AiModule create(CustomerService customers,ToolRegistry registry) {
         if (config.provider() == AiConfig.Provider.API && (client != null || (apiAssistant != null && apiTryOn != null))) {
             try {
                 if (apiReachable.getAsBoolean()) {

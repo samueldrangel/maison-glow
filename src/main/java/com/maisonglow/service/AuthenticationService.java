@@ -25,7 +25,7 @@ public final class AuthenticationService {
     private final Clock clock;
     private Session session;
 
-    private record Session(UserAccount account, int version, Instant expiresAt) { }
+    private record Session(UserAccount account, int version, Instant expiresAt, java.util.UUID id) { }
 
     public AuthenticationService(AccountDao accounts, CustomerDao customers, CustomerService customerService,
                                  TransactionRunner transactions, PasswordHasher passwords, Clock clock) {
@@ -87,7 +87,7 @@ public final class AuthenticationService {
         if (credentials == null || !passwords.matches(password, credentials.passwordHash())
             || !credentials.account().active())
             throw new AuthorizationException("Usuario o contraseña incorrectos, o cuenta no disponible.");
-        session = new Session(credentials.account(), credentials.authVersion(), clock.instant().plus(Duration.ofHours(8)));
+        session = new Session(credentials.account(), credentials.authVersion(), clock.instant().plus(Duration.ofHours(8)), java.util.UUID.randomUUID());
         return session.account();
     }
 
@@ -103,6 +103,23 @@ public final class AuthenticationService {
 
     public synchronized UserAccount requireAuthenticated() throws AuthorizationException, DataAccessException {
         return currentSession().orElseThrow(() -> new AuthorizationException("Inicia sesión para continuar."));
+    }
+
+    /** Identifies this login, even if the same account logs out and back in. Not an authorization token. */
+    public synchronized java.util.UUID requireSessionId() throws AuthorizationException, DataAccessException {
+        requireAuthenticated();return session.id();
+    }
+
+    /** Short local operations only: binds a tool's side effects to the login that authorized it. */
+    public synchronized <T> T inSession(java.util.UUID expected,TransactionRunner.Action<T> action)
+        throws ValidationException,BusinessRuleException,DataAccessException {
+        if(!requireSessionId().equals(expected))throw new AuthorizationException("La sesión cambió. Repite la operación.");
+        return action.run();
+    }
+
+    /** Safe account snapshots for the administration view; never exposes password hashes. */
+    public synchronized java.util.List<UserAccount> listAccounts() throws AuthorizationException,DataAccessException {
+        requireAdmin();return accounts.listAccounts();
     }
 
     public synchronized UserAccount requireAdmin() throws AuthorizationException, DataAccessException {

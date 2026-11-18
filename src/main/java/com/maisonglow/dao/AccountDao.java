@@ -13,6 +13,7 @@ public interface AccountDao {
     }
     Optional<Credentials> findByUsername(String normalizedUsername) throws DataAccessException;
     Optional<Credentials> findById(int id) throws DataAccessException;
+    java.util.List<UserAccount> listAccounts() throws DataAccessException;
     UserAccount create(String username, String passwordHash, UserRole role, Integer customerId)
         throws DataAccessException;
     long countAdministrators(boolean activeOnly) throws DataAccessException;

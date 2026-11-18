@@ -52,7 +52,7 @@ class ProfessionalsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         manicure = context.treatments().register(new TreatmentData("Manicura gel", "", 45000, 50));
         haircut = context.treatments().register(new TreatmentData("Corte y peinado", "", 55000, 60));
         Professional camila = context.professionals().register(

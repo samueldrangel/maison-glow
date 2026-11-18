@@ -64,7 +64,7 @@ class AuthenticationAccessGatewayTest {
 
         assertThat(session.role()).isEqualTo(AccessRole.CUSTOMER);
         assertThat(session.displayName()).isEqualTo("Ana García");
-        assertThat(context.customers().findByDocument("1001")).isPresent();
+        assertThat(context.portal().profile().getDocument()).isEqualTo("1001");
         access.logout();
         assertThat(access.login("ana", PASSWORD).displayName()).isEqualTo("Ana García");
     }

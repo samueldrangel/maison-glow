@@ -74,7 +74,7 @@ class StatisticsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         ana = context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         laura = context.customers().register(new ContactData("1002", "Laura Méndez", "3124445566", "laura@correo.com"));
         shampoo = context.products().register(new ProductData("Champú Nutritivo", 1, 28000, 5), 50);
@@ -116,7 +116,7 @@ class StatisticsViewTest {
     /** Opens the screen; the notice to the administrator goes to the notifier given, so a test can read it. */
     private Parent open(SimulatedAdminNotifier notifier) throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
         return FxTest.onFxThread(() -> {
             ViewLoader.Loaded<StatisticsController> loaded = ViewLoader.loadWithController(
                 StatisticsViewTest.class.getResource("/com/maisonglow/view/StatisticsView.fxml"), context);
@@ -255,7 +255,7 @@ class StatisticsViewTest {
     @DisplayName("past appointments show in the default range, drawn from the data of a clock set in the past")
     void pastTreatmentsShowInTheDefaultRange() throws Exception {
         LocalDate then = LocalDate.now().minusDays(5);
-        AppContext past = new AppContext(data, Clock.fixed(then.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
+        AppContext past = com.maisonglow.TestAccounts.open(data, Clock.fixed(then.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
             ZoneId.systemDefault()), AiConfig.simulated());
         Professional pro = past.professionals().findById(camila.getId());
         past.appointments().book(ana, pro, past.treatments().findById(manicure.getId()), then.atTime(10, 0), 13500);
@@ -364,7 +364,7 @@ class StatisticsViewTest {
     /** Books an appointment some days ago, with the clock of those days so the rules accept it, and leaves it in that state. */
     private void bookInThePast(int daysAgo, int hour, Customer customer, AppointmentStatus status) throws Exception {
         LocalDate day = LocalDate.now().minusDays(daysAgo);
-        AppContext past = new AppContext(data, Clock.fixed(day.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
+        AppContext past = com.maisonglow.TestAccounts.open(data, Clock.fixed(day.minusDays(3).atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant(),
             ZoneId.systemDefault()), AiConfig.simulated());
         var appointment = past.appointments().book(past.customers().findById(customer.getId()), past.professionals().findById(camila.getId()),
             past.treatments().findById(cut.getId()), day.atTime(hour, 0), 16500);

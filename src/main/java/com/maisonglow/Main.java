@@ -75,6 +75,7 @@ public final class Main {
     private static final WorkSchedule EIGHT_TO_SIX = new WorkSchedule(LocalTime.of(8, 0), LocalTime.of(18, 0));
 
     private final Path data;
+    private final AppContext context;
     private final Clock clock = Clock.systemDefaultZone();
     private final CustomerService customers;
     private final TreatmentService treatments;
@@ -88,8 +89,12 @@ public final class Main {
     private final PromotionService promotions;
 
     Main(Path data) {
-        this.data = data;
-        AppContext context = new AppContext(data, clock, AiConfig.simulated());
+        this(new AppContext(data,Clock.systemDefaultZone(),AiConfig.simulated()));
+    }
+
+    Main(AppContext context) {
+        this.context=context;
+        this.data=context.dataFolder();
         settings = context.settings();
         customers = context.customers();
         treatments = context.treatments();
@@ -157,7 +162,10 @@ public final class Main {
 
     private static void runDemo() {
         try {
-            new Main(prepareDemoFolder()).run();
+            AppContext demo=new AppContext(prepareDemoFolder(),Clock.systemDefaultZone(),AiConfig.simulated());
+            char[] secret=java.util.UUID.randomUUID().toString().toCharArray();
+            try {demo.auth().createFirstAdmin("demo-admin",secret);demo.auth().login("demo-admin",secret);new Main(demo).run();}
+            finally {java.util.Arrays.fill(secret,'\0');}
         } catch (IOException | DataAccessException e) {
             System.out.println("Error de datos: " + e.getMessage());
         } catch (ValidationException | BusinessRuleException e) {
@@ -168,11 +176,16 @@ public final class Main {
     private static void runInteractive(ConsoleIo console) {
         try {
             Main application = new Main(AppContext.sessionFolder());
+            String username=System.getenv("MAISON_GLOW_USERNAME"),secret=System.getenv("MAISON_GLOW_PASSWORD");
+            if(username==null||secret==null) {console.println("La consola requiere una cuenta ADMIN. Configura MAISON_GLOW_USERNAME y MAISON_GLOW_PASSWORD en esta terminal.");return;}
+            char[] password=secret.toCharArray();
+            try {application.context.auth().login(username,password);application.context.auth().requireAdmin();}
+            finally {java.util.Arrays.fill(password,'\0');}
             console.println("Datos de la consola interactiva en: " + application.data.toAbsolutePath());
             new MainMenu(console, application.consoleModules(console)).run();
         } catch (IOException | DataAccessException e) {
             System.out.println("Error de datos: " + e.getMessage());
-        } catch (ValidationException e) {
+        } catch (ValidationException | BusinessRuleException e) {
             System.out.println("Error en la configuración: " + e.getMessage());
         }
     }
@@ -184,6 +197,8 @@ public final class Main {
     }
 
     List<ConsoleModule> consoleModules(ConsoleIo console) throws ValidationException, DataAccessException {
+        try {context.auth().requireAdmin();}
+        catch(com.maisonglow.exception.AuthorizationException e){throw new com.maisonglow.exception.AccessDeniedDataException(e.getMessage(),e);}
         EmailNotifier emailNotifier = new SimulatedEmailNotifier(new InvoiceFormatter(settings.businessName()),
             System.out);
         AdminNotifier adminNotifier = new SimulatedAdminNotifier(System.out);

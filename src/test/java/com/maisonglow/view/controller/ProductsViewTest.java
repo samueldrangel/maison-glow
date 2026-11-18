@@ -52,7 +52,7 @@ class ProductsViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data);
+        context = com.maisonglow.TestAccounts.open(data);
     }
 
     /** The three products of the mockup: two to restock (one with no units) and one that is fine. */

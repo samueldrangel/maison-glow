@@ -22,6 +22,16 @@ public final class AccountDaoSqlite implements AccountDao {
         return find("SELECT * FROM app_user WHERE id = ?", id);
     }
 
+    @Override public java.util.List<UserAccount> listAccounts() throws DataAccessException {
+        return database.transaction(c -> {
+            java.util.List<UserAccount> result=new java.util.ArrayList<>();
+            try(var statement=c.createStatement();var rows=statement.executeQuery("SELECT * FROM app_user ORDER BY id")) {
+                while(rows.next())result.add(read(rows).account());
+            }
+            return java.util.List.copyOf(result);
+        });
+    }
+
     private Optional<Credentials> find(String sql, Object value) throws DataAccessException {
         return database.transaction(c -> {
             try (var statement = c.prepareStatement(sql)) {

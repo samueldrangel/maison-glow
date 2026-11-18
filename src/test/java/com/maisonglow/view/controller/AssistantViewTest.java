@@ -56,7 +56,7 @@ class AssistantViewTest {
     @BeforeEach
     void prepareData() throws Exception {
         AppContext.seed(data);
-        context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         tomorrow = LocalDate.now().plusDays(1);
         ana = context.customers().register(new ContactData("1001", "Ana García", "3001112233", "ana@correo.com"));
         cut = context.treatments().register(new TreatmentData("Corte y peinado", "", 55000, 60));
@@ -67,7 +67,7 @@ class AssistantViewTest {
 
     private Parent open() throws Exception {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
-        context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         return FxTest.onFxThread(() -> {
             ViewLoader.Loaded<AssistantController> loaded = ViewLoader.loadWithController(
                 AssistantViewTest.class.getResource("/com/maisonglow/view/AssistantView.fxml"), context);

@@ -4,7 +4,7 @@ Aplicación de escritorio para la gestión de un negocio de belleza: clientes, p
 
 Seguimiento de la ampliación: [roles de cliente y administrador](docs/roadmap-roles.md), con tareas, responsables, dependencias y criterios de aceptación. Consultar el estado de cada tarea antes de asumir que está integrada.
 
-Primera parte de backend de roles: `AppContext.auth()` proporciona cuentas, sesión y permisos básicos. Ver [contratos y configuración del primer administrador](docs/fase3/roles-contratos.md). Las pantallas y la protección de los módulos anteriores siguen pendientes de integración; el arranque JavaFX actual todavía abre Inicio.
+Backend de roles: `AppContext.auth()` proporciona cuentas y sesión; los servicios administrativos anteriores ahora exigen ADMIN. `catalog()`, `orders()`, `portal()` y `changes()` proporcionan el autoservicio protegido. Ver [configuración del primer administrador](docs/fase3/roles-contratos.md) y [contratos del backend](docs/fase3/roles-backend.md). Las pantallas de acceso deben integrarse antes de entrar al Inicio administrativo; esta rama no inicia sesión automáticamente.
 
 La interfaz usa JavaFX y la persistencia del negocio usa SQLite. La base se crea automáticamente: **no hay que instalar un servidor de base de datos ni ejecutar scripts SQL manualmente**.
 
@@ -28,10 +28,10 @@ Sin archivo de configuración o sin clave, el negocio funciona y la IA entra en 
 
 ## 2. Descargar esta entrega
 
-Esta entrega se publica en **`feature/probar-nicoll`**. Hasta que se integre en `develop`, usar esa rama; la rama `main` conserva una versión anterior.
+La base de integración del equipo es **`develop`**, que ya incluye SQLite, cámara y acceso por cuenta. La continuación del backend de roles se revisa en **`feature/roles-backend`** hasta su fusión; los contratos indican qué pantallas siguen pendientes de integración.
 
 ```powershell
-git clone --branch feature/probar-nicoll https://github.com/samueldrangel/maison-glow.git
+git clone --branch develop https://github.com/samueldrangel/maison-glow.git
 cd maison-glow
 ```
 
@@ -39,7 +39,7 @@ Si ya tienen el repositorio, guardar primero cualquier trabajo local propio y ej
 
 ```powershell
 git fetch origin
-git switch feature/probar-nicoll
+git switch develop
 git pull --ff-only
 ```
 
@@ -108,7 +108,7 @@ Para abrir sin IA real:
 mvn javafx:run
 ```
 
-La ventana abre en **Inicio**. La barra lateral se expande al pasar el cursor. **Probador virtual** está debajo de **Asistente IA**.
+La ventana abre en **Acceso**. Para administrar el negocio, configurar primero una cuenta ADMIN con el [procedimiento de configuración local](docs/fase3/roles-contratos.md#configurar-el-primer-administrador-local) e iniciar sesión con ella. El registro público crea cuentas de cliente. La barra lateral muestra las opciones del rol y se expande al pasar el cursor.
 
 ## 7. Base de datos y datos de demostración
 
@@ -122,7 +122,7 @@ Para respaldar, cerrar la aplicación y copiar **toda la carpeta `data/session/`
 
 ## 8. Probar el negocio
 
-1. Entrar en **Clientes**, crear un cliente y comprobar búsqueda y edición.
+1. Iniciar sesión con una cuenta ADMIN, entrar en **Clientes**, crear un cliente y comprobar búsqueda y edición.
 2. Crear un tratamiento y un profesional; asignar el tratamiento al profesional.
 3. Registrar un producto con existencias y mínimo de inventario.
 4. Crear una cita con fecha futura, horario laboral y anticipo suficiente. Intentar otra en el mismo horario: debe rechazar el cruce.
@@ -167,6 +167,8 @@ En **modo simulado** se aplica un tinte de ejemplo a la imagen completa; no dete
 En Windows 11, revisar **Configuración → Privacidad y seguridad → Cámara** y el acceso de las aplicaciones de escritorio. Los controles pueden variar según la versión de Windows. Ver la [guía de permisos de Microsoft](https://support.microsoft.com/en-us/windows/privacy/manage-app-permissions-for-a-camera-in-windows).
 
 ## 11. Pruebas y consola
+
+El modo `menu` requiere una cuenta ADMIN y las variables temporales `MAISON_GLOW_USERNAME` y `MAISON_GLOW_PASSWORD`. Pedir la contraseña oculta, siguiendo el ejemplo de configuración del primer administrador, y eliminar las variables al terminar. El modo `demo` crea su sesión solo dentro de una carpeta temporal; no autentica una instalación real.
 
 ```powershell
 mvn clean verify

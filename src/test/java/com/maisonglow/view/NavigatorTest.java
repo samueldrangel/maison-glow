@@ -38,7 +38,7 @@ class NavigatorTest {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         AppContext.seed(data);
         StackPane content = FxTest.onFxThread(StackPane::new);
-        Navigator navigator = new Navigator(content, new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated()), com.maisonglow.view.access.AccessRole.ADMIN);
+        Navigator navigator = new Navigator(content, com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated()), com.maisonglow.view.access.AccessRole.ADMIN);
 
         FxTest.onFxThread(() -> { navigator.show(View.ASSISTANT); return null; });
         Node chat = shown(content);
@@ -69,7 +69,7 @@ class NavigatorTest {
         assumeTrue(toolkit, "JavaFX toolkit needs a display");
         AppContext.seed(data);
         StackPane content = FxTest.onFxThread(StackPane::new);
-        AppContext context = new AppContext(data, Clock.systemDefaultZone(), AiConfig.simulated());
+        AppContext context = com.maisonglow.TestAccounts.open(data, Clock.systemDefaultZone(), AiConfig.simulated());
         Navigator asCustomer = new Navigator(content, context, com.maisonglow.view.access.AccessRole.CUSTOMER);
 
         boolean opened = FxTest.onFxThread(() -> asCustomer.show(View.PRODUCTS));
