@@ -1,6 +1,7 @@
 package com.maisonglow.view;
 
 import com.maisonglow.AppContext;
+import com.maisonglow.exception.DataAccessException;
 import com.maisonglow.view.access.AccessSession;
 import com.maisonglow.view.controller.LoginController;
 import com.maisonglow.view.controller.MainController;
@@ -67,15 +68,33 @@ public final class AppWindow {
             logout();
             new AlertPresenter(scene.getRoot()).toast("Contraseña actualizada. Inicia sesión con la nueva.");
         });
-        context.access().current().ifPresentOrElse(this::showArea, this::showLogin);
+        context.access().current().ifPresentOrElse(this::showArea, () -> showAccess(true));
     }
 
     /** Shows the sign-in screen. */
     public void showLogin() {
+        showAccess(false);
+    }
+
+    private void showAccess(boolean firstScreen) {
         ViewLoader.Loaded<LoginController> loaded = ViewLoader.loadWithController(resource("LoginView.fxml"), context);
         loaded.controller().onSignedIn(this::showArea);
         loaded.controller().onRegister(this::showRegister);
+        String setupError = null;
+        try {
+            if (context.auth().needsAdministratorSetup()) {
+                loaded.controller().offerAdministratorSetup(firstScreen, () -> {
+                    showLogin();
+                    new AlertPresenter(scene.getRoot()).toast("Administrador creado. Inicia sesión con tu nueva cuenta.");
+                });
+            }
+        } catch (DataAccessException error) {
+            setupError = "No se pudo consultar la configuración del administrador. " + error.getMessage();
+        }
         show(loaded.root());
+        if (setupError != null) {
+            new AlertPresenter(loaded.root()).toast(setupError);
+        }
     }
 
     /** Shows the sign-up screen. */

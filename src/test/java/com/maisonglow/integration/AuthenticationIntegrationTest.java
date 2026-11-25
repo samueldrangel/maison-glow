@@ -149,6 +149,31 @@ class AuthenticationIntegrationTest {
         app.auth().login("alice", "new-fixture-password".toCharArray());
     }
 
+    @Test void localRecoveryUpdatesOnlyTheExistingAdministratorAndInvalidatesTheirSessions() throws Exception {
+        var app = open();
+        var original = admin(app);
+        customer(app, "alice");
+        var maintenance = open();
+        char[] replacement = "new-admin-password".toCharArray();
+
+        assertThatThrownBy(() -> maintenance.auth().resetLocalAdminPassword("alice", replacement))
+            .isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> maintenance.auth().resetLocalAdminPassword("missing", replacement))
+            .isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> maintenance.auth().resetLocalAdminPassword("admin", " ".repeat(12).toCharArray()))
+            .isInstanceOf(ValidationException.class);
+        assertThat(app.auth().requireAdmin()).isEqualTo(original);
+
+        maintenance.auth().resetLocalAdminPassword(" ADMIN ", replacement);
+        assertThat(maintenance.auth().currentSession()).isEmpty();
+        assertThat(app.auth().currentSession()).isEmpty();
+        var reopened = open();
+        assertThat(reopened.auth().needsAdministratorSetup()).isFalse();
+        assertThatThrownBy(() -> reopened.auth().login("admin", password())).isInstanceOf(AuthorizationException.class);
+        assertThat(reopened.auth().login("admin", replacement)).isEqualTo(original);
+        assertThat(reopened.auth().login("alice", password()).role()).isEqualTo(UserRole.CUSTOMER);
+    }
+
     @Test void deactivationAndReactivationNeverReviveOldSessions() throws Exception {
         var app = open(); admin(app); var account = customer(app, "alice");
         var second = open(); second.auth().login("alice", password());

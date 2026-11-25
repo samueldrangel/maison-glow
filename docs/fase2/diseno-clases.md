@@ -33,7 +33,7 @@
 
 > **Convenciones de este documento**
 > - Paquete raíz: `com.maisonglow`. Dinero como `double` (simplicidad del curso); fechas con `java.time`.
-> - Los `id` son `int`; los asigna el DAO al crear (0 = aún no guardado). Se diseñaron para coincidir con las tablas de `sql/schema.sql`.
+> - Los `id` son `int`; los asigna el DAO al crear (0 = aún no guardado). Se diseñaron para coincidir con las tablas de `src/main/resources/sql/schema.sql`.
 > - Las clases de negocio se nombran `XxxServicio`, sin excepciones. La entidad que se agenda y se vende se llama `Tratamiento` (no `Servicio`) para no chocar con ese sufijo ([ADR-0013](../adr/0013-entidad-tratamiento.md)); en la interfaz puede seguir mostrándose como "servicio".
 
 ---

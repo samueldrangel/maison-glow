@@ -279,7 +279,7 @@ Distribución de clases y reasignaciones: [`../../TEAM.md`](../../TEAM.md). Tabl
 
 ### 13.2 Alcance de la Entrega 1
 
-La Entrega 1 implementa **toda la lógica de negocio** con persistencia en **archivos de texto**, deja la **base de datos diseñada** (MER y `sql/schema.sql`, sin conectar) y presenta los **mockups** de la interfaz. Los motivos están en el [ADR-0012](../adr/0012-persistencia-en-archivos-de-texto.md).
+La Entrega 1 implementa **toda la lógica de negocio** con persistencia en **archivos de texto**, deja la **base de datos diseñada** (MER y `src/main/resources/sql/schema.sql`, sin conectar) y presenta los **mockups** de la interfaz. Los motivos están en el [ADR-0012](../adr/0012-persistencia-en-archivos-de-texto.md).
 
 | Requisito | Estado en la Entrega 1 |
 |---|---|

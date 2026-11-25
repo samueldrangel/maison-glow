@@ -9,6 +9,7 @@ import com.maisonglow.view.access.RegistrationData;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,59 @@ class AppWindowTest {
 
         assertThat(has("#loginButton")).isTrue();
         assertThat(has("#sidebar")).isFalse();
+    }
+
+    @Test
+    void firstLaunchSetsUpAdministratorAndReopeningUsesTheSamePassword() throws Exception {
+        Path installation = data.resolve("fresh");
+        var fresh = new AppContext(installation, Clock.systemDefaultZone(), AiConfig.simulated());
+        window = FxTest.onFxThread(() -> new AppWindow(new Stage(), fresh, stage -> { }));
+        FxTest.onFxThread(() -> { window.start(); return null; });
+
+        assertThat(FxTest.onFxThread(() -> ((Button) window.root().lookup("#loginButton")).getText()))
+            .isEqualTo("Crear administrador");
+        String password = " clave de prueba ";
+        FxTest.onFxThread(() -> {
+            ((TextField) window.root().lookup("#usernameField")).setText(" Encargada ");
+            ((TextField) window.root().lookup("#passwordField")).setText(password);
+            ((TextField) window.root().lookup("#confirmationField")).setText("otra clave de prueba");
+            ((Button) window.root().lookup("#loginButton")).fire();
+            return null;
+        });
+        assertThat(FxTest.onFxThread(() -> window.root().lookup("#confirmationMessage").isVisible())).isTrue();
+        assertThat(fresh.auth().needsAdministratorSetup()).isTrue();
+
+        FxTest.onFxThread(() -> {
+            ((TextField) window.root().lookup("#confirmationField")).setText(password);
+            ((Button) window.root().lookup("#loginButton")).fire();
+            return null;
+        });
+        awaitVisible("#registerLink");
+        assertThat(FxTest.onFxThread(() -> window.root().lookup("#setupLink").isVisible())).isFalse();
+
+        var reopened = new AppContext(installation, Clock.systemDefaultZone(), AiConfig.simulated());
+        window = FxTest.onFxThread(() -> new AppWindow(new Stage(), reopened, stage -> { }));
+        FxTest.onFxThread(() -> {
+            window.start();
+            ((TextField) window.root().lookup("#usernameField")).setText("ENCARGADA");
+            ((TextField) window.root().lookup("#passwordField")).setText(password);
+            ((Button) window.root().lookup("#loginButton")).fire();
+            return null;
+        });
+        awaitVisible("#sidebar");
+        assertThat(reopened.auth().requireAdmin().username()).isEqualTo("encargada");
+    }
+
+    private void awaitVisible(String selector) throws Exception {
+        boolean visible = false;
+        for (int attempt = 0; attempt < 100 && !visible; attempt++) {
+            visible = FxTest.onFxThread(() -> {
+                var node = window.root().lookup(selector);
+                return node != null && node.isVisible() && node.getParent().isVisible();
+            });
+            if (!visible) Thread.sleep(50);
+        }
+        assertThat(visible).as("%s should be visible", selector).isTrue();
     }
 
     @Test

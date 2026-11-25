@@ -17,7 +17,7 @@ Aún no existían el DAO, el catálogo ni `Appointment`, por lo que el cambio er
 1. La entidad se llama **`Treatment`** (en los documentos en español, **`Tratamiento`**).
 2. Su lógica de negocio sigue la regla general: **`TreatmentService`** (`TratamientoServicio`); se elimina la excepción `BeautyServiceCatalog`. El DAO es `TreatmentDao` / `TreatmentDaoText`.
 3. En `Professional`: `addTreatment`, `removeTreatment`, `getTreatments`; `offers(Treatment)` se mantiene.
-4. En `sql/schema.sql`: `beauty_service` → `treatment`, `professional_service` → `professional_treatment`, columnas `service_id` → `treatment_id`, vista `v_service_demand` → `v_treatment_demand`. Archivos de texto: `treatments.txt` y `professional_treatments.txt`.
+4. En `src/main/resources/sql/schema.sql`: `beauty_service` → `treatment`, `professional_service` → `professional_treatment`, columnas `service_id` → `treatment_id`, vista `v_service_demand` → `v_treatment_demand`. Archivos de texto: `treatments.txt` y `professional_treatments.txt`.
 5. Los textos que ve el usuario pueden seguir diciendo "servicio": es la palabra del negocio. La regla aplica solo a identificadores.
 
 ## Alternativas consideradas

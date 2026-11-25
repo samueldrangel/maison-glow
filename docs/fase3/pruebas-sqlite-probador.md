@@ -14,7 +14,7 @@ Los importes se guardan como decimales de texto y se reconstruyen como `BigDecim
 
 Al abrir una carpeta por primera vez se importan sus archivos de texto del negocio en una transacción. Conserva identificadores, relaciones, configuración y el contador del siguiente ID. Si un archivo no es válido, se revierte la importación y el arranque indica el error. Después de corregirlo, se puede reintentar. `app_metadata.legacy_import_v1` impide repetir la importación. Los archivos originales no se borran ni se modifican.
 
-`sql/seed.sql` contiene configuración y categorías. `sql/demo-seed.sql` añade tres clientes ficticios identificados con `(demo)`, tres tratamientos, un profesional y tres productos. Se aplica una sola vez a la sesión, con la marca `demo_seed_v1`; no restablece modificaciones ni vuelve a crear datos que el usuario haya borrado. Los scripts usan `INSERT OR IGNORE` y también pueden ejecutarse repetidamente sin duplicar registros.
+`src/main/resources/sql/seed.sql` contiene configuración y categorías. `src/main/resources/sql/demo-seed.sql` añade tres clientes ficticios identificados con `(demo)`, tres tratamientos, un profesional y tres productos. Se aplica una sola vez a la sesión, con la marca `demo_seed_v1`; no restablece modificaciones ni vuelve a crear datos que el usuario haya borrado. Los scripts usan `INSERT OR IGNORE` y también pueden ejecutarse repetidamente sin duplicar registros.
 
 El historial de IA de la primera entrega (`AiHistory`) conserva su formato de texto. Esta migración conecta la persistencia del negocio usada por las pantallas, el asistente y la validación del cliente del probador.
 

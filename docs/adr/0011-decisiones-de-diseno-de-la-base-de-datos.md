@@ -5,7 +5,7 @@
 - **Decide:** Equipo completo (propone Samuel Rangel)
 
 ## Contexto
-Aunque la Entrega 1 no usa base de datos ([ADR-0012](0012-persistencia-en-archivos-de-texto.md)), el modelo debe nacer coherente con ella y cubrir **todo el proyecto** (RF-01 a RF-31, roles, IA). El esquema vive en `sql/schema.sql` como diseño; se aplica en la Entrega 2 ([ADR-0003](0003-persistencia-sqlite-jdbc-dao.md)).
+Aunque la Entrega 1 no usa base de datos ([ADR-0012](0012-persistencia-en-archivos-de-texto.md)), el modelo debe nacer coherente con ella y cubrir **todo el proyecto** (RF-01 a RF-31, roles, IA). El esquema vive en `src/main/resources/sql/schema.sql` como diseño; se aplica en la Entrega 2 ([ADR-0003](0003-persistencia-sqlite-jdbc-dao.md)).
 
 ## Decisión
 1. **Cobertura completa desde el inicio:** 22 tablas, 4 vistas y 3 triggers, marcados por entrega (D1, D2, AI).

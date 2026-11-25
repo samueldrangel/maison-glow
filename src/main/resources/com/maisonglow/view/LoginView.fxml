@@ -28,8 +28,8 @@
     </VBox>
     <StackPane styleClass="auth-side" prefWidth="0" HBox.hgrow="ALWAYS">
         <VBox styleClass="card, auth-card" spacing="6" maxWidth="420" maxHeight="-Infinity" alignment="CENTER_LEFT">
-            <Label text="Bienvenida de nuevo" styleClass="auth-title"/>
-            <Label text="Inicia sesión para continuar." styleClass="form-hint"/>
+            <Label fx:id="title" text="Bienvenida de nuevo" styleClass="auth-title"/>
+            <Label fx:id="hint" text="Inicia sesión para continuar." styleClass="form-hint" wrapText="true" maxWidth="Infinity"/>
             <Region minHeight="10"/>
             <Label text="Usuario" styleClass="form-label"/>
             <TextField fx:id="usernameField" promptText="tu usuario"/>
@@ -37,17 +37,21 @@
             <Label text="Contraseña" styleClass="form-label"/>
             <PasswordField fx:id="passwordField" promptText="tu contraseña"/>
             <Label fx:id="passwordMessage" text="Mensaje de error" styleClass="field-error-message"/>
+            <Label fx:id="confirmationLabel" text="Confirmar contraseña" styleClass="form-label" visible="false" managed="false"/>
+            <PasswordField fx:id="confirmationField" promptText="repite tu contraseña" visible="false" managed="false"/>
+            <Label fx:id="confirmationMessage" styleClass="field-error-message"/>
             <Label fx:id="formMessage" text="Usuario o contraseña incorrectos." styleClass="auth-alert" wrapText="true"/>
             <Region minHeight="8"/>
             <HBox alignment="CENTER" spacing="10">
                 <Button fx:id="loginButton" text="Iniciar sesión" styleClass="button-gold" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                 <ProgressIndicator fx:id="waiting" prefWidth="26" prefHeight="26" maxWidth="26" maxHeight="26"/>
             </HBox>
-            <HBox alignment="CENTER" spacing="6">
+            <HBox fx:id="registerPrompt" alignment="CENTER" spacing="6">
                 <padding><Insets top="10"/></padding>
                 <Label text="¿Aún no tienes cuenta?" styleClass="form-hint"/>
                 <Button fx:id="registerLink" text="Crear cuenta" styleClass="link-button"/>
             </HBox>
+            <Button fx:id="setupLink" styleClass="link-button" visible="false" managed="false"/>
         </VBox>
     </StackPane>
 </HBox>
