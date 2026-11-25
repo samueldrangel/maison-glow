@@ -24,6 +24,7 @@ Los controladores reciben el `AppContext` existente y acceden a `context.auth()`
 | Desactivar / activar | `setActive(int userId, boolean active)` | Solo administrador; no permite desactivar al último administrador activo; invalida sesiones anteriores |
 | Vinculación verificada | `linkCustomerAccount(int customerId, String username, char[] password)` | Solo administrador, después de verificar identidad por fuera del formulario público; exige ficha existente sin cuenta |
 | Configuración inicial local | `createFirstAdmin(String username, char[] password)` | Solo para la instalación local; rechaza si ya existe cualquier administrador; no mostrarlo como selector de rol en registro |
+| Recuperación local | `resetLocalAdminPassword(String username, char[] password)` | Exige acceso de escritura a la base desde la terminal local. Actualiza un administrador activo existente e invalida sus sesiones. |
 
 `UserAccount` contiene únicamente `id`, `username`, `role` (`ADMIN` / `CUSTOMER`), `customerId` (nulo para ADMIN) y `active`. No incluye hash ni token que pueda construirse para iniciar sesión.
 
@@ -80,14 +81,16 @@ Antes de actualizar una instalación real, cerrar la aplicación y respaldar tod
 
 ## Configurar el primer administrador local
 
-Ejecutar explícitamente desde una terminal PowerShell en la raíz del proyecto. La contraseña se pide oculta y no se incluye como argumento ni se sube al repositorio:
+Ejecutar `com.maisonglow.Main` sin argumentos. Si la base local no tiene administrador, la pantalla **Configura la administración** permite crearlo una vez. Después, el acceso usa la cuenta guardada en SQLite.
+
+También se puede configurar desde PowerShell en la raíz del proyecto. La contraseña se solicita de forma oculta y se usa mediante una variable temporal:
 
 ```powershell
 $env:MAISON_GLOW_ADMIN_USERNAME = Read-Host 'Usuario del primer administrador'
 $adminSecret = Read-Host 'Contraseña (12–128 caracteres)' -AsSecureString
 try {
     $env:MAISON_GLOW_ADMIN_PASSWORD = [System.Net.NetworkCredential]::new('', $adminSecret).Password
-    mvn -q exec:java '-Dexec.args=setup-admin'
+    mvn -q compile exec:java '-Dexec.args=setup-admin'
 } finally {
     Remove-Item Env:MAISON_GLOW_ADMIN_PASSWORD -ErrorAction SilentlyContinue
     Remove-Item Env:MAISON_GLOW_ADMIN_USERNAME -ErrorAction SilentlyContinue
@@ -95,7 +98,17 @@ try {
 }
 ```
 
-Se usa `data/session/`, proveedor IA simulado y el mismo servicio transaccional de cuentas. Un segundo intento no reemplaza la contraseña ni crea otro administrador. La pantalla de login se conecta en I-R01; este comando no añade una pantalla ni inicia una sesión JavaFX.
+La terminal muestra la ruta de la base utilizada. Una vez creada la cuenta, entra desde la pantalla de acceso.
+
+## Restablecer la contraseña del administrador local
+
+Si ya existe un administrador y olvidaste su contraseña, usa la terminal del equipo que tiene acceso de escritura a la base. Cierra la aplicación. Ejecuta el mismo bloque de PowerShell con el usuario existente y la nueva contraseña, cambiando el comando Maven por:
+
+```powershell
+mvn -q compile exec:java '-Dexec.args=reset-admin'
+```
+
+El comando actualiza un administrador activo de esa base e invalida sus sesiones abiertas. Conserva su usuario, su rol y los datos del negocio. Abre la aplicación y entra con la nueva contraseña.
 
 ## Pruebas
 

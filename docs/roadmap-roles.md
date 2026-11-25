@@ -3,7 +3,7 @@
 > Estado revisado el 18 de noviembre de 2026 sobre `develop` con los PR #60–#76 fusionados. **Se conserva SQLite local; nube aplazada y fuera del alcance actual.**
 > Alcance: cuentas con roles, autoservicio del cliente, productos publicados con fotos e historial de cambios.
 > El backend S-R03–S-R06 llegó con el PR #61; la semilla opcional S-R08 con el PR #62. Los bloques visuales de Isabella y Nicoll también están fusionados. Faltan comprobaciones de aceptación de N-R06 y S-R07: [contratos de integración](fase3/roles-backend.md).
-> Base: [Corte 3](roadmap-corte3.md), [instalación y estado actual](../README.md), [esquema](../sql/schema.sql).
+> Base: [Corte 3](roadmap-corte3.md), [instalación y estado actual](../README.md), [esquema](../src/main/resources/sql/schema.sql).
 
 ## 0. Resumen de seguimiento del equipo
 
@@ -60,7 +60,7 @@ La nueva distribución prevalece sobre las asignaciones históricas de backend d
 
 - Ya existen vistas JavaFX de clientes, productos, ventas, agenda, estadísticas, asistente y probador; se amplían y reutilizan.
 - El negocio ya persiste en SQLite y la venta descuenta inventario dentro de una transacción.
-- `sql/schema.sql` define `app_user`, `ADMIN` y `CUSTOMER`; los servicios ya implementan registro, login y autorización. El arranque actual abre la pantalla de acceso.
+- `src/main/resources/sql/schema.sql` define `app_user`, `ADMIN` y `CUSTOMER`; los servicios ya implementan registro, login y autorización. El arranque actual abre la pantalla de acceso.
 - Ya existe captura con cámara y selección de archivo en el probador. Se reutiliza la experiencia, separando las fotos de producto de las fotos privadas del cliente.
 - El historial de IA usa archivos de texto; no equivale a una galería permanente de cambios reales. Los resultados del probador pueden ser temporales y deben copiarse si el usuario decide conservarlos.
 - El registro actual de un cliente es una ficha del negocio; una cuenta de acceso necesita credenciales y vinculación comprobada a esa ficha.

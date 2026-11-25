@@ -1,6 +1,7 @@
 package com.maisonglow.service.auth;
 
 import com.maisonglow.exception.ValidationException;
+import java.nio.CharBuffer;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -42,6 +43,8 @@ public final class PasswordHasher {
     public void validate(char[] password) throws ValidationException {
         if (password == null || password.length < 12 || password.length > 128)
             throw new ValidationException("La contraseña debe tener entre 12 y 128 caracteres.");
+        if (CharBuffer.wrap(password).chars().allMatch(Character::isWhitespace))
+            throw new ValidationException("La contraseña debe contener al menos un carácter distinto de un espacio.");
     }
 
     private static byte[] derive(char[] password, byte[] salt, int iterations) {

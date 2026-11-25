@@ -2,7 +2,7 @@
 
 ## Ampliación local de roles — migración 2
 
-Se aplica mediante `sql/roles-backend.sql`, dentro de la inicialización transaccional. No reemplaza tablas anteriores. Contratos de servicios y reglas: [backend de roles](../fase3/roles-backend.md).
+Se aplica mediante `src/main/resources/sql/roles-backend.sql`, dentro de la inicialización transaccional. No reemplaza tablas anteriores. Contratos de servicios y reglas: [backend de roles](../fase3/roles-backend.md).
 
 | Tabla | Columnas principales | Relaciones y restricciones |
 |---|---|---|
@@ -15,7 +15,7 @@ Se aplica mediante `sql/roles-backend.sql`, dentro de la inicialización transac
 
 `trg_product_reserved_stock` impide reducir stock por debajo de unidades de pedidos pendientes; protege también ventas y ajustes existentes. Los vencimientos se procesan al arrancar y durante operaciones de catálogo/pedidos/inventario. La migración 1 de cuentas permanece aplicada.
 
-> Fuente: [`sql/schema.sql`](../../sql/schema.sql) (diseño, no aplicado en la Entrega 1). Diagramas y cobertura de RF: [`modelo-entidad-relacion.md`](modelo-entidad-relacion.md).
+> Fuente: [`src/main/resources/sql/schema.sql`](../../src/main/resources/sql/schema.sql) (diseño, no aplicado en la Entrega 1). Diagramas y cobertura de RF: [`modelo-entidad-relacion.md`](modelo-entidad-relacion.md).
 > Fechas en texto ISO-8601 (`yyyy-MM-dd`, `yyyy-MM-ddTHH:mm:ss`, hora `HH:mm`); booleanos `0/1`; dinero en pesos colombianos.
 > **PK** clave primaria · **FK** clave foránea · **UK** única · **NN** no nula.
 
@@ -207,7 +207,7 @@ El usuario de acceso es único también por `lower(trim(username))`. `schema_mig
 | `setting_value` | TEXT | NN | Valor |
 | `description` | TEXT | NN | Significado |
 
-Claves iniciales (`sql/seed.sql`): `business_name`, `deposit_percentage`, `min_booking_notice_hours`, `reminder_hours_before`, `no_show_penalty_threshold`, `low_rotation_window_days`, `low_rotation_top_n`, `low_rotation_discount_percentage`.
+Claves iniciales (`src/main/resources/sql/seed.sql`): `business_name`, `deposit_percentage`, `min_booking_notice_hours`, `reminder_hours_before`, `no_show_penalty_threshold`, `low_rotation_window_days`, `low_rotation_top_n`, `low_rotation_discount_percentage`.
 
 ## Inteligencia artificial
 

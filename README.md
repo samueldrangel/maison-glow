@@ -6,7 +6,7 @@ Seguimiento de la ampliación: [roles de cliente y administrador](docs/roadmap-r
 
 Para generar datos ficticios de presentación o pruebas de volumen: [semilla local](docs/fase3/semilla-local.md).
 
-Backend de roles: `AppContext.auth()` proporciona cuentas y sesión; los servicios administrativos anteriores ahora exigen ADMIN. `catalog()`, `orders()`, `portal()` y `changes()` proporcionan el autoservicio protegido. Ver [configuración del primer administrador](docs/fase3/roles-contratos.md) y [contratos del backend](docs/fase3/roles-backend.md). Las pantallas de acceso deben integrarse antes de entrar al Inicio administrativo; esta rama no inicia sesión automáticamente.
+Backend de roles: `AppContext.auth()` proporciona cuentas y sesión. Los servicios administrativos exigen ADMIN. `catalog()`, `orders()`, `portal()` y `changes()` proporcionan el autoservicio protegido. Ver [contratos del backend](docs/fase3/roles-backend.md).
 
 La interfaz usa JavaFX y la persistencia del negocio usa SQLite. La base se crea automáticamente: **no hay que instalar un servidor de base de datos ni ejecutar scripts SQL manualmente**.
 
@@ -75,7 +75,6 @@ maison-glow/
   pom.xml
   config.properties    <- archivo privado
   src/
-  sql/
 ```
 
 El archivo privado contiene la selección del proveedor y la clave. El formato esperado es:
@@ -91,19 +90,27 @@ Para ejecutar solamente la simulación se puede usar `ai.provider=simulated`, o 
 
 ## 6. Abrir la aplicación
 
-Con `config.properties` junto a `pom.xml`, basta con ejecutar `com.maisonglow.Main` sin argumentos desde el IDE. También se puede abrir desde PowerShell:
+En **IntelliJ IDEA**, abre la carpeta que contiene `pom.xml` como proyecto Maven y selecciona **JDK 21** como SDK del proyecto. Espera a que Maven termine de cargar las dependencias. Abre `src/main/java/com/maisonglow/Main.java` y usa el botón verde junto a `main` para ejecutar **Main** sin argumentos.
+
+Si ya tenías el proyecto abierto al actualizarlo, recarga el proyecto desde el panel **Maven** antes de volver a ejecutar **Main**.
+
+También puedes abrir la aplicación desde PowerShell con este comando.
 
 ```powershell
 mvn javafx:run
 ```
 
-La ventana abre en **Acceso**. Para administrar el negocio, configurar primero una cuenta ADMIN con el [procedimiento de configuración local](docs/fase3/roles-contratos.md#configurar-el-primer-administrador-local) e iniciar sesión con ella. El registro público crea cuentas de cliente. La barra lateral muestra las opciones del rol y se expande al pasar el cursor.
+Si la base local todavía no tiene administrador, la ventana abre en **Configura la administración**. Elige un usuario, confirma una contraseña de 12 a 128 caracteres y pulsa **Crear administrador**. En los siguientes arranques, entra con esas mismas credenciales. **Crear cuenta** en la pantalla de acceso crea una cuenta de cliente.
 
-`mvn exec:java` también abre la interfaz JavaFX. Los argumentos `demo` y `menu` conservan los modos de consola.
+Cada copia del proyecto tiene su propia base y sus propias cuentas. Si olvidaste la contraseña de un administrador existente, puedes [restablecerla desde la terminal local](docs/fase3/roles-contratos.md#restablecer-la-contraseña-del-administrador-local).
+
+`mvn compile exec:java` también abre la interfaz JavaFX. Los argumentos `demo` y `menu` conservan los modos de consola.
 
 ## 7. Base de datos y datos de demostración
 
-El primer arranque crea `data/session/maison-glow.db` con las tablas, índices y reglas del esquema incluido en la aplicación. Importa una sola vez los archivos de texto del negocio que ya hubiera en esa carpeta, conservando IDs y relaciones. Los archivos originales no se borran ni se reescriben. Si la importación falla, se revierte y se muestra el error para poder corregirlo y reintentar.
+El primer arranque crea `data/session/maison-glow.db` con las tablas, índices y reglas del esquema incluido en la aplicación. El IDE y Maven usan esa ruta desde la raíz de la misma copia del proyecto, aunque cambie la carpeta de trabajo. Si un arranque anterior guardó datos en otra carpeta, se puede recuperar esa instalación con el procedimiento de respaldo y restauración de esta sección.
+
+SQLite importa una sola vez los archivos de texto del negocio presentes en la carpeta y conserva IDs y relaciones. Los archivos originales no se borran ni se reescriben. Si la importación falla, se revierte y se muestra el error para poder corregirlo y reintentar.
 
 La semilla añade categorías, configuración, tres clientes ficticios identificados con `(demo)`, tres tratamientos, un profesional y tres productos. Los siguientes arranques no duplican la semilla ni restablecen los cambios del usuario. No incluye citas o ventas artificiales.
 
@@ -180,7 +187,7 @@ La demo automática trabaja sobre una carpeta temporal. El menú de consola util
 - `src/main/java/com/maisonglow/view/`: navegación, controladores, componentes y cámara.
 - `src/main/java/com/maisonglow/ai/`: proveedor simulado, adaptadores API y herramientas autorizadas.
 - `src/main/resources/`: vistas FXML, estilos e imágenes.
-- `sql/`: esquema, valores predeterminados y semilla de demostración.
+- `src/main/resources/sql/` contiene el esquema, las migraciones y los datos iniciales de SQLite. IntelliJ y Maven copian estos recursos al compilar.
 - [Pruebas de SQLite y probador](docs/fase3/pruebas-sqlite-probador.md).
 - [Revisión visual con Impeccable](docs/fase3/revision-probador-impeccable.md).
 - [Decisiones de arquitectura](docs/adr/README.md), [roadmap](docs/roadmap-corte3.md) y [equipo](TEAM.md).

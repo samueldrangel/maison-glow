@@ -35,6 +35,7 @@ import com.maisonglow.view.orders.OrderServiceGateway;
 import com.maisonglow.view.shop.Cart;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -53,7 +54,6 @@ import java.util.Objects;
 public final class AppContext {
 
     private static final Path SOURCE_DATA = Path.of("data");
-    private static final Path SESSION_DATA = SOURCE_DATA.resolve("session");
     private static final String SETTINGS_FILE = "settings.txt";
     private static final String CATEGORIES_FILE = "categories.txt";
 
@@ -170,14 +170,27 @@ public final class AppContext {
      * @throws IOException if the folder or the preloaded files cannot be created
      */
     public static Path sessionFolder() throws IOException {
+        return sessionFolder(true);
+    }
+
+    /** When preparing is disabled, recovery requires an existing database. */
+    static Path sessionFolder(boolean prepare) throws IOException {
         String demo=System.getenv("MAISON_GLOW_DEMO_FOLDER");
         if(demo!=null&&!demo.isBlank()) {
             try{return com.maisonglow.service.LocalSeedService.openDemoFolder(Path.of(demo));}
             catch(com.maisonglow.exception.ValidationException|com.maisonglow.exception.DataAccessException e){throw new IOException("No se pudo abrir la demo local: "+e.getMessage(),e);}
         }
-        Files.createDirectories(SESSION_DATA);
+        Path sessionData = defaultSessionFolder();
+        if (!prepare) {
+            Path database = sessionData.resolve("maison-glow.db");
+            if (!Files.isRegularFile(database)) {
+                throw new IOException("No se encontró la base local en " + database + ". Ejecuta Main para configurar la instalación.");
+            }
+            return sessionData;
+        }
+        Files.createDirectories(sessionData);
         try {
-            SqliteDatabase database = SqliteBootstrap.open(SESSION_DATA);
+            SqliteDatabase database = SqliteBootstrap.open(sessionData);
             database.transaction(c -> {
                 try (var statement = c.createStatement(); var rows = statement.executeQuery("SELECT 1 FROM app_metadata WHERE key='demo_seed_v1'")) {
                     if (rows.next()) return null;
@@ -187,7 +200,26 @@ public final class AppContext {
                 return null;
             });
         } catch (com.maisonglow.exception.DataAccessException e) { throw new IOException("No se pudo preparar SQLite: " + e.getMessage(), e); }
-        return SESSION_DATA;
+        return sessionData;
+    }
+
+    /** IDE and Maven launches from the same checkout share the same database. */
+    private static Path defaultSessionFolder() throws IOException {
+        var source = AppContext.class.getProtectionDomain().getCodeSource();
+        if (source != null && "file".equals(source.getLocation().getProtocol())) {
+            try {
+                Path location = Path.of(source.getLocation().toURI());
+                for (Path folder = location; folder != null; folder = folder.getParent()) {
+                    if (Files.isRegularFile(folder.resolve("pom.xml"))
+                        && Files.isRegularFile(folder.resolve("src/main/java/com/maisonglow/AppContext.java"))) {
+                        return folder.resolve("data/session");
+                    }
+                }
+            } catch (URISyntaxException e) {
+                throw new IOException("No se pudo ubicar la carpeta del proyecto.", e);
+            }
+        }
+        return SOURCE_DATA.resolve("session").toAbsolutePath();
     }
 
     /**

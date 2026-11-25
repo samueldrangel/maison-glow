@@ -115,8 +115,8 @@ public final class Main {
         }
         System.out.println("Maison Glow - Sistema de gestión para negocios de belleza");
         if(args.length>0&&"seed-local".equalsIgnoreCase(args[0])){seedLocal(args);return;}
-        if (args.length > 0 && "setup-admin".equalsIgnoreCase(args[0])) {
-            setupAdmin();
+        if ("setup-admin".equalsIgnoreCase(args[0]) || "reset-admin".equalsIgnoreCase(args[0])) {
+            configureLocalAdmin("reset-admin".equalsIgnoreCase(args[0]));
             return;
         }
         ConsoleIo console = ConsoleIo.system();
@@ -144,21 +144,27 @@ public final class Main {
         finally{java.util.Arrays.fill(password,'\0');}
     }
 
-    /** Explicit local setup; secrets come from the process environment, never command arguments or Git. */
-    private static void setupAdmin() {
+    /** Local installation maintenance; secrets come from the process environment. */
+    private static void configureLocalAdmin(boolean reset) {
         String username = System.getenv("MAISON_GLOW_ADMIN_USERNAME");
         String secret = System.getenv("MAISON_GLOW_ADMIN_PASSWORD");
         if (username == null || secret == null) {
-            System.err.println("Configura MAISON_GLOW_ADMIN_USERNAME y MAISON_GLOW_ADMIN_PASSWORD para crear el primer administrador.");
+            System.err.println("Configura MAISON_GLOW_ADMIN_USERNAME y MAISON_GLOW_ADMIN_PASSWORD para gestionar el administrador local.");
             return;
         }
         char[] password = secret.toCharArray();
         try {
-            var context = new AppContext(AppContext.sessionFolder(), Clock.systemDefaultZone(), AiConfig.simulated());
-            context.auth().createFirstAdmin(username, password);
-            System.out.println("Primer administrador creado. Inicia sesión desde la pantalla de acceso cuando esté integrada.");
-        } catch (IOException | ValidationException | BusinessRuleException | DataAccessException e) {
-            System.err.println("No se pudo crear el administrador: " + e.getMessage());
+            var context = new AppContext(AppContext.sessionFolder(!reset), Clock.systemDefaultZone(), AiConfig.simulated());
+            System.out.println("Base de datos local: " + context.database().file());
+            if (reset) {
+                context.auth().resetLocalAdminPassword(username, password);
+                System.out.println("Contraseña del administrador actualizada. Inicia sesión con la nueva contraseña.");
+            } else {
+                context.auth().createFirstAdmin(username, password);
+                System.out.println("Primer administrador creado. Inicia sesión desde la pantalla de acceso.");
+            }
+        } catch (IOException | ValidationException | BusinessRuleException | DataAccessException | IllegalStateException e) {
+            System.err.println("No se pudo " + (reset ? "restablecer la contraseña" : "crear el administrador") + ": " + e.getMessage());
         } finally { java.util.Arrays.fill(password, '\0'); }
     }
 

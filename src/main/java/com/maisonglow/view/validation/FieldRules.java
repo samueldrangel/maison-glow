@@ -144,7 +144,7 @@ public final class FieldRules {
      * @return null if it has an acceptable length, or what to tell the person
      */
     public static String newPassword(String value) {
-        if (value == null || value.isEmpty()) {
+        if (value == null || value.isBlank()) {
             return "Escribe una contraseña.";
         }
         if (value.length() < PASSWORD_MIN) {

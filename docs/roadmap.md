@@ -3,7 +3,7 @@
 > Plan de trabajo exacto por integrante para la **Entrega 1** (≈ 14 días): toda la lógica de negocio (backend), con persistencia en archivos de texto,
 > más avances de UI en mockups y la BD **diseñada** (no conectada). Incluye, como trabajo opcional, el **backend** de la IA (sin interfaz).
 > Contexto: [`../PLANIFICACION.md`](../PLANIFICACION.md) · clases: [`fase2/diseno-clases.md`](fase2/diseno-clases.md) · TEAM: [`../TEAM.md`](../TEAM.md) ·
-> esquema: [`../sql/schema.sql`](../sql/schema.sql) ([ADR-0011](adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)).
+> esquema: [`../src/main/resources/sql/schema.sql`](../src/main/resources/sql/schema.sql) ([ADR-0011](adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)).
 
 ## 0. Tabla resumen (orden de ejecución)
 
@@ -63,7 +63,7 @@
 
 ### 1.1 ¿Qué cubre la Entrega 1? (requisito → tarea)
 
-El roadmap cubre **todo el backend de negocio**, no solo las clases base. Todo lo marcado **[D1]** en `sql/schema.sql` tiene clase, DAO de texto y servicio aquí.
+El roadmap cubre **todo el backend de negocio**, no solo las clases base. Todo lo marcado **[D1]** en `src/main/resources/sql/schema.sql` tiene clase, DAO de texto y servicio aquí.
 
 | Requisito | Tarea | Requisito | Tarea |
 |---|---|---|---|
@@ -94,7 +94,7 @@ El roadmap cubre **todo el backend de negocio**, no solo las clases base. Todo l
 
 ## 3. Contratos a congelar el Día 1
 
-Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de programar** (reunión de 30 min) y no cambian sin avisar. Los campos coinciden con las columnas de `sql/schema.sql`.
+Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de programar** (reunión de 30 min) y no cambian sin avisar. Los campos coinciden con las columnas de `src/main/resources/sql/schema.sql`.
 
 | Clase | Constructor / métodos clave | Dueño |
 |---|---|---|
@@ -119,8 +119,8 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
 | S-01 | 🔴 | 1 | Cerrar la base del repo | — | `feature/project-skeleton` (existe) | Fusionar el PR del esqueleto a `develop`; agregar colaboradores y docente; proteger `main`; poner `develop` por defecto; reunión de contratos (sección 3). **Listo cuando** Nicoll e Isabella pueden clonar y compilar con `mvn clean verify`. |
-| S-02 | 🔴 | 1–2 | Diseño de la BD | — | `docs/database-design` | MER (Mermaid en `docs/fase4/`) y `sql/schema.sql` (22 tablas, 4 vistas, 3 triggers; ADR-0011). Revisado por los tres. **Listo cuando** el script corre sin error en SQLite. |
-| S-03 | 🔴 | 2 | Base `TextFileDao<T>` | S-01 | `feature/text-file-dao` | Clase abstracta genérica que implementa `CrudDao<T>` sobre un archivo `.txt` ([ADR-0012](adr/0012-persistencia-en-archivos-de-texto.md)): carga en la primera operación, mantiene un `Map<Integer,T>`, guarda tras cada cambio, asigna ids y usa `\|` como separador con escape (helper reutilizable también por `SettingDao`). Cada DAO solo define `toFields`, `fromFields` y el acceso al id; la ruta llega por constructor. Agrega `data/settings.txt` precargado (de `sql/seed.sql`) y las reglas de `.gitignore` para `data/*.txt` (excepto `settings.txt` y `categories.txt`). **Listo cuando** hay pruebas con archivo temporal de crear, buscar, listar, actualizar, eliminar, recarga desde disco y escape de `\|`. *Desbloquea todos los DAO.* |
+| S-02 | 🔴 | 1–2 | Diseño de la BD | — | `docs/database-design` | MER (Mermaid en `docs/fase4/`) y `src/main/resources/sql/schema.sql` (22 tablas, 4 vistas, 3 triggers; ADR-0011). Revisado por los tres. **Listo cuando** el script corre sin error en SQLite. |
+| S-03 | 🔴 | 2 | Base `TextFileDao<T>` | S-01 | `feature/text-file-dao` | Clase abstracta genérica que implementa `CrudDao<T>` sobre un archivo `.txt` ([ADR-0012](adr/0012-persistencia-en-archivos-de-texto.md)): carga en la primera operación, mantiene un `Map<Integer,T>`, guarda tras cada cambio, asigna ids y usa `\|` como separador con escape (helper reutilizable también por `SettingDao`). Cada DAO solo define `toFields`, `fromFields` y el acceso al id; la ruta llega por constructor. Agrega `data/settings.txt` precargado (de `src/main/resources/sql/seed.sql`) y las reglas de `.gitignore` para `data/*.txt` (excepto `settings.txt` y `categories.txt`). **Listo cuando** hay pruebas con archivo temporal de crear, buscar, listar, actualizar, eliminar, recarga desde disco y escape de `\|`. *Desbloquea todos los DAO.* |
 | S-04 | 🔴 | 3–4 | `Appointment` y su DAO | N-01, I-01, S-03 | `feature/appointment-model` | `Appointment` con `getEnd()`, `overlapsWith()`, `deposit`, `reminderAt`, transiciones de estado (`confirm`, `cancel`, `complete`, `markNoShow`) y `AppointmentStatus.blocksSchedule()`; `markNoShow()` incrementa las inasistencias del cliente (`Customer.registerNoShow()`). `AppointmentDao` + `AppointmentDaoText` con los campos de la tabla `appointment`. **Listo cuando** las transiciones inválidas lanzan `BusinessRuleException`. |
 | S-05 | 🔴 | 5–7 | `AppointmentService.book` y gestión de citas | S-04 | `feature/appointment-service` | Define la interfaz `AppointmentRule` (contrato de la sección 3) y la recibe **por constructor** como lista. `book(...)`: valida datos (`Validator`), que el profesional esté activo, ofrezca el servicio y trabaje en el horario, y que **no haya cruce** con citas activas; luego aplica las reglas y guarda. `reschedule`, `cancel`, `confirm`, `complete`, `markNoShow`, `listByDate`, `checkAvailability` (RF-10 a 13). **Listo cuando** una prueba intenta dos citas cruzadas y la segunda se rechaza, y una regla de prueba se agrega sin modificar el servicio. |
 | S-06 | 🔴 | 5–6 | `Sale` y `SaleLine` | I-02, S-03 | `feature/sale-model` | `Sale.addLine(Sellable, qty)` **crea** el `SaleLine` (Creator), copia el precio del momento y suma cantidad si el ítem ya está; `calculateTotal()`; `soldAt`; `linkAppointment(...)` opcional. Cada línea es de producto **o** de servicio (igual que el `CHECK` de `sale_line`) y se resuelve por polimorfismo, sin `instanceof` de negocio. `SaleDao` + `SaleDaoText` (`sales.txt` y `sale_lines.txt`). **Listo cuando** una venta mixta (producto + servicio) calcula bien el total y se recarga igual desde disco. |
@@ -158,7 +158,7 @@ Para trabajar en paralelo sin esperar, estas firmas se acuerdan **antes de progr
 | ID | Pri. | Día | Tarea | Depende de | Rama | Descripción y criterio de aceptación |
 |---|---|---|---|---|---|---|
 | I-01 | 🔴 | 1–2 | `Treatment` | S-01 | `feature/beauty-service-model` | Implementa `Sellable`; `calculateEnd(start)` suma la duración; `active`. `toString`/`equals`/`hashCode` por id. *Desbloquea a Samuel (Appointment) y a Nicoll (catálogo): fusionar el Día 2.* |
-| I-02 | 🔴 | 2–3 | `ProductCategory` y `Product` | S-01 | `feature/product-model` | `ProductCategory` (id, nombre) con `CategoryDao`/`CategoryDaoText` y `data/categories.txt` precargado con las categorías de `sql/seed.sql`. `Product` implementa `Sellable`, referencia su `ProductCategory` y tiene `active`; `hasStock`, `deductStock` (lanza `BusinessRuleException` si no alcanza), `addStock`, `isBelowMinimum()`. **Listo cuando** hay pruebas de descuento exacto, descuento excesivo y umbral. |
+| I-02 | 🔴 | 2–3 | `ProductCategory` y `Product` | S-01 | `feature/product-model` | `ProductCategory` (id, nombre) con `CategoryDao`/`CategoryDaoText` y `data/categories.txt` precargado con las categorías de `src/main/resources/sql/seed.sql`. `Product` implementa `Sellable`, referencia su `ProductCategory` y tiene `active`; `hasStock`, `deductStock` (lanza `BusinessRuleException` si no alcanza), `addStock`, `isBelowMinimum()`. **Listo cuando** hay pruebas de descuento exacto, descuento excesivo y umbral. |
 | I-03 | 🔴 | 3–5 | Módulo de productos | I-02, S-03 | `feature/product-service` | `ProductDao` + `ProductDaoText` + `ProductService`: registrar (nombre único, categoría existente, precio > 0, stock ≥ 0), actualizar, `adjustStock`, `listLowStock()` (RF-03, 04, 05, 19). |
 | I-10 | 🔴 | 3–4 | Configuración del negocio | S-03 | `feature/settings-service` | `Setting`, `SettingDao`/`SettingDaoText` (lee y guarda `data/settings.txt`, clave de texto) y `SettingsService` con getters tipados (contrato de la sección 3) y validación de rangos (porcentajes 0–100, horas ≥ 0). Evita números fijos en reglas y estadísticas. **Listo cuando** un valor inválido en el archivo lanza `ValidationException` y cambiar un valor se refleja sin tocar código. |
 | I-07 | 🟠 | 9–10 | Factura y correo simulado | S-06 | `feature/email-notifier` | `EmailNotifier` (interfaz) y `SimulatedEmailNotifier` (imprime el correo); `InvoiceFormatter` que arma el texto de la factura desde una `Sale` (RF-27). |
@@ -243,7 +243,7 @@ Cada PR añade a la descripción la fila "principio → clase y método" que ali
 1. `mvn clean verify` pasa en `main`, con ≥ 70 % de cobertura en `service`.
 2. El escenario de N-10 demuestra: clientes, profesionales, servicios y productos registrados; cita agendada con reglas y cruce rechazado; venta mixta que descuenta stock; stock bajo, baja rotación y estadísticas consultables.
 3. Mockups M1–M7 exportados y enlazados.
-4. `sql/schema.sql` y MER revisados por los tres, y las clases y archivos [D1] coinciden con sus tablas (sección 1.1).
+4. `src/main/resources/sql/schema.sql` y MER revisados por los tres, y las clases y archivos [D1] coinciden con sus tablas (sección 1.1).
 5. Documentos de Fase 1 y 2 completos (incluye GRASP y SOLID con clase y método reales).
 6. Cada integrante con ≥ 12 commits y todos los cambios por PR.
 7. *(Opcional)* Backend de la IA (S-12 y S-13) con herramientas en lista blanca y modo simulado, sin interfaz; si no está estable, se documenta como Entrega 2.

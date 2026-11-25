@@ -1,6 +1,6 @@
 # S-17 — Persistencia de IA en archivos de texto
 
-`AiHistory` guarda cuatro archivos en la misma carpeta de datos de `AppContext`: `assistant_conversations.txt`, `assistant_messages.txt`, `assistant_tool_calls.txt` y `try_on_sessions.txt`. Cada registro conserva, en orden, los campos de `assistant_conversation`, `assistant_message`, `assistant_tool_call` y `try_on_session` de `sql/schema.sql`. El encabezado `#nextId` conserva identificadores crecientes entre reinicios y `TextLineCodec` permite mensajes con `|`, barras invertidas y saltos de línea.
+`AiHistory` guarda cuatro archivos en la misma carpeta de datos de `AppContext`: `assistant_conversations.txt`, `assistant_messages.txt`, `assistant_tool_calls.txt` y `try_on_sessions.txt`. Cada registro conserva, en orden, los campos de `assistant_conversation`, `assistant_message`, `assistant_tool_call` y `try_on_session` de `src/main/resources/sql/schema.sql`. El encabezado `#nextId` conserva identificadores crecientes entre reinicios y `TextLineCodec` permite mensajes con `|`, barras invertidas y saltos de línea.
 
 `AppContext.aiHistory()` ofrece operaciones para abrir una conversación, añadir mensajes, registrar y finalizar llamadas de herramientas, abrir y finalizar sesiones del probador, y consultar esos datos. Se comprueba que los mensajes tengan una conversación y que las llamadas de herramientas pertenezcan a un mensaje del asistente. Cada archivo se reemplaza de forma atómica al escribir. No hay transacción entre archivos: cada llamada del repositorio guarda un registro de una tabla.
 

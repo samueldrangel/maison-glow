@@ -7,7 +7,7 @@
 
 Mantener SQLite local y añadir autenticación a través de `AppContext.auth()`, sin asignar pantallas a Samuel. `AuthenticationService` coordina reglas y transacciones; `AccountDaoSqlite` persiste credenciales y devuelve a la presentación únicamente `UserAccount`, sin hash.
 
-El registro público crea una ficha nueva y cuenta CUSTOMER atómicamente. Las fichas antiguas solo se vinculan mediante operación administrativa después de verificar identidad. La configuración del primer ADMIN es un comando local explícito, sin contraseña predeterminada.
+El registro público crea una ficha nueva y cuenta CUSTOMER atómicamente. Las fichas antiguas solo se vinculan mediante operación administrativa después de verificar identidad. La configuración inicial del ADMIN es explícita y se ofrece al abrir una instalación que aún carece de administrador. Quien opera la base local puede restablecer la contraseña de un administrador existente desde la terminal. La contraseña siempre se elige durante la configuración o el restablecimiento.
 
 Se usa PBKDF2-HMAC-SHA256 del JDK, sal aleatoria e iteraciones registradas en el hash para no añadir una dependencia criptográfica a esta entrega. Las sesiones son locales, en memoria, duran ocho horas y se verifican contra versión de credenciales y estado persistidos. Un cambio de contraseña o actividad invalida otras instancias.
 

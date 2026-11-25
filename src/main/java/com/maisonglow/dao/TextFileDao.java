@@ -22,7 +22,7 @@ import java.util.TreeMap;
  *
  * <p>The first line of the file stores the next id to assign
  * ({@code #nextId=N}), so the id of a deleted record is never given to a
- * new one, as with {@code AUTOINCREMENT} in {@code sql/schema.sql}.</p>
+ * new one, as with {@code AUTOINCREMENT} in the bundled SQLite schema.</p>
  *
  * <p>Create only one instance per file, at application start-up: each
  * instance keeps serialized snapshots, never caller-owned entities. Reads
@@ -53,7 +53,7 @@ public abstract class TextFileDao<T> implements CrudDao<T> {
 
     /**
      * Converts an entity into the field values of its record, in the same
-     * order as the columns of its table in {@code sql/schema.sql}.
+     * order as the columns of its table in the bundled SQLite schema.
      *
      * @param entity the entity to convert
      * @return the field values

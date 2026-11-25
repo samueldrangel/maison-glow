@@ -57,10 +57,28 @@ public final class AuthenticationService {
         String normalized = normalizeUsername(username);
         String hash = passwords.hash(password);
         return transactions.execute(() -> {
-            if (accounts.countAdministrators(false) != 0)
+            if (!needsAdministratorSetup())
                 throw new BusinessRuleException("La instalación ya tiene un administrador.");
             requireAvailable(normalized);
             return accounts.create(normalized, hash, UserRole.ADMIN, null);
+        });
+    }
+
+    public boolean needsAdministratorSetup() throws DataAccessException {
+        return accounts.countAdministrators(false) == 0;
+    }
+
+    /** Offline maintenance for the operator with write access to the local database. */
+    public synchronized void resetLocalAdminPassword(String username, char[] password)
+        throws ValidationException, BusinessRuleException, DataAccessException {
+        String normalized = normalizeUsername(username);
+        String hash = passwords.hash(password);
+        transactions.execute(() -> {
+            var admin = accounts.findByUsername(normalized)
+                .filter(stored -> stored.account().active() && stored.account().role() == UserRole.ADMIN)
+                .orElseThrow(() -> new BusinessRuleException("No se encontró un administrador activo con ese usuario en esta base."));
+            accounts.changePassword(admin.account().id(), hash);
+            return null;
         });
     }
 

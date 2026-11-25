@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-/** Text persistence for the four AI tables in sql/schema.sql. */
+/** Text persistence for the four AI tables in the bundled SQLite schema. */
 public final class AiHistory {
     public record Conversation(int id, int userId, LocalDateTime startedAt) { }
     public record Message(int id, int conversationId, Sender sender, String content, LocalDateTime createdAt) { }

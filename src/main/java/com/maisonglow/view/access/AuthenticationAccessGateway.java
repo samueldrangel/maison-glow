@@ -46,8 +46,7 @@ public final class AuthenticationAccessGateway implements AccessGateway {
     public AccessSession login(String username, String password)
         throws ValidationException, BusinessRuleException, DataAccessException {
         Validator.requireText(username, "usuario");
-        Validator.requireText(password, "contraseña");
-        char[] secret = password.toCharArray();
+        char[] secret = existingPassword(password, "contraseña");
         try {
             return toSession(auth.login(username, secret));
         } finally {
@@ -76,10 +75,9 @@ public final class AuthenticationAccessGateway implements AccessGateway {
     @Override
     public void changePassword(String current, String replacement, String confirmation)
         throws ValidationException, BusinessRuleException, DataAccessException {
-        Validator.requireText(current, "contraseña actual");
         Validator.requireText(replacement, "contraseña nueva");
         requireSame(replacement, confirmation);
-        char[] old = current.toCharArray();
+        char[] old = existingPassword(current, "contraseña actual");
         char[] fresh = replacement.toCharArray();
         try {
             auth.changePassword(old, fresh);
@@ -128,6 +126,13 @@ public final class AuthenticationAccessGateway implements AccessGateway {
         if (!Objects.equals(password, confirmation)) {
             throw new ValidationException("La confirmación de la contraseña no coincide.");
         }
+    }
+
+    private static char[] existingPassword(String password, String field) throws ValidationException {
+        if (password == null || password.isEmpty()) {
+            throw new ValidationException("El campo " + field + " es obligatorio.");
+        }
+        return password.toCharArray();
     }
 
     private static String trim(String text) {

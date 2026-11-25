@@ -12,7 +12,7 @@ Se requiere base de datos relacional, CRUD desde la capa de acceso a datos, patr
 
 - **Motor:** SQLite (archivo `maisonglow.db`), accedido con **JDBC puro** (`PreparedStatement` siempre, para evitar inyección SQL).
 - **Patrón DAO:** interfaz genérica `CrudDao<T>` (`crear`, `buscarPorId`, `listar`, `actualizar`, `eliminar`) y una clase `XxxDaoJdbc` por entidad.
-- **Esquema** en `sql/schema.sql`, ejecutado automáticamente si la BD no existe.
+- **Esquema** en `src/main/resources/sql/schema.sql`, ejecutado automáticamente si la BD no existe.
 - **Mapeo objeto→tabla manual** (método privado `mapear(ResultSet)` en cada DAO); sin ORM.
 - Una única clase `ConexionBD` entrega la conexión.
 - Las `SQLException` se envuelven en `AccesoDatosException` (ver ADR-0008).

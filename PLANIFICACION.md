@@ -91,7 +91,7 @@ Esto cubre **herencia** (`Persona`), **interfaces** (`Vendible`, `ReglaCita`, `C
 
 ### 3.2 Modelo de base de datos
 
-El diseño definitivo está en [`sql/schema.sql`](sql/schema.sql) (22 tablas, [ADR-0011](docs/adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)), con cada tabla marcada por entrega: **D1** (`customer`, `professional`, `professional_treatment`, `treatment`, `product_category`, `product`, `appointment`, `sale`, `sale_line`, `app_setting`), **D2** (usuarios, promociones, pagos, facturas, movimientos de stock, notificaciones) y **AI**. La Entrega 1 implementa las D1 como archivos de texto con los mismos campos. El MER y el diccionario de datos están en `docs/fase4/` (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
+El diseño definitivo está en [`src/main/resources/sql/schema.sql`](src/main/resources/sql/schema.sql) (22 tablas, [ADR-0011](docs/adr/0011-decisiones-de-diseno-de-la-base-de-datos.md)), con cada tabla marcada por entrega: **D1** (`customer`, `professional`, `professional_treatment`, `treatment`, `product_category`, `product`, `appointment`, `sale`, `sale_line`, `app_setting`), **D2** (usuarios, promociones, pagos, facturas, movimientos de stock, notificaciones) y **AI**. La Entrega 1 implementa las D1 como archivos de texto con los mismos campos. El MER y el diccionario de datos están en `docs/fase4/` (ver [ADR-0003](docs/adr/0003-persistencia-sqlite-jdbc-dao.md)).
 
 ### 3.3 Principios aplicados (previsión)
 
@@ -150,7 +150,7 @@ Herramientas sugeridas: **draw.io / PlantUML** para UML; **Figma** o **draw.io**
 
 #### Entrega 1 (semanas 1–2): lógica de negocio sin BD
 
-Se programa contra la interfaz `CrudDao<T>` usando DAO de **archivo de texto** (`data/*.txt`, ver ADR-0012), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
+Se programa contra la interfaz `CrudDao<T>` usando DAO de **archivo de texto** (`data/*.txt`, ver ADR-0012), y se prueba con JUnit o una clase `Main` de consola. Así, al llegar la BD, solo se cambia la implementación del DAO. Mientras tanto la BD **se diseña ya** (MER y `src/main/resources/sql/schema.sql`) y el modelo se escribe de acuerdo con ella.
 
 | Bloque | Samuel (Líder) | Nicoll (Dev 1) | Isabella (Dev 2) |
 |---|---|---|---|
@@ -289,7 +289,7 @@ maison-glow/
 │   ├── fase2/                # UML, mockups
 │   ├── fase3/                # Evidencia de commits, trazabilidad
 │   └── fase4/                # MER, diccionario de datos, reporte final
-├── sql/
+├── src/main/resources/sql/
 │   └── schema.sql
 └── src/main/java/com/maisonglow/
     ├── modelo/  dao/  servicio/  vista/  ia/  util/  excepcion/
